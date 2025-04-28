@@ -16,46 +16,33 @@ class UserSeeder extends Seeder
     {
 
           // Coordinator Admin
-          User::create([
+         // Create Admin
+         User::create([
+            'name' => 'Admin User',
             'username' => 'admin',
-            'password' => Hash::make('password123'),
-            'name' => 'Default Admin',
             'email' => 'admin@example.com',
-            'phone' => '09123456789',
+            'password' => Hash::make('password'),
+            'role' => 'admin',
+            'is_active' => true,
+        ]);
+
+        // Create Coordinator
+        User::create([
+            'name' => 'Coordinator John',
+            'username' => 'coordinatorjohn',
+            'email' => 'coordinator@example.com',
+            'password' => Hash::make('password'),
             'role' => 'coordinator',
             'is_active' => true,
         ]);
 
-        // Teller 1
+        // Create Teller
         User::create([
-            'username' => 'teller1',
-            'password' => Hash::make('password123'),
-            'name' => 'John Teller',
-            'email' => 'john.teller@example.com',
-            'phone' => '09121231234',
+            'name' => 'Teller Jane',
+            'username' => 'tellerjane',
+            'email' => 'teller@example.com',
+            'password' => Hash::make('password'),
             'role' => 'teller',
-            'is_active' => true,
-        ]);
-
-        // Teller 2
-        User::create([
-            'username' => 'teller2',
-            'password' => Hash::make('password123'),
-            'name' => 'Jane Teller',
-            'email' => 'jane.teller@example.com',
-            'phone' => '09129876543',
-            'role' => 'teller',
-            'is_active' => true,
-        ]);
-
-        // Customer
-        User::create([
-            'username' => 'customer1',
-            'password' => Hash::make('password123'),
-            'name' => 'Sample Customer',
-            'email' => 'customer@example.com',
-            'phone' => '09998887766',
-            'role' => 'customer',
             'is_active' => true,
         ]);
     }

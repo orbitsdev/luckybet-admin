@@ -11,7 +11,9 @@ class Result extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['winning_number', 'schedule_id', 'draw_date', 'coordinator_id'];
+    protected $fillable = [
+        'winning_number', 'schedule_id', 'draw_date', 'coordinator_id'
+    ];
 
     public function schedule()
     {
@@ -22,5 +24,4 @@ class Result extends Model
     {
         return $this->belongsTo(User::class, 'coordinator_id');
     }
-    //
 }

@@ -12,7 +12,9 @@ class Commission extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['teller_id', 'rate', 'amount', 'commission_date', 'type', 'bet_id', 'claim_id'];
+    protected $fillable = [
+        'teller_id', 'rate', 'amount', 'commission_date', 'type', 'bet_id', 'claim_id'
+    ];
 
     public function teller()
     {

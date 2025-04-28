@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->time('draw_time');
             $table->boolean('is_active')->default(true);
-            $table->boolean('is_open')->default(true);
+            $table->boolean('is_open')->default(false);
             
             $table->timestamps();
         });

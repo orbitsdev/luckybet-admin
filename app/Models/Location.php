@@ -11,7 +11,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Location extends Model
 {
     use HasFactory;
-    protected $fillable = ['name', 'address', 'coordinator_id', 'is_active'];
+    protected $fillable = [
+        'name', 'address', 'coordinator_id', 'is_active',
+    ];
+
+    public function coordinator()
+    {
+        return $this->belongsTo(User::class, 'coordinator_id');
+    }
 
     public function tellers()
     {

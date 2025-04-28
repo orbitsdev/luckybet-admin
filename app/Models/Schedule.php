@@ -10,13 +10,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Schedule extends Model
 {
     use HasFactory;
-    protected $fillable = [
-        'name',
-        'draw_time',
-        'is_active',
-        'is_open', // <- ADD THIS
-    ];
+   
 
+    protected $fillable = [
+        'name', 'draw_time', 'is_active', 'is_open'
+    ];
 
     public function bets()
     {

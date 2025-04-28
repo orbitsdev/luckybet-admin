@@ -11,15 +11,11 @@ class Draw extends Model
     use HasFactory;
 
     protected $fillable = [
-        'draw_date',
-        'draw_time',
-        'type',
-        'winning_number',
-        'is_open',
+        'draw_date', 'draw_time', 'type', 'winning_number', 'is_open',
     ];
 
-    public function transactions()
-{
-    return $this->hasMany(Transaction::class);
-}
+    public function bets()
+    {
+        return $this->hasMany(Bet::class);
+    }
 }

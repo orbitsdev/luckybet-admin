@@ -20,10 +20,14 @@ class DatabaseSeeder extends Seeder
 
 
         $this->call([
+            UserSeeder::class,
+            LocationSeeder::class,
+            // Update user locations after locations are created
             ScheduleSeeder::class,
-    UserSeeder::class,
-    LocationSeeder::class,
-    TellerSeeder::class,
+            DrawSeeder::class,
+            BetSeeder::class,
+            ResultSeeder::class,
+            // ClaimSeeder::class // Enable if you add real claim logic
         ]);
     }
 }

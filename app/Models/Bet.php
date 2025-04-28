@@ -15,8 +15,7 @@ class Bet extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'bet_number', 'amount', 'schedule_id', 'teller_id', 'customer_id', 'location_id',
-        'bet_date', 'ticket_id', 'status', 'is_combination'
+        'bet_number', 'amount', 'schedule_id', 'teller_id', 'customer_id', 'location_id', 'bet_date', 'ticket_id', 'status', 'is_combination'
     ];
 
     public function teller()
@@ -29,19 +28,18 @@ class Bet extends Model
         return $this->belongsTo(User::class, 'customer_id');
     }
 
-    public function location()
-    {
-        return $this->belongsTo(Location::class);
-    }
-
     public function schedule()
     {
         return $this->belongsTo(Schedule::class);
+    }
+
+    public function location()
+    {
+        return $this->belongsTo(Location::class);
     }
 
     public function claim()
     {
         return $this->hasOne(Claim::class);
     }
-    //
 }

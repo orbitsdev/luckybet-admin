@@ -7,7 +7,7 @@ use App\Models\Bet;
 use App\Models\Claim;
 use App\Models\Teller;
 use App\Models\Commission;
-use App\Models\Transaction;
+
 use Laravel\Sanctum\HasApiTokens;
 use Laravel\Jetstream\HasProfilePhoto;
 use Illuminate\Notifications\Notifiable;
@@ -72,29 +72,16 @@ class User extends Authenticatable
     }
 
 
+    public function location()
+    {
+        return $this->belongsTo(Location::class);
+    }
+
     public function teller()
     {
         return $this->hasOne(Teller::class);
     }
 
-    public function bets()
-    {
-        return $this->hasMany(Bet::class, 'teller_id');
-    }
 
-    public function claims()
-    {
-        return $this->hasMany(Claim::class, 'teller_id');
-    }
-
-    public function commissions()
-    {
-        return $this->hasMany(Commission::class, 'teller_id');
-    }
-
-
-    public function transactions()
-{
-    return $this->hasMany(Transaction::class);
-}
+   
 }
