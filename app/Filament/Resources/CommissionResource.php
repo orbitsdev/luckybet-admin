@@ -2,9 +2,9 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\TellerResource\Pages;
-use App\Filament\Resources\TellerResource\RelationManagers;
-use App\Models\Teller;
+use App\Filament\Resources\CommissionResource\Pages;
+use App\Filament\Resources\CommissionResource\RelationManagers;
+use App\Models\Commission;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -13,31 +13,35 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class TellerResource extends Resource
+class CommissionResource extends Resource
 {
-    protected static ?string $model = Teller::class;
+    protected static ?string $model = Commission::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 8;
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('user_id')
+                Forms\Components\TextInput::make('teller_id')
+                    ->tel()
                     ->required()
                     ->numeric(),
-                Forms\Components\TextInput::make('coordinator_id')
+                Forms\Components\TextInput::make('rate')
                     ->required()
                     ->numeric(),
-                Forms\Components\TextInput::make('commission_rate')
+                Forms\Components\TextInput::make('amount')
                     ->required()
-                    ->numeric()
-                    ->default(5.00),
-                Forms\Components\TextInput::make('balance')
-                    ->required()
-                    ->numeric()
-                    ->default(0.00),
+                    ->numeric(),
+                Forms\Components\DatePicker::make('commission_date')
+                    ->required(),
+                Forms\Components\TextInput::make('type')
+                    ->required(),
+                Forms\Components\TextInput::make('bet_id')
+                    ->numeric(),
+                Forms\Components\TextInput::make('claim_id')
+                    ->numeric(),
             ]);
     }
 
@@ -45,16 +49,23 @@ class TellerResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('user_id')
+                Tables\Columns\TextColumn::make('teller_id')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('coordinator_id')
+                Tables\Columns\TextColumn::make('rate')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('commission_rate')
+                Tables\Columns\TextColumn::make('amount')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('balance')
+                Tables\Columns\TextColumn::make('commission_date')
+                    ->date()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('type'),
+                Tables\Columns\TextColumn::make('bet_id')
+                    ->numeric()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('claim_id')
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
@@ -89,9 +100,9 @@ class TellerResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListTellers::route('/'),
-            'create' => Pages\CreateTeller::route('/create'),
-            'edit' => Pages\EditTeller::route('/{record}/edit'),
+            'index' => Pages\ListCommissions::route('/'),
+            'create' => Pages\CreateCommission::route('/create'),
+            'edit' => Pages\EditCommission::route('/{record}/edit'),
         ];
     }
 }
