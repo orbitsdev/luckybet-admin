@@ -15,10 +15,16 @@ class TellerSummaryResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'name' => $this->teller_name,       // Teller name
-            'sales' => $this->sales,             // Total sales
-            'hits' => $this->hits,               // Total hits
-            'gross' => $this->gross,             // Gross = sales - hits
+            'teller_id' => $this->teller_id,
+            'name' => $this->teller_name,
+            'location_name' => $this->location_name,
+            'sales' => $this->sales,
+            'hits' => $this->hits,
+            'gross' => $this->gross,
+            'commission_earned' => $this->commission,
+            'voided' => $this->voided,
+            'total_bets' => $this->total_bets,
+            'last_transaction_time' => $this->last_transaction_time,         // Gross = sales - hits
         ];
     }
 }
