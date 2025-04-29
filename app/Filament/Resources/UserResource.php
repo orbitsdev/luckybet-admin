@@ -49,8 +49,13 @@ class UserResource extends Resource
                 Forms\Components\DateTimePicker::make('two_factor_confirmed_at'),
                 Forms\Components\TextInput::make('current_team_id')
                     ->numeric(),
-                Forms\Components\TextInput::make('profile_photo_path')
-                    ->maxLength(2048),
+                Forms\Components\FileUpload::make('profile_photo_path')
+                    ->image()
+                    ->directory('profile-photos')
+                    ->visibility('public')
+                    ->maxSize(1024)
+                    ->hint('Maximum size: 1MB')
+                    ->imagePreviewHeight('100'),
                 Forms\Components\TextInput::make('role')
                     ->required(),
                 Forms\Components\Toggle::make('is_active')
@@ -81,8 +86,12 @@ class UserResource extends Resource
                 Tables\Columns\TextColumn::make('current_team_id')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('profile_photo_path')
-                    ->searchable(),
+                Tables\Columns\ImageColumn::make('profile_photo_url')
+                    ->label('Profile Photo')
+                    ->circular()
+                    ->defaultImageUrl(function (User $record): string {
+                        return $record->profile_photo_url;
+                    }),
                 Tables\Columns\TextColumn::make('role'),
                 Tables\Columns\IconColumn::make('is_active')
                     ->boolean(),

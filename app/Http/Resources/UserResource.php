@@ -24,6 +24,7 @@ class UserResource extends JsonResource
             'role' => $this->role,
             'location' => new LocationResource($this->whenLoaded('location')),
             'is_active' => $this->is_active,
+            'profile_photo_url' => $this->profile_photo_url,
         ];
     }
 }

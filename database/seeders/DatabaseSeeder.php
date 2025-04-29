@@ -9,6 +9,7 @@ use Database\Seeders\UserSeeder;
 use Database\Seeders\TellerSeeder;
 use Database\Seeders\LocationSeeder;
 use Database\Seeders\ScheduleSeeder;
+use Database\Seeders\TallySheetSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -27,6 +28,7 @@ class DatabaseSeeder extends Seeder
             DrawSeeder::class,
             BetSeeder::class,
             ResultSeeder::class,
+            TallySheetSeeder::class,
             // ClaimSeeder::class // Enable if you add real claim logic
         ]);
     }

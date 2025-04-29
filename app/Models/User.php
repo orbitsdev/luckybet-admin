@@ -90,6 +90,19 @@ class User extends Authenticatable
         return $this->hasMany(Commission::class, 'teller_id');
     }
 
-
-
+    /**
+     * Get the profile photo URL attribute or a default avatar if none exists.
+     *
+     * @return string
+     */
+    public function getProfilePhotoUrlAttribute()
+    {
+        if ($this->profile_photo_path) {
+            return url('storage/' . $this->profile_photo_path);
+        }
+        
+        // Return a free avatar URL based on the user's name
+        $name = urlencode($this->name);
+        return "https://ui-avatars.com/api/?name={$name}&color=7F9CF5&background=EBF4FF";
+    }
 }
