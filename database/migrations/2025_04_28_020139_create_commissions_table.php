@@ -18,8 +18,9 @@ return new class extends Migration
             $table->decimal('amount', 10, 2);
             $table->date('commission_date');
             $table->enum('type', ['sales', 'claims']);
-            $table->foreignId('bet_id')->nullable()->constrained()->nullOnDelete();
-            $table->foreignId('claim_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('bet_id')->nullable()->constrained('bets')->nullOnDelete();
+            $table->foreignId('claim_id')->nullable()->constrained('claims')->nullOnDelete();
+
             $table->timestamps();
         });
     }

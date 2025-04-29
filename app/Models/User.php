@@ -70,18 +70,26 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
-
-
     public function location()
     {
         return $this->belongsTo(Location::class);
     }
 
-    public function teller()
+    public function bets()
     {
-        return $this->hasOne(Teller::class);
+        return $this->hasMany(Bet::class, 'teller_id');
+    }
+
+    public function claims()
+    {
+        return $this->hasMany(Claim::class, 'teller_id');
+    }
+
+    public function commissions()
+    {
+        return $this->hasMany(Commission::class, 'teller_id');
     }
 
 
-   
+
 }

@@ -9,4 +9,5 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 
-Schedule::command('app:auto-close-schedule')->everyMinute();
+// Schedule::command('app:auto-close-schedule')->everyMinute();
+Schedule::command('app:auto-close-draw')->everyMinute();

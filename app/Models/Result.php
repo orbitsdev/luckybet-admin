@@ -12,13 +12,12 @@ class Result extends Model
     use HasFactory;
 
     protected $fillable = [
-        'winning_number', 'schedule_id', 'draw_date', 'coordinator_id'
+        'draw_date',
+        'draw_time',
+        'type',            // S2, S3, D4
+        'winning_number',  // Example: 21, 456, 7890
+        'coordinator_id',  // User who inputted
     ];
-
-    public function schedule()
-    {
-        return $this->belongsTo(Schedule::class);
-    }
 
     public function coordinator()
     {

@@ -14,24 +14,13 @@ class Location extends Model
     protected $fillable = [
         'name', 'address', 'coordinator_id', 'is_active',
     ];
-
-    public function coordinator()
-    {
-        return $this->belongsTo(User::class, 'coordinator_id');
-    }
-
     public function tellers()
     {
-        return $this->hasMany(Teller::class);
+        return $this->hasMany(User::class);
     }
 
     public function bets()
     {
         return $this->hasMany(Bet::class);
-    }
-
-    public function tallySheets()
-    {
-        return $this->hasMany(TallySheet::class);
     }
 }

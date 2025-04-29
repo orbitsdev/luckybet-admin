@@ -16,8 +16,7 @@ return new class extends Migration
             $table->date('draw_date');
             $table->time('draw_time');
             $table->enum('type', ['S2', 'S3', 'D4']);
-            $table->string('winning_number')->nullable();
-            $table->boolean('is_open')->default(false);
+            $table->boolean('is_open')->default(false); // for betting open/close
             $table->timestamps();
         });
     }

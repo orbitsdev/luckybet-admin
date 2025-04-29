@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Models\Draw;
 use App\Models\User;
 use App\Models\Claim;
 use App\Models\Location;
 use App\Models\Schedule;
+use App\Models\Commission;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -15,8 +17,23 @@ class Bet extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'bet_number', 'amount', 'schedule_id', 'teller_id', 'customer_id', 'location_id', 'bet_date', 'ticket_id', 'status', 'is_combination'
+        'bet_number',
+        'amount',
+        'draw_id',
+        'teller_id',
+        'customer_id',    // optional
+        'location_id',
+        'bet_date',
+        'ticket_id',
+        'status',         // active, cancelled, won, lost, claimed
+        'is_combination', // true/false
     ];
+
+
+    public function draw()
+    {
+        return $this->belongsTo(Draw::class);
+    }
 
     public function teller()
     {
@@ -28,11 +45,6 @@ class Bet extends Model
         return $this->belongsTo(User::class, 'customer_id');
     }
 
-    public function schedule()
-    {
-        return $this->belongsTo(Schedule::class);
-    }
-
     public function location()
     {
         return $this->belongsTo(Location::class);
@@ -41,5 +53,10 @@ class Bet extends Model
     public function claim()
     {
         return $this->hasOne(Claim::class);
+    }
+
+    public function commission()
+    {
+        return $this->hasOne(Commission::class, 'bet_id');
     }
 }

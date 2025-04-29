@@ -19,7 +19,7 @@ return new class extends Migration
             $table->decimal('amount', 10, 2);
             $table->decimal('commission_amount', 10, 2)->default(0);
             $table->timestamp('claimed_at')->nullable();
-            $table->string('qr_code_data');
+            $table->string('qr_code_data')->nullable();
             $table->timestamps();
         });
     }

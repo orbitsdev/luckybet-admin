@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('bet_number');
             $table->decimal('amount', 10, 2);
-            $table->foreignId('schedule_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('draw_id')->constrained()->cascadeOnDelete();
             $table->foreignId('teller_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('customer_id')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('location_id')->constrained()->cascadeOnDelete();
