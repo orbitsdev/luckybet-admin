@@ -14,6 +14,39 @@ use App\Http\Resources\DrawResource;
 
 class BettingController extends Controller
 {
+    /**
+     * List bets for the authenticated teller with optional filtering
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function listBets(Request $request)
+    {
+        $user = $request->user();
+
+        $query = Bet::with(['draw', 'customer', 'location'])
+            ->where('teller_id', $user->id)
+            ->when($request->filled('search'), function ($q) use ($request) {
+                $q->where(function ($sub) use ($request) {
+                    $sub->where('ticket_id', 'like', '%' . $request->search . '%')
+                        ->orWhere('bet_number', 'like', '%' . $request->search . '%');
+                });
+            })
+            ->when($request->filled('status'), fn($q) => $q->where('status', $request->status))
+            ->when($request->filled('draw_id'), fn($q) => $q->where('draw_id', $request->draw_id))
+            ->when($request->filled('date'), fn($q) => $q->whereDate('bet_date', $request->date))
+            ->latest();
+
+        $bets = $query->paginate($request->get('per_page', 20));
+
+        return ApiResponse::paginated($bets, 'Bets retrieved', BetResource::class);
+    }
+
+    /**
+     * Get available draws for the current day
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function availableDraws()
     {
         $draws = Draw::where('draw_date', today())
@@ -23,6 +56,12 @@ class BettingController extends Controller
         return ApiResponse::success(DrawResource::collection($draws), 'Available draws loaded');
     }
 
+    /**
+     * Place a new bet
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function placeBet(Request $request)
     {
         $data = $request->validate([
@@ -35,14 +74,17 @@ class BettingController extends Controller
 
         $teller = $request->user();
 
+        if (!$teller->location_id) {
+            return ApiResponse::error('Teller does not have a location assigned', 422);
+        }
+
         try {
-            // Check if the draw is still open
+                
             $draw = Draw::findOrFail($data['draw_id']);
             if (!$draw->is_open) {
                 return ApiResponse::error('This draw is no longer accepting bets', 422);
             }
 
-            // Start a database transaction
             DB::beginTransaction();
 
             $ticketId = strtoupper(Str::random(10));
@@ -60,13 +102,8 @@ class BettingController extends Controller
                 'status' => 'active'
             ]);
 
-            // Here you could add additional related records if needed
-            // For example, creating commission records, etc.
-
-            // Commit the transaction
             DB::commit();
 
-            // Load the relationships
             $bet->load(['draw', 'location', 'teller', 'customer']);
 
             return ApiResponse::success(new BetResource($bet), 'Bet placed successfully');
@@ -77,6 +114,57 @@ class BettingController extends Controller
 
             // Return error response
             return ApiResponse::error('Failed to place bet: ' . $e->getMessage(), 500);
+        }
+    }
+    /**
+     * Cancel an active bet
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function cancelBet(Request $request)
+    {
+        $request->validate([
+            'ticket_id' => 'required|string|exists:bets,ticket_id',
+        ]);
+
+        try {
+
+            DB::beginTransaction();
+
+            $bet = Bet::where('ticket_id', $request->ticket_id)
+                ->where('teller_id', $request->user()->id)
+                ->where('status', 'active')
+                ->lockForUpdate()
+                ->first();
+
+            if (!$bet) {
+                return ApiResponse::error('Bet not found or already cancelled', 404);
+            }
+
+
+            $draw = Draw::find($bet->draw_id);
+            if ($draw && !$draw->is_open) {
+                return ApiResponse::error('Cannot cancel bet as the draw is closed', 422);
+            }
+
+            $bet->status = 'cancelled';
+            $bet->save();
+
+
+            DB::commit();
+
+
+            $bet->load(['draw', 'location', 'teller', 'customer']);
+
+            return ApiResponse::success(new BetResource($bet), 'Bet cancelled successfully');
+
+        } catch (\Exception $e) {
+
+            DB::rollBack();
+
+
+            return ApiResponse::error('Failed to cancel bet: ' . $e->getMessage(), 500);
         }
     }
 }
