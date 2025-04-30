@@ -24,17 +24,30 @@ class ResultResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('winning_number')
+                Forms\Components\Select::make('draw_id')
+                    ->relationship('draw', 'id')
                     ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('schedule_id')
-                    ->required()
-                    ->numeric(),
+                    ->searchable()
+                    ->preload(),
                 Forms\Components\DatePicker::make('draw_date')
                     ->required(),
-                Forms\Components\TextInput::make('coordinator_id')
+                Forms\Components\TimePicker::make('draw_time')
+                    ->required(),
+                Forms\Components\Select::make('type')
+                    ->options([
+                        'S2' => 'Swertres 2-digit',
+                        'S3' => 'Swertres 3-digit',
+                        'D4' => 'Digit 4-digit',
+                    ])
+                    ->required(),
+                Forms\Components\TextInput::make('winning_number')
                     ->required()
-                    ->numeric(),
+                    ->maxLength(10),
+                Forms\Components\Select::make('coordinator_id')
+                    ->relationship('coordinator', 'name')
+                    ->required()
+                    ->searchable()
+                    ->preload(),
             ]);
     }
 
@@ -42,16 +55,30 @@ class ResultResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('winning_number')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('schedule_id')
+                Tables\Columns\TextColumn::make('draw.id')
                     ->numeric()
-                    ->sortable(),
+                    ->sortable()
+                    ->label('Draw ID'),
                 Tables\Columns\TextColumn::make('draw_date')
                     ->date()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('coordinator_id')
-                    ->numeric()
+                Tables\Columns\TextColumn::make('draw_time')
+                    ->time()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('type')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'S2' => 'success',
+                        'S3' => 'warning',
+                        'D4' => 'danger',
+                        default => 'gray',
+                    })
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('winning_number')
+                    ->searchable()
+                    ->copyable(),
+                Tables\Columns\TextColumn::make('coordinator.name')
+                    ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
