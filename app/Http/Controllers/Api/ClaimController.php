@@ -58,6 +58,7 @@ class ClaimController extends Controller
             
             $claim = Claim::create([
                 'bet_id' => $bet->id,
+                'result_id' => $data['result_id'],
                 'teller_id' => $request->user()->id,
                 'amount' => $bet->amount * $payoutMultiplier,
                 'commission_amount' => $bet->amount * $commissionRate,
@@ -70,7 +71,7 @@ class ClaimController extends Controller
             $bet->save();
             
             // Load relationships for response
-            $claim->load(['bet', 'teller']);
+            $claim->load(['bet', 'teller', 'result']);
             
             DB::commit();
 

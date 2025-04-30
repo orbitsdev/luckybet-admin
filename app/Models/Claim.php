@@ -15,6 +15,7 @@ class Claim extends Model
     
     protected $fillable = [
         'bet_id',
+        'result_id',
         'teller_id',
         'amount',
         'commission_amount',  // optional
@@ -36,5 +37,10 @@ class Claim extends Model
     public function commission()
     {
         return $this->hasOne(Commission::class, 'claim_id');
+    }
+    
+    public function result()
+    {
+        return $this->belongsTo(Result::class);
     }
 }

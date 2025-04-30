@@ -40,7 +40,7 @@ class TallySheetController extends Controller
                     d.id as draw_id,
                     d.draw_time as draw_time,
                     d.type as type,
-                    d.winning_number as winning_number,
+                    r.winning_number as winning_number,
                     SUM(CASE WHEN b.status IN ('active', 'won', 'lost') THEN b.amount ELSE 0 END) as sales,
                     SUM(CASE WHEN b.status = 'won' THEN b.amount ELSE 0 END) as hits,
                     COUNT(CASE WHEN b.status = 'cancelled' THEN 1 END) as voided,
@@ -48,9 +48,10 @@ class TallySheetController extends Controller
                     SUM(CASE WHEN b.status = 'won' THEN b.amount ELSE 0 END) as gross
                 FROM bets b
                 JOIN draws d ON b.draw_id = d.id
+                LEFT JOIN results r ON r.draw_date = d.draw_date AND r.draw_time = d.draw_time AND r.type = d.type
                 WHERE b.teller_id = ?
                 AND DATE(b.bet_date) = ?
-                GROUP BY d.id, d.draw_time, d.type, d.winning_number
+                GROUP BY d.id, d.draw_time, d.type, r.winning_number
                 ORDER BY d.draw_time ASC
             ", [$user->id, $date]);
             
