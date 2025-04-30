@@ -43,6 +43,9 @@ class DatabaseSeeder extends Seeder
             
             // 8. Generate tally sheets based on all the above data
             TallySheetSeeder::class,
+            
+            // 9. Create number flags for risk management
+            NumberFlagSeeder::class,
         ]);
     }
 }
