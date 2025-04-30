@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\ClaimController;
 use App\Http\Controllers\Api\ResultController;
 use App\Http\Controllers\Api\BettingController;
 use App\Http\Controllers\Api\TallySheetController;
+use App\Http\Controllers\Api\NumberFlagController;
 use App\Http\Controllers\Api\CoordinatorReportController;
 
 Route::post('/register', [AuthController::class, 'register']);
@@ -32,6 +33,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/results', [ResultController::class, 'index']);
 
     Route::get('/coordinator/summary-report', [CoordinatorReportController::class, 'index']);
+    
+    // Number Flag routes
+    Route::apiResource('number-flags', NumberFlagController::class);
 });
 
 

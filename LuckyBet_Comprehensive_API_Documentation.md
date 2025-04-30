@@ -7,10 +7,11 @@
 4. [Betting Operations](#betting-operations)
 5. [Claims Management](#claims-management)
 6. [Results Management](#results-management)
-7. [Reporting](#reporting)
-8. [Error Handling](#error-handling)
-9. [Data Flow Diagrams](#data-flow-diagrams)
-10. [API Response Structure](#api-response-structure)
+7. [Number Flags Management](#number-flags-management)
+8. [Reporting](#reporting)
+9. [Error Handling](#error-handling)
+10. [Data Flow Diagrams](#data-flow-diagrams)
+11. [API Response Structure](#api-response-structure)
 
 ## Introduction
 
@@ -656,6 +657,222 @@ The Results module allows coordinators to submit winning numbers for draws and r
        │                        │ ─────────────────────►│
        │                        │                       │
        │ Return result details  │ Return created result │
+       │ ◄────────────────────  │ ◄─────────────────────│
+       │                        │                       │
+```
+
+## Number Flags Management
+
+The Number Flags module allows coordinators and tellers to manage flagged numbers for specific schedules, dates, and locations. Flagged numbers can be marked as "sold out" (no more bets accepted) or "low win" (reduced payout) for risk management.
+
+### Flag Types
+
+LuckyBet supports two types of number flags:
+
+- **sold_out**: No more bets can be placed on this number for the specified schedule and date
+- **low_win**: Bets can still be placed, but payouts may be reduced for risk management
+
+### List Number Flags
+
+- **URL**: `/api/number-flags`
+- **Method**: `GET`
+- **Description**: Get a list of number flags for the current user's location
+- **Authentication**: Required
+- **Query Parameters**:
+  - `date` (optional): Filter by date in Y-m-d format
+  - `type` (optional): Filter by type ('sold_out' or 'low_win')
+  - `schedule_id` (optional): Filter by schedule ID
+  - `is_active` (optional): Filter by active status ('true' or 'false')
+  - `search` (optional): Search by number
+  - `per_page` (optional): Number of items per page
+- **Response**:
+  ```json
+  {
+    "status": true,
+    "message": "Number flags retrieved successfully",
+    "data": [
+      {
+        "id": 1,
+        "number": "123",
+        "schedule_id": 1,
+        "date": "2025-04-30",
+        "location_id": 1,
+        "type": "sold_out",
+        "is_active": true,
+        "created_at": "2025-04-30T10:30:00.000000Z",
+        "updated_at": "2025-04-30T10:30:00.000000Z",
+        "schedule": {
+          "id": 1,
+          "name": "Morning Draw",
+          "draw_time": "10:30:00"
+        },
+        "location": {
+          "id": 1,
+          "name": "Main Office"
+        }
+      }
+    ],
+    "pagination": {
+      "current_page": 1,
+      "last_page": 1,
+      "per_page": 20,
+      "total": 1,
+      "next_page_url": null,
+      "prev_page_url": null
+    }
+  }
+  ```
+
+### Create Number Flag
+
+- **URL**: `/api/number-flags`
+- **Method**: `POST`
+- **Description**: Create a new number flag
+- **Authentication**: Required
+- **Request Body**:
+  ```json
+  {
+    "number": "123",
+    "schedule_id": 1,
+    "date": "2025-04-30",
+    "type": "sold_out"
+  }
+  ```
+- **Response**:
+  ```json
+  {
+    "status": true,
+    "message": "Number flag created successfully",
+    "data": {
+      "id": 1,
+      "number": "123",
+      "schedule_id": 1,
+      "date": "2025-04-30",
+      "location_id": 1,
+      "type": "sold_out",
+      "is_active": true,
+      "created_at": "2025-04-30T10:30:00.000000Z",
+      "updated_at": "2025-04-30T10:30:00.000000Z",
+      "schedule": {
+        "id": 1,
+        "name": "Morning Draw",
+        "draw_time": "10:30:00"
+      },
+      "location": {
+        "id": 1,
+        "name": "Main Office"
+      }
+    }
+  }
+  ```
+
+### Get Number Flag
+
+- **URL**: `/api/number-flags/{id}`
+- **Method**: `GET`
+- **Description**: Get a specific number flag
+- **Authentication**: Required
+- **Response**:
+  ```json
+  {
+    "status": true,
+    "message": "Number flag retrieved successfully",
+    "data": {
+      "id": 1,
+      "number": "123",
+      "schedule_id": 1,
+      "date": "2025-04-30",
+      "location_id": 1,
+      "type": "sold_out",
+      "is_active": true,
+      "created_at": "2025-04-30T10:30:00.000000Z",
+      "updated_at": "2025-04-30T10:30:00.000000Z",
+      "schedule": {
+        "id": 1,
+        "name": "Morning Draw",
+        "draw_time": "10:30:00"
+      },
+      "location": {
+        "id": 1,
+        "name": "Main Office"
+      }
+    }
+  }
+  ```
+
+### Update Number Flag
+
+- **URL**: `/api/number-flags/{id}`
+- **Method**: `PUT` or `PATCH`
+- **Description**: Update a specific number flag
+- **Authentication**: Required
+- **Request Body**:
+  ```json
+  {
+    "type": "low_win",
+    "is_active": true
+  }
+  ```
+- **Response**:
+  ```json
+  {
+    "status": true,
+    "message": "Number flag updated successfully",
+    "data": {
+      "id": 1,
+      "number": "123",
+      "schedule_id": 1,
+      "date": "2025-04-30",
+      "location_id": 1,
+      "type": "low_win",
+      "is_active": true,
+      "created_at": "2025-04-30T10:30:00.000000Z",
+      "updated_at": "2025-04-30T10:30:00.000000Z",
+      "schedule": {
+        "id": 1,
+        "name": "Morning Draw",
+        "draw_time": "10:30:00"
+      },
+      "location": {
+        "id": 1,
+        "name": "Main Office"
+      }
+    }
+  }
+  ```
+
+### Delete Number Flag
+
+- **URL**: `/api/number-flags/{id}`
+- **Method**: `DELETE`
+- **Description**: Deactivate a number flag (soft delete)
+- **Authentication**: Required
+- **Response**:
+  ```json
+  {
+    "status": true,
+    "message": "Number flag deactivated successfully",
+    "data": null
+  }
+  ```
+
+### Number Flag Management Flow
+
+```
+┌──────────────┐          ┌────────────┐          ┌────────────┐
+│  User        │          │  API       │          │  Database  │
+└──────┬───────┘          └─────┬──────┘          └─────┬──────┘
+       │                        │                       │
+       │ GET/POST/PUT/DELETE    │                       │
+       │ /api/number-flags      │                       │
+       │ ────────────────────► │                       │
+       │                        │ Validate & process    │
+       │                        │ ─────────────────────►│
+       │                        │                       │
+       │                        │ Create/update/delete  │
+       │                        │ ─────────────────────►│
+       │                        │                       │
+       │ Return response        │ Return data           │
        │ ◄────────────────────  │ ◄─────────────────────│
        │                        │                       │
 ```
