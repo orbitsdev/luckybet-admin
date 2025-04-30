@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('bet_number');
             $table->decimal('amount', 10, 2);
-            $table->foreignId('draw_id')->constrained()->cascadeOnDelete();
+            $table->unsignedBigInteger('draw_id');
             $table->foreignId('teller_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('customer_id')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('location_id')->constrained()->cascadeOnDelete();
@@ -34,5 +34,15 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('bets');
+    }
+    
+    /**
+     * After all the tables are created.
+     */
+    public function afterUp(): void
+    {
+        Schema::table('bets', function (Blueprint $table) {
+            $table->foreign('draw_id')->references('id')->on('draws')->cascadeOnDelete();
+        });
     }
 };

@@ -13,9 +13,8 @@ return new class extends Migration
     {
         Schema::create('results', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('draw_id');
             $table->date('draw_date');
-            $table->time('draw_time');
-            $table->enum('type', ['S2', 'S3', 'D4']);
             $table->string('winning_number');
             $table->foreignId('coordinator_id')->constrained('users')->cascadeOnDelete();
             $table->timestamps();

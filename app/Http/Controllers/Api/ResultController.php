@@ -30,12 +30,12 @@ class ResultController extends Controller
         try {
             DB::beginTransaction();
             
-            // Lock the draw to prevent race conditions
-            $draw = Draw::lockForUpdate()->findOrFail($data['draw_id']);
+            // Find the draw
+            $draw = Draw::findOrFail($data['draw_id']);
             
             // Check if the draw is still open
             if (!$draw->is_open) {
-                return ApiResponse::error('This draw is already closed.', 422);
+                return ApiResponse::error('This draw is already closed and has results.', 422);
             }
             
             // Validate winning number format based on draw type
@@ -44,21 +44,15 @@ class ResultController extends Controller
             }
             
             // Prevent re-encoding of the result
-            $existing = Result::where('draw_date', $draw->draw_date)
-                ->where('draw_time', $draw->draw_time)
-                ->where('type', $draw->type)
-                ->first();
+            $existing = Result::where('draw_id', $draw->id)->first();
     
             if ($existing) {
                 return ApiResponse::error('Result already submitted for this draw.', 409);
             }
             
-            // Close the draw
-            $draw->is_open = false;
-            $draw->save();
-            
             // Create the result
             $result = Result::create([
+                'draw_id' => $draw->id,
                 'draw_date' => $draw->draw_date,
                 'draw_time' => $draw->draw_time,
                 'type' => $draw->type,
@@ -93,21 +87,22 @@ class ResultController extends Controller
             ]);
         }
         
-        $query = Result::with('coordinator:id,name,username')
-            ->select('id', 'draw_date', 'draw_time', 'type', 'winning_number', 'coordinator_id', 'created_at')
+        $query = Result::with(['coordinator:id,name,username', 'draw'])
+            ->select('id', 'draw_id', 'draw_date', 'winning_number', 'coordinator_id', 'created_at')
             ->when($request->filled('date'), fn($q) =>
                 $q->whereDate('draw_date', $request->date)
             )
-            ->when($request->filled('type'), fn($q) =>
-                $q->where('type', $request->type)
-            )
+            ->when($request->filled('type'), function($q) use ($request) {
+                return $q->whereHas('draw', function($query) use ($request) {
+                    $query->where('type', $request->type);
+                });
+            })
             ->when($request->filled('search'), fn($q) =>
                 $q->where('winning_number', 'like', '%' . $request->search . '%')
             );
         
-        // Get the latest results first, then order by time within the same date
+        // Get the latest results first
         $results = $query->orderBy('draw_date', 'desc')
-                         ->orderBy('draw_time')
                          ->paginate($request->get('per_page', 20));
 
         return ApiResponse::paginated($results, 'Results loaded', ResultResource::class);
@@ -122,6 +117,7 @@ class ResultController extends Controller
      */
     private function validateWinningNumber($drawType, $winningNumber)
     {
+        // Get the draw type from the database
         switch ($drawType) {
             case 'S2': // Swertres 2 digits
                 return preg_match('/^\d{2}$/', $winningNumber);

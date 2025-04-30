@@ -19,9 +19,17 @@ class ResultResource extends JsonResource
             'id' => $this->id,
             'draw_date' => $this->draw_date,
             'draw_time' => $this->draw_time,
-            'type' => $this->type,               // S2, S3, D4
+            'type' => $this->type,
             'winning_number' => $this->winning_number,
             'coordinator' => new UserResource($this->whenLoaded('coordinator')),
+            'draw' => $this->when($this->relationLoaded('draw'), function() {
+                return [
+                    'id' => $this->draw->id,
+                    'draw_date' => $this->draw->draw_date,
+                    'draw_time' => $this->draw->draw_time,
+                    'type' => $this->draw->type,
+                ];
+            }),
         ];
     }
 }

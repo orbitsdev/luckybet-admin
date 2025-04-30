@@ -19,6 +19,7 @@ class Claim extends Model
         'teller_id',
         'amount',
         'commission_amount',  // optional
+        'status',            // pending, processed, rejected
         'claimed_at',
         'qr_code_data',       // optional
     ];

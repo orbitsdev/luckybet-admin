@@ -47,9 +47,9 @@ class ClaimController extends Controller
             // Verify the result exists and matches the bet
             $result = Result::findOrFail($data['result_id']);
             
-            // Verify the result matches the bet's draw type
-            if ($bet->draw && $bet->draw->type !== $result->type) {
-                return ApiResponse::error('Result type does not match the bet draw type.', 422);
+            // Verify the result is for the same draw as the bet
+            if ($bet->draw_id !== $result->draw_id) {
+                return ApiResponse::error('Result is not for the same draw as the bet.', 422);
             }
 
             // Calculate payout based on bet type and amount
@@ -62,6 +62,7 @@ class ClaimController extends Controller
                 'teller_id' => $request->user()->id,
                 'amount' => $bet->amount * $payoutMultiplier,
                 'commission_amount' => $bet->amount * $commissionRate,
+                'status' => 'processed',
                 'claimed_at' => now(),
                 'qr_code_data' => $bet->ticket_id,
             ]);
