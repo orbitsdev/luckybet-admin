@@ -71,7 +71,7 @@ Authorization: Bearer {your_access_token}
 
 Retrieves all available draws for the current day.
 
-**Endpoint:** `GET /api/available-draws`
+**Endpoint:** `GET /api/draws/available`
 
 **Authentication Required:** Yes (Bearer Token)
 
@@ -80,7 +80,7 @@ Retrieves all available draws for the current day.
 **Example Request:**
 
 ```
-GET /api/available-draws
+GET /api/draws/available
 Authorization: Bearer 1|a1b2c3d4e5f6g7h8i9j0...
 ```
 
@@ -113,7 +113,7 @@ Authorization: Bearer 1|a1b2c3d4e5f6g7h8i9j0...
 
 Creates a new bet for a specific draw.
 
-**Endpoint:** `POST /api/place-bet`
+**Endpoint:** `POST /api/teller/bet`
 
 **Authentication Required:** Yes (Bearer Token)
 
@@ -123,14 +123,14 @@ Creates a new bet for a specific draw.
 |----------------|---------|----------|-------------------------------------------------|
 | bet_number     | string  | Yes      | The number being bet on (max 5 characters)      |
 | amount         | numeric | Yes      | Bet amount (minimum 1)                          |
-| draw_id        | string  | Yes      | Type of draw (S2, S3, D4, etc.)                 |
+| draw_id        | integer | Yes      | ID of the draw to place the bet on              |
 | customer_id    | integer | No       | ID of the customer (if applicable)              |
 | is_combination | boolean | No       | Whether this is a combination bet (default: false) |
 
 **Example Request:**
 
 ```json
-POST /api/place-bet
+POST /api/teller/bet
 Content-Type: application/json
 Authorization: Bearer 1|a1b2c3d4e5f6g7h8i9j0...
 
@@ -209,6 +209,26 @@ Authorization: Bearer 1|a1b2c3d4e5f6g7h8i9j0...
       "The draw id field is required."
     ]
   }
+}
+```
+
+**Error Response (422 Unprocessable Entity - Draw Closed):**
+
+```json
+{
+  "status": false,
+  "message": "This draw is no longer accepting bets",
+  "data": null
+}
+```
+
+**Error Response (500 Server Error):**
+
+```json
+{
+  "status": false,
+  "message": "Failed to place bet: [error message]",
+  "data": null
 }
 ```
 
