@@ -25,6 +25,13 @@ class DrawResource extends JsonResource
                     'draw_time' => $this->schedule->draw_time,
                 ];
             }),
+            'game_type' => $this->whenLoaded('gameType', function() {
+                return [
+                    'id' => $this->gameType->id,
+                    'code' => $this->gameType->code,
+                    'name' => $this->gameType->name,
+                ];
+            }),
             'is_open' => $this->is_open, // true = betting open, false = betting closed
         ];
     }

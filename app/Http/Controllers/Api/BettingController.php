@@ -63,6 +63,7 @@ class BettingController extends Controller
         $draws = Draw::where('draw_date', today())
             ->where('is_open', true)
             ->orderBy('draw_time')
+            ->with(['schedule', 'gameType']) // Eagerly load relationships
             ->get();
 
         return ApiResponse::success(DrawResource::collection($draws), 'Available draws loaded');

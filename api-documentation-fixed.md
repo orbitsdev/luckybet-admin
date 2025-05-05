@@ -254,23 +254,33 @@ Get a list of available draws for the current day that have not yet occurred (ba
   "data": [
     {
       "id": 2,
-      "draw_time": "4:00 PM",
-      "draw_date": "2025-05-05",
+      "draw_date": "2025-05-05T16:00:00.000000Z",
+      "draw_time": "16:00:00",
       "schedule": {
         "id": 1,
         "name": "Afternoon Draw",
         "draw_time": "16:00:00"
       },
+      "game_type": {
+        "id": 1,
+        "code": "S2",
+        "name": "Swertres 2-Digit"
+      },
       "is_open": true
     },
     {
       "id": 3,
-      "draw_time": "9:00 PM",
-      "draw_date": "2025-05-05",
+      "draw_date": "2025-05-05T16:00:00.000000Z",
+      "draw_time": "21:00:00",
       "schedule": {
         "id": 2,
         "name": "Evening Draw",
         "draw_time": "21:00:00"
+      },
+      "game_type": {
+        "id": 2,
+        "code": "S3",
+        "name": "Swertres 3-Digit"
       },
       "is_open": true
     }
