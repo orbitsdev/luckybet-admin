@@ -39,12 +39,22 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $data = $request->validate([
-            'email' => 'required|email',
-            'password' => 'required|string',
-        ]);
-
-        $user = User::where('email', $data['email'])->first();
+        // Validate request based on whether email or username is provided
+        if ($request->has('email')) {
+            $data = $request->validate([
+                'email' => 'required|email',
+                'password' => 'required|string',
+            ]);
+            
+            $user = User::where('email', $data['email'])->first();
+        } else {
+            $data = $request->validate([
+                'username' => 'required|string',
+                'password' => 'required|string',
+            ]);
+            
+            $user = User::where('username', $data['username'])->first();
+        }
 
         if (! $user || ! Hash::check($data['password'], $user->password)) {
             return ApiResponse::error('Invalid credentials', 422);
