@@ -27,44 +27,40 @@ class ResultSeeder extends Seeder
         
         // Create results for each closed draw
         foreach ($closedDraws as $draw) {
-            // Generate a winning number based on draw type
-            $winningNumber = '';
-            $digits = 2; // Default for S2
-            
-            if ($draw->type === 'S3') {
-                $digits = 3;
-            } elseif ($draw->type === 'D4') {
-                $digits = 4;
-            }
-            
-            for ($i = 0; $i < $digits; $i++) {
-                $winningNumber .= rand(0, 9);
-            }
+            // Generate winning numbers for each game type
+            $s2WinningNumber = sprintf('%02d', rand(0, 99));
+            $s3WinningNumber = sprintf('%03d', rand(0, 999));
+            $d4WinningNumber = sprintf('%04d', rand(0, 9999));
             
             // Randomly select a coordinator
             $coordinator = $coordinators[array_rand($coordinators->toArray())];
             
-            // Create the result
+            // Create the result with all game types
             Result::create([
-                'winning_number' => $winningNumber,
+                's2_winning_number' => $s2WinningNumber,
+                's3_winning_number' => $s3WinningNumber,
+                'd4_winning_number' => $d4WinningNumber,
                 'draw_id' => $draw->id,
                 'draw_date' => $draw->draw_date,
+                'draw_time' => $draw->draw_time,
                 'coordinator_id' => $coordinator->id,
             ]);
             
-            // Update bets for this draw to won/lost based on winning number
-            $this->updateBetStatuses($draw->id, $winningNumber);
+            // Update bets for this draw to won/lost based on winning numbers
+            $this->updateBetStatuses($draw->id, $s2WinningNumber, $s3WinningNumber, $d4WinningNumber);
         }
     }
     
     /**
-     * Update bet statuses based on winning number
+     * Update bet statuses based on winning numbers for all game types
      *
      * @param int $drawId
-     * @param string $winningNumber
+     * @param string $s2WinningNumber
+     * @param string $s3WinningNumber
+     * @param string $d4WinningNumber
      * @return void
      */
-    private function updateBetStatuses($drawId, $winningNumber)
+    private function updateBetStatuses($drawId, $s2WinningNumber, $s3WinningNumber, $d4WinningNumber)
     {
         $bets = \App\Models\Bet::where('draw_id', $drawId)
             ->where('status', 'active')
@@ -72,6 +68,23 @@ class ResultSeeder extends Seeder
             
         foreach ($bets as $bet) {
             $isWinner = false;
+            
+            // Get the appropriate winning number based on the bet's game type
+            $winningNumber = '';
+            switch ($bet->game_type) {
+                case 'S2':
+                    $winningNumber = $s2WinningNumber;
+                    break;
+                case 'S3':
+                    $winningNumber = $s3WinningNumber;
+                    break;
+                case 'D4':
+                    $winningNumber = $d4WinningNumber;
+                    break;
+                default:
+                    // If no game type specified, default to S3 (for backward compatibility)
+                    $winningNumber = $s3WinningNumber;
+            }
             
             if ($bet->is_combination) {
                 // For combination bets, check if any permutation matches

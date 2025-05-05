@@ -20,6 +20,7 @@ class Bet extends Model
         'bet_number',
         'amount',
         'draw_id',
+        'game_type',       // S2, S3, D4
         'teller_id',
         'customer_id',    // optional
         'location_id',
@@ -27,6 +28,11 @@ class Bet extends Model
         'ticket_id',
         'status',         // active, cancelled, won, lost, claimed
         'is_combination', // true/false
+    ];
+    
+    protected $casts = [
+        'bet_date' => 'date',
+        'is_combination' => 'boolean',
     ];
 
 

@@ -27,11 +27,12 @@ class DrawResource extends Resource
                 Forms\Components\DatePicker::make('draw_date')
                     ->required(),
                 Forms\Components\TextInput::make('draw_time')
-                    ->required(),
-                Forms\Components\TextInput::make('type')
-                    ->required(),
-                Forms\Components\TextInput::make('winning_number')
-                    ->maxLength(255),
+                    ->required()
+                    ->hint('Format: HH:MM:SS'),
+                Forms\Components\Select::make('schedule_id')
+                    ->relationship('schedule', 'name')
+                    ->label('Schedule')
+                    ->searchable(),
                 Forms\Components\Toggle::make('is_open')
                     ->required(),
             ]);

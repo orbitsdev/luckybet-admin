@@ -26,7 +26,7 @@ class DrawSeeder extends Seeder
             Draw::create([
                 'draw_date' => $yesterday,
                 'draw_time' => $schedule->draw_time ?? '14:00:00',
-                'type' => 'S3',
+                'schedule_id' => $schedule->id ?? null,
                 'is_open' => false, // Closed because it's in the past
             ]);
         }
@@ -35,39 +35,43 @@ class DrawSeeder extends Seeder
         $today = now()->format('Y-m-d');
         $currentTime = now()->format('H:i:s');
         
-        // Morning draw (S2) - already closed with results
+        // Get the schedules for the day
+        $morningSchedule = \App\Models\Schedule::where('draw_time', 'like', '11:%')->first();
+        $afternoonSchedule = \App\Models\Schedule::where('draw_time', 'like', '14:%')->first();
+        $eveningSchedule = \App\Models\Schedule::where('draw_time', 'like', '19:%')->first();
+        
+        // Morning draw - already closed with results
         Draw::create([
             'draw_date' => $today,
             'draw_time' => '11:00:00',
-            'type' => 'S2',
+            'schedule_id' => $morningSchedule ? $morningSchedule->id : null,
             'is_open' => false,
         ]);
         
-        // Afternoon draw (S3) - open or closed depending on current time
+        // Afternoon draw - open or closed depending on current time
         Draw::create([
             'draw_date' => $today,
             'draw_time' => '14:00:00',
-            'type' => 'S3',
+            'schedule_id' => $afternoonSchedule ? $afternoonSchedule->id : null,
             'is_open' => '14:00:00' > $currentTime,
         ]);
         
-        // Evening draw (D4) - still open
+        // Evening draw - still open
         Draw::create([
             'draw_date' => $today,
             'draw_time' => '19:00:00',
-            'type' => 'D4',
+            'schedule_id' => $eveningSchedule ? $eveningSchedule->id : null,
             'is_open' => true,
         ]);
         
         // Create draws for tomorrow (all open)
         $tomorrow = now()->addDay()->format('Y-m-d');
-        $drawTypes = ['S2', 'S3', 'D4'];
         
-        foreach ($schedules as $index => $schedule) {
+        foreach ($schedules as $schedule) {
             Draw::create([
                 'draw_date' => $tomorrow,
                 'draw_time' => $schedule->draw_time ?? '14:00:00',
-                'type' => $drawTypes[$index % count($drawTypes)],
+                'schedule_id' => $schedule->id ?? null,
                 'is_open' => true,
             ]);
         }

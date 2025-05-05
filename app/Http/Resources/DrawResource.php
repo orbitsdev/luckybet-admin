@@ -18,7 +18,13 @@ class DrawResource extends JsonResource
             'id' => $this->id,
             'draw_date' => $this->draw_date,
             'draw_time' => $this->draw_time,
-            'type' => $this->type,      // S2, S3, D4
+            'schedule' => $this->whenLoaded('schedule', function() {
+                return [
+                    'id' => $this->schedule->id,
+                    'name' => $this->schedule->name,
+                    'draw_time' => $this->schedule->draw_time,
+                ];
+            }),
             'is_open' => $this->is_open, // true = betting open, false = betting closed
         ];
     }

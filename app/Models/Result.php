@@ -13,12 +13,17 @@ class Result extends Model
     use HasFactory;
 
     protected $fillable = [
-        'draw_id',         // Reference to the draw
-        'draw_date',       // Date of the draw
-        'draw_time',       // Time of the draw (e.g., 2pm)
-        'type',            // Type of draw (S2, S3, D4)
-        'winning_number',  // Example: 21, 456, 7890
-        'coordinator_id',  // User who inputted
+        'draw_id',             // Reference to the draw
+        'draw_date',           // Date of the draw
+        'draw_time',           // Time of the draw (e.g., 2pm)
+        's2_winning_number',   // S2 winning number (e.g., 21)
+        's3_winning_number',   // S3 winning number (e.g., 456)
+        'd4_winning_number',   // D4 winning number (e.g., 7890)
+        'coordinator_id',      // User who inputted
+    ];
+    
+    protected $casts = [
+        'draw_date' => 'date',
     ];
 
     public function coordinator()

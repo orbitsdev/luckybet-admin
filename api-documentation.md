@@ -256,14 +256,22 @@ Get a list of available draws for the current day that have not yet occurred (ba
       "id": 2,
       "draw_time": "4:00 PM",
       "draw_date": "2025-05-05",
-      "type": "S2",
+      "schedule": {
+        "id": 1,
+        "name": "Afternoon Draw",
+        "draw_time": "16:00:00"
+      },
       "is_open": true
     },
     {
       "id": 3,
       "draw_time": "9:00 PM",
       "draw_date": "2025-05-05",
-      "type": "S3",
+      "schedule": {
+        "id": 2,
+        "name": "Evening Draw",
+        "draw_time": "21:00:00"
+      },
       "is_open": true
     }
   ]
@@ -285,6 +293,7 @@ Place a new bet as a teller.
 | bet_number | string | Yes | The bet number (max 5 digits) |
 | amount | numeric | Yes | Bet amount (min 1) |
 | draw_id | integer | Yes | ID of the draw |
+| game_type | string | Yes | Type of game (S2, S3, D4) |
 | customer_id | integer | No | ID of the customer (if applicable) |
 | is_combination | boolean | No | Whether this is a combination bet |
 
@@ -295,6 +304,7 @@ Place a new bet as a teller.
   "bet_number": "123",
   "amount": 50,
   "draw_id": 1,
+  "game_type": "S3",
   "customer_id": null,
   "is_combination": false
 }
@@ -311,11 +321,16 @@ Place a new bet as a teller.
     "ticket_id": "ABC123XYZ",
     "bet_number": "123",
     "amount": 50,
+    "game_type": "S3",
     "draw": {
       "id": 1,
       "draw_time": "11:00 AM",
       "draw_date": "2025-05-05",
-      "type": "S3"
+      "schedule": {
+        "id": 1,
+        "name": "Morning Draw",
+        "draw_time": "11:00:00"
+      }
     },
     "location": {
       "id": 1,
@@ -364,11 +379,16 @@ Get a list of bets placed by the authenticated teller.
       "ticket_id": "ABC123XYZ",
       "bet_number": "123",
       "amount": 50,
+      "game_type": "S3",
       "draw": {
         "id": 1,
         "draw_time": "11:00 AM",
         "draw_date": "2025-05-05",
-        "type": "S3"
+        "schedule": {
+          "id": 1,
+          "name": "Morning Draw",
+          "draw_time": "11:00:00"
+        }
       },
       "location": {
         "id": 1,
@@ -424,11 +444,16 @@ Cancel an active bet.
     "ticket_id": "ABC123XYZ",
     "bet_number": "123",
     "amount": 50,
+    "game_type": "S3",
     "draw": {
       "id": 1,
       "draw_time": "11:00 AM",
       "draw_date": "2025-05-05",
-      "type": "S3"
+      "schedule": {
+        "id": 1,
+        "name": "Morning Draw",
+        "draw_time": "11:00:00"
+      }
     },
     "location": {
       "id": 1,
@@ -489,9 +514,11 @@ Submit a claim for a winning bet.
     },
     "result": {
       "id": 1,
-      "winning_number": "123",
       "draw_date": "2025-05-05",
-      "draw_time": "11:00 AM"
+      "draw_time": "11:00 AM",
+      "s2_winning_number": "42",
+      "s3_winning_number": "123",
+      "d4_winning_number": "5678"
     },
     "teller": {
       "id": 1,
@@ -543,9 +570,11 @@ Get a list of claims processed by the authenticated teller.
       },
       "result": {
         "id": 1,
-        "winning_number": "123",
         "draw_date": "2025-05-05",
-        "draw_time": "11:00 AM"
+        "draw_time": "11:00 AM",
+        "s2_winning_number": "42",
+        "s3_winning_number": "123",
+        "d4_winning_number": "5678"
       },
       "teller": {
         "id": 1,
@@ -583,14 +612,18 @@ Submit a new result for a draw (coordinator only).
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | draw_id | integer | Yes | The ID of the draw |
-| winning_number | string | Yes | The winning number (format depends on draw type) |
+| s2_winning_number | string | Yes | The winning number for S2 game type (2 digits) |
+| s3_winning_number | string | Yes | The winning number for S3 game type (3 digits) |
+| d4_winning_number | string | Yes | The winning number for D4 game type (4 digits) |
 
 **Example Request:**
 
 ```json
 {
   "draw_id": 1,
-  "winning_number": "123"
+  "s2_winning_number": "42",
+  "s3_winning_number": "123",
+  "d4_winning_number": "5678"
 }
 ```
 
@@ -605,13 +638,19 @@ Submit a new result for a draw (coordinator only).
     "draw_id": 1,
     "draw_date": "2025-05-05",
     "draw_time": "11:00 AM",
-    "type": "S3",
-    "winning_number": "123",
+    "s2_winning_number": "42",
+    "s3_winning_number": "123",
+    "d4_winning_number": "5678",
     "coordinator": {
       "id": 2,
       "name": "Jane Smith"
     },
-    "created_at": "2025-05-05T11:05:00.000000Z"
+    "created_at": "2025-05-05T11:05:00.000000Z",
+    "draw": {
+      "id": 1,
+      "draw_time": "11:00 AM",
+      "draw_date": "2025-05-05"
+    }
   }
 }
 ```
@@ -645,7 +684,10 @@ Get a list of results.
       "id": 1,
       "draw_id": 1,
       "draw_date": "2025-05-05",
-      "winning_number": "123",
+      "draw_time": "11:00 AM",
+      "s2_winning_number": "42",
+      "s3_winning_number": "123",
+      "d4_winning_number": "5678",
       "coordinator": {
         "id": 2,
         "name": "Jane Smith",
@@ -654,8 +696,7 @@ Get a list of results.
       "created_at": "2025-05-05T11:05:00.000000Z",
       "draw": {
         "id": 1,
-        "draw_time": "11:00 AM",
-        "type": "S3"
+        "draw_time": "11:00 AM"
       }
     }
   ],
@@ -704,22 +745,62 @@ Get a tally sheet for the authenticated teller.
       {
         "draw_id": 1,
         "time": "11:00 AM",
-        "type": "S3",
-        "winning_number": "123",
-        "sales": 300,
-        "hits": 150,
-        "gross": 150,
-        "voided": 1
+        "schedule": {
+          "id": 1,
+          "name": "Morning Draw"
+        },
+        "game_types": [
+          {
+            "code": "S2",
+            "winning_number": "42",
+            "sales": 100,
+            "hits": 50,
+            "gross": 50,
+            "voided": 0
+          },
+          {
+            "code": "S3",
+            "winning_number": "123",
+            "sales": 200,
+            "hits": 100,
+            "gross": 100,
+            "voided": 1
+          }
+        ],
+        "total_sales": 300,
+        "total_hits": 150,
+        "total_gross": 150,
+        "total_voided": 1
       },
       {
         "draw_id": 2,
         "time": "4:00 PM",
-        "type": "S2",
-        "winning_number": "--",
-        "sales": 200,
-        "hits": 0,
-        "gross": 200,
-        "voided": 1
+        "schedule": {
+          "id": 2,
+          "name": "Afternoon Draw"
+        },
+        "game_types": [
+          {
+            "code": "S2",
+            "winning_number": "--",
+            "sales": 100,
+            "hits": 0,
+            "gross": 100,
+            "voided": 0
+          },
+          {
+            "code": "D4",
+            "winning_number": "--",
+            "sales": 100,
+            "hits": 0,
+            "gross": 100,
+            "voided": 1
+          }
+        ],
+        "total_sales": 200,
+        "total_hits": 0,
+        "total_gross": 200,
+        "total_voided": 1
       }
     ]
   }
@@ -781,19 +862,69 @@ Get a summary report for a coordinator.
         "profile_photo_url": "https://ui-avatars.com/api/?name=Bob+Johnson&color=7F9CF5&background=EBF4FF"
       }
     ],
-    "draw_types": [
+    "game_types": [
       {
-        "type": "S3",
+        "code": "S3",
+        "name": "Swertres 3-Digit",
         "bet_count": 30,
         "total_amount": 900
       },
       {
-        "type": "S2",
+        "code": "S2",
+        "name": "Swertres 2-Digit",
         "bet_count": 20,
         "total_amount": 600
+      },
+      {
+        "code": "D4",
+        "name": "Digit 4",
+        "bet_count": 10,
+        "total_amount": 300
       }
     ]
   }
+}
+```
+
+## Game Types
+
+### List Game Types
+
+Get a list of all active game types.
+
+- **URL**: `/game-types`
+- **Method**: `GET`
+- **Authentication**: Required
+
+**Example Response:**
+
+```json
+{
+  "status": true,
+  "message": "Game types loaded",
+  "data": [
+    {
+      "id": 1,
+      "name": "Swertres 2-Digit",
+      "code": "S2",
+      "description": "A 2-digit lottery game",
+      "is_active": true
+    },
+    {
+      "id": 2,
+      "name": "Swertres 3-Digit",
+      "code": "S3",
+      "description": "A 3-digit lottery game",
+      "is_active": true
+    },
+    {
+      "id": 3,
+      "name": "Digit 4",
+      "code": "D4",
+      "description": "A 4-digit lottery game",
+      "is_active": true
+    }
+  ]
 }
 ```
 

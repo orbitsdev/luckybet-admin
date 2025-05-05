@@ -24,7 +24,9 @@ class ResultController extends Controller
     {
         $data = $request->validate([
             'draw_id' => 'required|exists:draws,id',
-            'winning_number' => 'required|string|max:10',
+            's2_winning_number' => 'required|string|max:2|regex:/^\d{2}$/',
+            's3_winning_number' => 'required|string|max:3|regex:/^\d{3}$/',
+            'd4_winning_number' => 'required|string|max:4|regex:/^\d{4}$/',
         ]);
 
         try {
@@ -38,13 +40,10 @@ class ResultController extends Controller
                 return ApiResponse::error('This draw is already closed and has results.', 422);
             }
             
-            // Validate winning number format based on draw type
-            if (!$this->validateWinningNumber($draw->type, $data['winning_number'])) {
-                return ApiResponse::error('Invalid winning number format for this draw type.', 422);
-            }
-            
             // Prevent re-encoding of the result
-            $existing = Result::where('draw_id', $draw->id)->first();
+            $existing = Result::where('draw_date', $draw->draw_date)
+                             ->where('draw_time', $draw->draw_time)
+                             ->first();
     
             if ($existing) {
                 return ApiResponse::error('Result already submitted for this draw.', 409);
@@ -55,13 +54,14 @@ class ResultController extends Controller
                 'draw_id' => $draw->id,
                 'draw_date' => $draw->draw_date,
                 'draw_time' => $draw->draw_time,
-                'type' => $draw->type,
-                'winning_number' => $data['winning_number'],
+                's2_winning_number' => $data['s2_winning_number'],
+                's3_winning_number' => $data['s3_winning_number'],
+                'd4_winning_number' => $data['d4_winning_number'],
                 'coordinator_id' => $request->user()->id,
             ]);
             
-            // Update bet statuses based on the winning number
-            $this->updateBetStatuses($draw->id, $data['winning_number']);
+            // Update bet statuses based on the winning numbers
+            $this->updateBetStatuses($draw->id, $data['s2_winning_number'], $data['s3_winning_number'], $data['d4_winning_number']);
             
             DB::commit();
     
@@ -131,28 +131,50 @@ class ResultController extends Controller
     }
     
     /**
-     * Update bet statuses based on the winning number
+     * Update bet statuses based on the winning numbers for each game type
      *
      * @param int $drawId
-     * @param string $winningNumber
+     * @param string $s2WinningNumber
+     * @param string $s3WinningNumber
+     * @param string $d4WinningNumber
      * @return void
      */
-    private function updateBetStatuses($drawId, $winningNumber)
+    private function updateBetStatuses($drawId, $s2WinningNumber, $s3WinningNumber, $d4WinningNumber)
     {
         // Mark all active bets for this draw as lost by default
         Bet::where('draw_id', $drawId)
            ->where('status', 'active')
            ->update(['status' => 'lost']);
         
-        // Mark winning bets
+        // Process S2 bets
+        $this->processGameTypeBets($drawId, 'S2', $s2WinningNumber);
+        
+        // Process S3 bets
+        $this->processGameTypeBets($drawId, 'S3', $s3WinningNumber);
+        
+        // Process D4 bets
+        $this->processGameTypeBets($drawId, 'D4', $d4WinningNumber);
+    }
+    
+    /**
+     * Process bets for a specific game type
+     *
+     * @param int $drawId
+     * @param string $gameType
+     * @param string $winningNumber
+     * @return void
+     */
+    private function processGameTypeBets($drawId, $gameType, $winningNumber)
+    {
+        // Mark winning bets for this game type
         Bet::where('draw_id', $drawId)
+           ->where('game_type', $gameType)
            ->where('status', 'lost')
            ->where(function($query) use ($winningNumber) {
                 // Exact match
                 $query->where('bet_number', $winningNumber);
                 
                 // For combination bets, check if the winning number contains the bet number
-                // This is a simplified example - actual logic may vary based on your rules
                 $query->orWhere(function($q) use ($winningNumber) {
                     $q->where('is_combination', true)
                       ->whereRaw("? LIKE CONCAT('%', bet_number, '%')", [$winningNumber]);

@@ -33,9 +33,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/results', [ResultController::class, 'index']);
 
     Route::get('/coordinator/summary-report', [CoordinatorReportController::class, 'index']);
-    
+
     // Number Flag routes
     Route::apiResource('number-flags', NumberFlagController::class);
 });
+
 
 
