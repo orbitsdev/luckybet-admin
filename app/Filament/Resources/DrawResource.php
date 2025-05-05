@@ -46,8 +46,8 @@ class DrawResource extends Resource
                     ->date()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('draw_time'),
-                Tables\Columns\TextColumn::make('type'),
-                Tables\Columns\TextColumn::make('winning_number')
+                Tables\Columns\TextColumn::make('schedule.name')
+                    ->label('Schedule')
                     ->searchable(),
                 Tables\Columns\IconColumn::make('is_open')
                     ->boolean(),

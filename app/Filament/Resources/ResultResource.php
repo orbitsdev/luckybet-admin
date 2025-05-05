@@ -33,16 +33,21 @@ class ResultResource extends Resource
                     ->required(),
                 Forms\Components\TimePicker::make('draw_time')
                     ->required(),
-                Forms\Components\Select::make('type')
-                    ->options([
-                        'S2' => 'Swertres 2-digit',
-                        'S3' => 'Swertres 3-digit',
-                        'D4' => 'Digit 4-digit',
-                    ])
-                    ->required(),
-                Forms\Components\TextInput::make('winning_number')
+                Forms\Components\TextInput::make('s2_winning_number')
+                    ->label('S2 Winning Number (2-digit)')
                     ->required()
-                    ->maxLength(10),
+                    ->maxLength(2)
+                    ->regex('/^\d{2}$/'),
+                Forms\Components\TextInput::make('s3_winning_number')
+                    ->label('S3 Winning Number (3-digit)')
+                    ->required()
+                    ->maxLength(3)
+                    ->regex('/^\d{3}$/'),
+                Forms\Components\TextInput::make('d4_winning_number')
+                    ->label('D4 Winning Number (4-digit)')
+                    ->required()
+                    ->maxLength(4)
+                    ->regex('/^\d{4}$/'),
                 Forms\Components\Select::make('coordinator_id')
                     ->relationship('coordinator', 'name')
                     ->required()
@@ -65,18 +70,24 @@ class ResultResource extends Resource
                 Tables\Columns\TextColumn::make('draw_time')
                     ->time()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('type')
-                    ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'S2' => 'success',
-                        'S3' => 'warning',
-                        'D4' => 'danger',
-                        default => 'gray',
-                    })
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('winning_number')
+                Tables\Columns\TextColumn::make('s2_winning_number')
+                    ->label('S2 (2-digit)')
                     ->searchable()
-                    ->copyable(),
+                    ->copyable()
+                    ->badge()
+                    ->color('success'),
+                Tables\Columns\TextColumn::make('s3_winning_number')
+                    ->label('S3 (3-digit)')
+                    ->searchable()
+                    ->copyable()
+                    ->badge()
+                    ->color('warning'),
+                Tables\Columns\TextColumn::make('d4_winning_number')
+                    ->label('D4 (4-digit)')
+                    ->searchable()
+                    ->copyable()
+                    ->badge()
+                    ->color('danger'),
                 Tables\Columns\TextColumn::make('coordinator.name')
                     ->searchable()
                     ->sortable(),
