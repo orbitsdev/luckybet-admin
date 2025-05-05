@@ -45,14 +45,14 @@ class AuthController extends Controller
                 'email' => 'required|email',
                 'password' => 'required|string',
             ]);
-            
+
             $user = User::where('email', $data['email'])->first();
         } else {
             $data = $request->validate([
                 'username' => 'required|string',
                 'password' => 'required|string',
             ]);
-            
+
             $user = User::where('username', $data['username'])->first();
         }
 
@@ -68,7 +68,7 @@ class AuthController extends Controller
             'token_type' => 'Bearer',
             'user' => new UserResource($user),
         ]);
-    }
+    } 
 
     public function user(Request $request)
     {

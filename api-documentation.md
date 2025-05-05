@@ -18,7 +18,7 @@ This document provides comprehensive documentation for the LuckyBet Admin API, i
 All API requests should be prefixed with your base URL:
 
 ```
-https://your-api-domain.com/api
+https://luckybet-admin.orbitsdev.com/api
 ```
 
 ## Response Format
