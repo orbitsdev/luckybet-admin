@@ -14,6 +14,7 @@ class Result extends Model
 
     protected $fillable = [
         'draw_id',             // Reference to the draw
+        'game_type_id',        // Reference to the game type
         'draw_date',           // Date of the draw
         'draw_time',           // Time of the draw (e.g., 2pm)
         's2_winning_number',   // S2 winning number (e.g., 21)
@@ -34,5 +35,10 @@ class Result extends Model
     public function draw()
     {
         return $this->belongsTo(Draw::class);
+    }
+    
+    public function gameType()
+    {
+        return $this->belongsTo(GameType::class);
     }
 }

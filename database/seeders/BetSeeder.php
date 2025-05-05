@@ -35,15 +35,15 @@ class BetSeeder extends Seeder
         foreach ($draws as $draw) {
             $betCount = rand(5, 15); // Random number of bets per draw
             $drawDate = $draw->draw_date;
-            $drawType = $draw->type;
             
-            // Determine max digits based on draw type
-            $maxDigits = 2; // Default for S2
-            if ($drawType === 'S3') {
-                $maxDigits = 3;
-            } elseif ($drawType === 'D4') {
-                $maxDigits = 4;
+            // Get the game type for this draw
+            $gameType = $draw->gameType;
+            if (!$gameType) {
+                continue; // Skip if no game type
             }
+            
+            // Determine max digits based on game type
+            $maxDigits = $gameType->digits;
             
             // Create bets for this draw
             for ($i = 1; $i <= $betCount; $i++) {
@@ -60,7 +60,8 @@ class BetSeeder extends Seeder
                 // Determine bet status based on draw date and time
                 $status = 'active';
                 $now = now();
-                $drawDateTime = \Carbon\Carbon::parse("$drawDate {$draw->draw_time}");
+                // Fix the date parsing by ensuring we have the correct format
+                $drawDateTime = \Carbon\Carbon::parse($draw->draw_date->format('Y-m-d') . ' ' . $draw->draw_time);
                 
                 if ($drawDateTime < $now && !$draw->is_open) {
                     // Draw is in the past and closed
@@ -73,6 +74,7 @@ class BetSeeder extends Seeder
                     'bet_number' => $betNumber,
                     'amount' => rand(1, 5) * 20, // Random amount in multiples of 20
                     'draw_id' => $draw->id,
+                    'game_type_id' => $gameType->id, // Add the game type ID
                     'teller_id' => $teller->id,
                     'location_id' => $location->id,
                     'bet_date' => $drawDate,

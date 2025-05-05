@@ -34,6 +34,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/coordinator/summary-report', [CoordinatorReportController::class, 'index']);
 
+    // Game Types route
+    Route::get('/game-types', [\App\Http\Controllers\Api\GameTypeController::class, 'index']);
+
     // Number Flag routes
     Route::apiResource('number-flags', NumberFlagController::class);
 });

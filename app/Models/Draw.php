@@ -12,7 +12,7 @@ class Draw extends Model
     use HasFactory;
 
     protected $fillable = [
-        'draw_date', 'draw_time', 'schedule_id',
+        'draw_date', 'draw_time', 'schedule_id', 'game_type_id',
         'is_open',
     ];
     
@@ -29,6 +29,11 @@ class Draw extends Model
     public function schedule()
     {
         return $this->belongsTo(Schedule::class);
+    }
+    
+    public function gameType()
+    {
+        return $this->belongsTo(GameType::class);
     }
     
     public function result()

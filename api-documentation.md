@@ -293,7 +293,7 @@ Place a new bet as a teller.
 | bet_number | string | Yes | The bet number (max 5 digits) |
 | amount | numeric | Yes | Bet amount (min 1) |
 | draw_id | integer | Yes | ID of the draw |
-| game_type | string | Yes | Type of game (S2, S3, D4) |
+| game_type_id | integer | Yes | ID of the game type |
 | customer_id | integer | No | ID of the customer (if applicable) |
 | is_combination | boolean | No | Whether this is a combination bet |
 
@@ -304,7 +304,7 @@ Place a new bet as a teller.
   "bet_number": "123",
   "amount": 50,
   "draw_id": 1,
-  "game_type": "S3",
+  "game_type_id": 2,
   "customer_id": null,
   "is_combination": false
 }

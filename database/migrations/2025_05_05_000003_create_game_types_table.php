@@ -12,17 +12,20 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('game_types', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('code', 5)->unique(); // S2, S3, D4, etc.
-            $table->text('description')->nullable();
-            $table->boolean('is_active')->default(true);
-            $table->timestamps();
-        });
-        
-        // Seed the default game types
-        $this->seedGameTypes();
+        // Only create the game_types table if it doesn't exist
+        if (!Schema::hasTable('game_types')) {
+            Schema::create('game_types', function (Blueprint $table) {
+                $table->id();
+                $table->string('name');
+                $table->string('code', 5)->unique(); // S2, S3, D4, etc.
+                $table->text('description')->nullable();
+                $table->boolean('is_active')->default(true);
+                $table->timestamps();
+            });
+            
+            // Seed the default game types
+            $this->seedGameTypes();
+        }
         
         // Add game_type column to bets table if it doesn't exist
         if (!Schema::hasColumn('bets', 'game_type')) {

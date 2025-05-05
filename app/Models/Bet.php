@@ -20,7 +20,7 @@ class Bet extends Model
         'bet_number',
         'amount',
         'draw_id',
-        'game_type',       // S2, S3, D4
+        'game_type_id',    // Foreign key to game_types table
         'teller_id',
         'customer_id',    // optional
         'location_id',
@@ -39,6 +39,11 @@ class Bet extends Model
     public function draw()
     {
         return $this->belongsTo(Draw::class);
+    }
+    
+    public function gameType()
+    {
+        return $this->belongsTo(GameType::class);
     }
 
     public function teller()

@@ -27,6 +27,11 @@ class ResultSeeder extends Seeder
         
         // Create results for each closed draw
         foreach ($closedDraws as $draw) {
+            // Skip if the draw doesn't have a game type
+            if (!$draw->gameType) {
+                continue;
+            }
+            
             // Generate winning numbers for each game type
             $s2WinningNumber = sprintf('%02d', rand(0, 99));
             $s3WinningNumber = sprintf('%03d', rand(0, 999));
@@ -41,6 +46,7 @@ class ResultSeeder extends Seeder
                 's3_winning_number' => $s3WinningNumber,
                 'd4_winning_number' => $d4WinningNumber,
                 'draw_id' => $draw->id,
+                'game_type_id' => $draw->game_type_id, // Add the game type ID
                 'draw_date' => $draw->draw_date,
                 'draw_time' => $draw->draw_time,
                 'coordinator_id' => $coordinator->id,

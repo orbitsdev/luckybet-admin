@@ -85,9 +85,9 @@ class GameTypeResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListGameTypes::class,
-            'create' => Pages\CreateGameType::class,
-            'edit' => Pages\EditGameType::class,
+            'index' => Pages\ListGameTypes::route('/'),
+            'create' => Pages\CreateGameType::route('/create'),
+            'edit' => Pages\EditGameType::route('/{record}/edit'),
         ];
     }
 }
