@@ -2,6 +2,17 @@
 
 This document provides comprehensive documentation for the LuckyBet Admin API, including endpoints, request parameters, and response formats.
 
+## Quick Start Guide
+
+### Multi-Game Lottery Betting Workflow
+
+1. **Get Available Draws**: Call `/draws/available` to get a list of available draws with their schedules and game types
+2. **Get Game Types**: Call `/game-types` to get a list of all game types (if needed)
+3. **Place a Bet**: Call `/teller/bet` with the selected draw_id and game_type_id
+4. **Check Bets**: Call `/teller/bets` to view placed bets
+5. **Submit Results**: Coordinators call `/coordinator/result` to submit winning numbers
+6. **Process Claims**: Call `/teller/claim` to process winning tickets
+
 ## Table of Contents
 
 1. [Authentication](#authentication)
@@ -62,6 +73,8 @@ All API responses follow a consistent format:
   }
 }
 ```
+
+---
 
 ## Authentication
 
@@ -235,6 +248,8 @@ Revoke the current access token.
 }
 ```
 
+---
+
 ## Betting Operations
 
 ### Available Draws
@@ -244,6 +259,12 @@ Get a list of available draws for the current day that have not yet occurred (ba
 - **URL**: `/draws/available`
 - **Method**: `GET`
 - **Authentication**: Required
+
+#### Important Notes
+
+- Each draw includes both **schedule information** (draw time) and **game type information**
+- Frontend should use this endpoint to populate the draw selection dropdown
+- The `draw_id` and `game_type_id` from the selected draw should be used when placing a bet
 
 **Example Response:**
 
@@ -290,22 +311,29 @@ Get a list of available draws for the current day that have not yet occurred (ba
 
 ### Place Bet
 
-Place a new bet as a teller.
+Place a new bet as a teller. This endpoint allows tellers to submit bets for different game types in the multi-game lottery system.
 
 - **URL**: `/teller/bet`
 - **Method**: `POST`
-- **Authentication**: Required
+- **Authentication**: Required (Teller access token)
+
+#### Betting Workflow
+
+1. ✅ Get available draws from `/draws/available`
+2. ✅ Select a draw (which includes schedule and game type information)
+3. ✅ Enter the bet number based on the game type (2 digits for S2, 3 digits for S3, 4 digits for D4)
+4. ✅ Submit the bet with draw_id and game_type_id
 
 **Request Parameters:**
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| bet_number | string | Yes | The bet number (max 5 digits) |
-| amount | numeric | Yes | Bet amount (min 1) |
-| draw_id | integer | Yes | ID of the draw |
-| game_type_id | integer | Yes | ID of the game type |
-| customer_id | integer | No | ID of the customer (if applicable) |
-| is_combination | boolean | No | Whether this is a combination bet |
+| bet_number | string | Yes | The bet number (max 5 digits). **Length must match the game type**: <br>• 2 digits for S2 (e.g., "42")<br>• 3 digits for S3 (e.g., "123")<br>• 4 digits for D4 (e.g., "5678") |
+| amount | numeric | Yes | Bet amount (min 1). The amount the customer is betting |
+| draw_id | integer | Yes | ID of the draw. This should be obtained from the `/draws/available` endpoint |
+| game_type_id | integer | Yes | ID of the game type. This should be obtained from the draw object returned by `/draws/available`:<br>• 1 = S2 (Swertres 2-Digit)<br>• 2 = S3 (Swertres 3-Digit)<br>• 3 = D4 (Digit 4) |
+| customer_id | integer | No | ID of the customer (if applicable). Leave as null for anonymous bets |
+| is_combination | boolean | No | Whether this is a combination bet. If true, the system will create all possible combinations of the bet number |
 
 **Example Request:**
 
@@ -493,6 +521,8 @@ Cancel an active bet.
 }
 ```
 
+---
+
 ## Claims Management
 
 ### Submit Claim
@@ -619,6 +649,8 @@ Get a list of claims processed by the authenticated teller.
 }
 ```
 
+---
+
 ## Results Management
 
 ### Submit Result
@@ -733,6 +765,8 @@ Get a list of results.
 }
 ```
 
+---
+
 ## Tally Sheet
 
 ### Get Tally Sheet
@@ -829,6 +863,8 @@ Get a tally sheet for the authenticated teller.
 }
 ```
 
+---
+
 ## Coordinator Reports
 
 ### Get Summary Report
@@ -908,6 +944,8 @@ Get a summary report for a coordinator.
 }
 ```
 
+---
+
 ## Game Types
 
 ### List Game Types
@@ -949,6 +987,8 @@ Get a list of all active game types.
   ]
 }
 ```
+
+---
 
 ## Number Flags
 

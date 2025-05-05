@@ -254,23 +254,33 @@ Get a list of available draws for the current day that have not yet occurred (ba
   "data": [
     {
       "id": 2,
-      "draw_time": "4:00 PM",
-      "draw_date": "2025-05-05",
+      "draw_date": "2025-05-05T16:00:00.000000Z",
+      "draw_time": "16:00:00",
       "schedule": {
         "id": 1,
         "name": "Afternoon Draw",
         "draw_time": "16:00:00"
       },
+      "game_type": {
+        "id": 1,
+        "code": "S2",
+        "name": "Swertres 2-Digit"
+      },
       "is_open": true
     },
     {
       "id": 3,
-      "draw_time": "9:00 PM",
-      "draw_date": "2025-05-05",
+      "draw_date": "2025-05-05T16:00:00.000000Z",
+      "draw_time": "21:00:00",
       "schedule": {
         "id": 2,
         "name": "Evening Draw",
         "draw_time": "21:00:00"
+      },
+      "game_type": {
+        "id": 2,
+        "code": "S3",
+        "name": "Swertres 3-Digit"
       },
       "is_open": true
     }
@@ -280,22 +290,22 @@ Get a list of available draws for the current day that have not yet occurred (ba
 
 ### Place Bet
 
-Place a new bet as a teller.
+Place a new bet as a teller. This endpoint allows tellers to submit bets for different game types in the multi-game lottery system.
 
 - **URL**: `/teller/bet`
 - **Method**: `POST`
-- **Authentication**: Required
+- **Authentication**: Required (Teller access token)
 
 **Request Parameters:**
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| bet_number | string | Yes | The bet number (max 5 digits) |
-| amount | numeric | Yes | Bet amount (min 1) |
-| draw_id | integer | Yes | ID of the draw |
-| game_type_id | integer | Yes | ID of the game type |
-| customer_id | integer | No | ID of the customer (if applicable) |
-| is_combination | boolean | No | Whether this is a combination bet |
+| bet_number | string | Yes | The bet number (max 5 digits). Length should match the selected game type (2 digits for S2, 3 digits for S3, 4 digits for D4) |
+| amount | numeric | Yes | Bet amount (min 1). The amount the customer is betting |
+| draw_id | integer | Yes | ID of the draw. This should be obtained from the `/draws/available` endpoint |
+| game_type_id | integer | Yes | ID of the game type (1 for S2, 2 for S3, 3 for D4). This should be obtained from the `/game-types` endpoint or from the draw object returned by `/draws/available` |
+| customer_id | integer | No | ID of the customer (if applicable). Leave as null for anonymous bets |
+| is_combination | boolean | No | Whether this is a combination bet. If true, the system will create all possible combinations of the bet number |
 
 **Example Request:**
 

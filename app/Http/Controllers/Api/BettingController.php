@@ -81,7 +81,7 @@ class BettingController extends Controller
             'bet_number' => 'required|string|max:5',
             'amount' => 'required|numeric|min:1',
             'draw_id' => 'required|exists:draws,id',
-            'game_type' => 'required|in:S2,S3,D4',
+            'game_type_id' => 'required|exists:game_types,id',
             'customer_id' => 'nullable|exists:users,id',
             'is_combination' => 'boolean'
         ]);
@@ -107,7 +107,7 @@ class BettingController extends Controller
                 'bet_number' => $data['bet_number'],
                 'amount' => $data['amount'],
                 'draw_id' => $data['draw_id'],
-                'game_type' => $data['game_type'],
+                'game_type_id' => $data['game_type_id'],
                 'teller_id' => $teller->id,
                 'customer_id' => $data['customer_id'] ?? null,
                 'location_id' => $teller->location_id,
