@@ -17,7 +17,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [AuthController::class, 'user']);
     Route::post('/logout', [AuthController::class, 'logout']);
 
+    // Draw and schedule routes
     Route::get('/draws/available', [BettingController::class, 'availableDraws']);
+    Route::get('/schedules/available', [BettingController::class, 'availableSchedules']);
+    Route::get('/draws/by-game-type', [BettingController::class, 'availableDrawsByGameType']);
     Route::post('/teller/bet', [BettingController::class, 'placeBet']);
 
     Route::get('/teller/bets', [BettingController::class, 'listBets']);

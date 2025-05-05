@@ -68,6 +68,61 @@ class BettingController extends Controller
 
         return ApiResponse::success(DrawResource::collection($draws), 'Available draws loaded');
     }
+    
+    /**
+     * Get available schedules for the current day without duplicates
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function availableSchedules()
+    {
+        $currentTime = now();
+        
+        // Get unique schedules from draws table
+        $schedules = Draw::where('draw_date', today())
+            ->where('is_open', true)
+            ->select('schedule_id')
+            ->distinct()
+            ->with('schedule')
+            ->get()
+            ->map(function($draw) {
+                return [
+                    'id' => $draw->schedule->id,
+                    'name' => $draw->schedule->name,
+                    'draw_time' => $draw->schedule->draw_time,
+                    'formatted_time' => date('g:i A', strtotime($draw->schedule->draw_time)) // Format as 2:00 PM
+                ];
+            });
+            
+        return ApiResponse::success($schedules, 'Available schedules loaded');
+    }
+    
+    /**
+     * Get available draws for a specific game type and schedule
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function availableDrawsByGameType(Request $request)
+    {
+        $request->validate([
+            'game_type_id' => 'required|exists:game_types,id',
+            'schedule_id' => 'nullable|exists:schedules,id'
+        ]);
+        
+        $query = Draw::where('draw_date', today())
+            ->where('is_open', true)
+            ->where('game_type_id', $request->game_type_id)
+            ->with(['schedule', 'gameType']);
+            
+        if ($request->filled('schedule_id')) {
+            $query->where('schedule_id', $request->schedule_id);
+        }
+        
+        $draws = $query->orderBy('draw_time')->get();
+        
+        return ApiResponse::success(DrawResource::collection($draws), 'Available draws loaded');
+    }
 
     /**
      * Place a new bet

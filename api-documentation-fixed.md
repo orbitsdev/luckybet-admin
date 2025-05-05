@@ -7,11 +7,12 @@ This document provides comprehensive documentation for the LuckyBet Admin API, i
 ### Multi-Game Lottery Betting Workflow
 
 1. **Get Game Types**: Call `/game-types` to get a list of all game types (S2, S3, D4)
-2. **Get Available Draws**: Call `/draws/available` to get a list of available draw schedules (2PM, 5PM, 9PM)
-3. **Place a Bet**: Call `/teller/bet` with the selected draw_id and game_type_id
-4. **Check Bets**: Call `/teller/bets` to view placed bets
-5. **Submit Results**: Coordinators call `/coordinator/result` to submit winning numbers
-6. **Process Claims**: Call `/teller/claim` to process winning tickets
+2. **Get Available Schedules**: Call `/schedules/available` to get a list of unique draw schedules (2PM, 5PM, 9PM)
+3. **Get Draws by Game Type**: Call `/draws/by-game-type?game_type_id=1&schedule_id=2` to get draws for a specific game type and schedule
+4. **Place a Bet**: Call `/teller/bet` with the selected draw_id and game_type_id
+5. **Check Bets**: Call `/teller/bets` to view placed bets
+6. **Submit Results**: Coordinators call `/coordinator/result` to submit winning numbers
+7. **Process Claims**: Call `/teller/claim` to process winning tickets
 
 ## Table of Contents
 
@@ -252,9 +253,106 @@ Revoke the current access token.
 
 ## Betting Operations
 
-### Available Draws
+### Available Schedules
 
-Get a list of available draws for the current day that have not yet occurred (based on the current time).
+Get a list of unique available schedules (2PM, 5PM, 9PM) for the current day without duplicates.
+
+- **URL**: `/schedules/available`
+- **Method**: `GET`
+- **Authentication**: Required
+
+#### Important Notes
+
+- This endpoint returns unique schedules without duplicates
+- Use this to populate the schedule dropdown in your UI
+- After selecting a game type and schedule, use the `/draws/by-game-type` endpoint to get the specific draw
+
+**Example Response:**
+
+```json
+{
+  "status": true,
+  "message": "Available schedules loaded",
+  "data": [
+    {
+      "id": 1,
+      "name": "Morning Draw",
+      "draw_time": "11:00:00",
+      "formatted_time": "11:00 AM"
+    },
+    {
+      "id": 2,
+      "name": "Afternoon Draw",
+      "draw_time": "14:00:00",
+      "formatted_time": "2:00 PM"
+    },
+    {
+      "id": 3,
+      "name": "Evening Draw",
+      "draw_time": "21:00:00",
+      "formatted_time": "9:00 PM"
+    }
+  ]
+}
+```
+
+### Draws by Game Type
+
+Get available draws filtered by game type and optionally by schedule.
+
+- **URL**: `/draws/by-game-type`
+- **Method**: `GET`
+- **Authentication**: Required
+
+**Query Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| game_type_id | integer | Yes | ID of the game type to filter by |
+| schedule_id | integer | No | ID of the schedule to filter by |
+
+#### Important Notes
+
+- Use this endpoint after the user has selected both a game type and a schedule
+- This will return the specific draw(s) matching the criteria
+- Use the returned `draw_id` when placing a bet
+
+**Example Request:**
+
+```
+/draws/by-game-type?game_type_id=1&schedule_id=2
+```
+
+**Example Response:**
+
+```json
+{
+  "status": true,
+  "message": "Available draws loaded",
+  "data": [
+    {
+      "id": 5,
+      "draw_date": "2025-05-06T16:00:00.000000Z",
+      "draw_time": "14:00:00",
+      "schedule": {
+        "id": 2,
+        "name": "Afternoon Draw",
+        "draw_time": "14:00:00"
+      },
+      "game_type": {
+        "id": 1,
+        "code": "S2",
+        "name": "Swertres 2-Digit"
+      },
+      "is_open": true
+    }
+  ]
+}
+```
+
+### Available Draws (Legacy)
+
+Get a list of all available draws for the current day. Note: This endpoint returns all draws and may include duplicate schedules.
 
 - **URL**: `/draws/available`
 - **Method**: `GET`
@@ -262,10 +360,8 @@ Get a list of available draws for the current day that have not yet occurred (ba
 
 #### Important Notes
 
-- This endpoint returns available draw schedules (2PM, 5PM, 9PM)
-- In your UI, users should first select a game type (S2, S3, D4) and then select a draw schedule
-- The selection of game type and draw schedule are separate steps
-- When placing a bet, both the selected `draw_id` and the selected `game_type_id` should be sent
+- This is a legacy endpoint that returns all draws
+- For a better user experience, use the `/schedules/available` and `/draws/by-game-type` endpoints instead
 
 **Example Response:**
 
@@ -322,10 +418,11 @@ Place a new bet as a teller. This endpoint allows tellers to submit bets for dif
 
 1. ✅ Get game types from `/game-types` endpoint
 2. ✅ Select a game type (S2, S3, D4)
-3. ✅ Get available draws from `/draws/available` endpoint
-4. ✅ Select a draw schedule (2PM, 5PM, 9PM)
-5. ✅ Enter the bet number based on the selected game type (2 digits for S2, 3 digits for S3, 4 digits for D4)
-6. ✅ Submit the bet with both draw_id and game_type_id
+3. ✅ Get available schedules from `/schedules/available` endpoint
+4. ✅ Select a schedule (2PM, 5PM, 9PM)
+5. ✅ Get the specific draw using `/draws/by-game-type?game_type_id=X&schedule_id=Y`
+6. ✅ Enter the bet number based on the selected game type (2 digits for S2, 3 digits for S3, 4 digits for D4)
+7. ✅ Submit the bet with the draw_id and game_type_id
 
 **Request Parameters:**
 
