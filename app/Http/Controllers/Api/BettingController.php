@@ -51,9 +51,17 @@ class BettingController extends Controller
     {
         $currentTime = now();
         
+        // Temporarily removed time filter since it's late evening (10:44 PM)
+        // Original code with time filter:
+        // $draws = Draw::where('draw_date', today())
+        //     ->where('is_open', true)
+        //     ->where('draw_time', '>', $currentTime->format('H:i:s'))
+        //     ->orderBy('draw_time')
+        //     ->get();
+        
+        // Modified version without time filter for testing:
         $draws = Draw::where('draw_date', today())
             ->where('is_open', true)
-            ->where('draw_time', '>', $currentTime->format('H:i:s'))
             ->orderBy('draw_time')
             ->get();
 
