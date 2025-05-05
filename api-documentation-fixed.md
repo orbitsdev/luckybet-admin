@@ -6,8 +6,8 @@ This document provides comprehensive documentation for the LuckyBet Admin API, i
 
 ### Multi-Game Lottery Betting Workflow
 
-1. **Get Available Draws**: Call `/draws/available` to get a list of available draws with their schedules and game types
-2. **Get Game Types**: Call `/game-types` to get a list of all game types (if needed)
+1. **Get Game Types**: Call `/game-types` to get a list of all game types (S2, S3, D4)
+2. **Get Available Draws**: Call `/draws/available` to get a list of available draw schedules (2PM, 5PM, 9PM)
 3. **Place a Bet**: Call `/teller/bet` with the selected draw_id and game_type_id
 4. **Check Bets**: Call `/teller/bets` to view placed bets
 5. **Submit Results**: Coordinators call `/coordinator/result` to submit winning numbers
@@ -262,9 +262,10 @@ Get a list of available draws for the current day that have not yet occurred (ba
 
 #### Important Notes
 
-- Each draw includes both **schedule information** (draw time) and **game type information**
-- Frontend should use this endpoint to populate the draw selection dropdown
-- The `draw_id` and `game_type_id` from the selected draw should be used when placing a bet
+- This endpoint returns available draw schedules (2PM, 5PM, 9PM)
+- In your UI, users should first select a game type (S2, S3, D4) and then select a draw schedule
+- The selection of game type and draw schedule are separate steps
+- When placing a bet, both the selected `draw_id` and the selected `game_type_id` should be sent
 
 **Example Response:**
 
@@ -319,10 +320,12 @@ Place a new bet as a teller. This endpoint allows tellers to submit bets for dif
 
 #### Betting Workflow
 
-1. ✅ Get available draws from `/draws/available`
-2. ✅ Select a draw (which includes schedule and game type information)
-3. ✅ Enter the bet number based on the game type (2 digits for S2, 3 digits for S3, 4 digits for D4)
-4. ✅ Submit the bet with draw_id and game_type_id
+1. ✅ Get game types from `/game-types` endpoint
+2. ✅ Select a game type (S2, S3, D4)
+3. ✅ Get available draws from `/draws/available` endpoint
+4. ✅ Select a draw schedule (2PM, 5PM, 9PM)
+5. ✅ Enter the bet number based on the selected game type (2 digits for S2, 3 digits for S3, 4 digits for D4)
+6. ✅ Submit the bet with both draw_id and game_type_id
 
 **Request Parameters:**
 
