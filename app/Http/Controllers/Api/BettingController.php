@@ -49,8 +49,12 @@ class BettingController extends Controller
      */
     public function availableDraws()
     {
+        $currentTime = now();
+        
         $draws = Draw::where('draw_date', today())
             ->where('is_open', true)
+            ->where('draw_time', '>', $currentTime->format('H:i:s'))
+            ->orderBy('draw_time')
             ->get();
 
         return ApiResponse::success(DrawResource::collection($draws), 'Available draws loaded');

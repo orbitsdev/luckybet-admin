@@ -239,7 +239,7 @@ Revoke the current access token.
 
 ### Available Draws
 
-Get a list of available draws for the current day.
+Get a list of available draws for the current day that have not yet occurred (based on the current time).
 
 - **URL**: `/draws/available`
 - **Method**: `GET`
@@ -253,17 +253,17 @@ Get a list of available draws for the current day.
   "message": "Available draws loaded",
   "data": [
     {
-      "id": 1,
-      "draw_time": "11:00 AM",
-      "draw_date": "2025-05-05",
-      "type": "S3",
-      "is_open": true
-    },
-    {
       "id": 2,
       "draw_time": "4:00 PM",
       "draw_date": "2025-05-05",
       "type": "S2",
+      "is_open": true
+    },
+    {
+      "id": 3,
+      "draw_time": "9:00 PM",
+      "draw_date": "2025-05-05",
+      "type": "S3",
       "is_open": true
     }
   ]
