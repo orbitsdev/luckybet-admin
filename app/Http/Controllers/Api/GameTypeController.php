@@ -17,9 +17,7 @@ class GameTypeController extends Controller
      */
     public function index()
     {
-        $gameTypes = GameType::where('is_active', true)
-            ->orderBy('name')
-            ->get();
+        $gameTypes = GameType::orderBy('name')->get();
             
         return ApiResponse::success(
             GameTypeResource::collection($gameTypes), 
