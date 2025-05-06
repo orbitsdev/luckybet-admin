@@ -12,12 +12,15 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Hash;
 
 class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-users';
+    protected static ?string $navigationGroup = 'User Management';
+    protected static ?string $navigationLabel = 'Users';
     protected static ?int $navigationSort = 1;
 
     public static function form(Form $form): Form
@@ -37,18 +40,12 @@ class UserResource extends Resource
                 Forms\Components\TextInput::make('phone')
                     ->tel()
                     ->maxLength(255),
-                Forms\Components\DateTimePicker::make('email_verified_at'),
                 Forms\Components\TextInput::make('password')
                     ->password()
                     ->required()
-                    ->maxLength(255),
-                Forms\Components\Textarea::make('two_factor_secret')
-                    ->columnSpanFull(),
-                Forms\Components\Textarea::make('two_factor_recovery_codes')
-                    ->columnSpanFull(),
-                Forms\Components\DateTimePicker::make('two_factor_confirmed_at'),
-                Forms\Components\TextInput::make('current_team_id')
-                    ->numeric(),
+                    ->maxLength(255)
+                    ->dehydrateStateUsing(fn ($state) => Hash::make($state))
+                    ->dehydrated(fn ($state) => filled($state)),
                 Forms\Components\FileUpload::make('profile_photo_path')
                     ->image()
                     ->directory('profile-photos')
@@ -56,12 +53,31 @@ class UserResource extends Resource
                     ->maxSize(1024)
                     ->hint('Maximum size: 1MB')
                     ->imagePreviewHeight('100'),
-                Forms\Components\TextInput::make('role')
-                    ->required(),
+                Forms\Components\Select::make('role')
+                    ->options([
+                        'admin' => 'Admin',
+                        'coordinator' => 'Coordinator',
+                        'teller' => 'Teller',
+                        'customer' => 'Customer',
+                    ])
+                    ->required()
+                    ->reactive()
+                    ->afterStateUpdated(fn (callable $set) => $set('coordinator_id', null)),
                 Forms\Components\Toggle::make('is_active')
                     ->required(),
-                Forms\Components\TextInput::make('location_id')
-                    ->numeric(),
+                Forms\Components\Select::make('location_id')
+                    ->relationship('location', 'name')
+                    ->searchable()
+                    ->preload()
+                    ->required(),
+                Forms\Components\Select::make('coordinator_id')
+                    ->label('Coordinator')
+                    ->relationship('coordinator', 'name', function ($query) {
+                        return $query->where('role', 'coordinator');
+                    })
+                    ->searchable()
+                    ->preload()
+                    ->nullable(),
             ]);
     }
 
@@ -77,26 +93,27 @@ class UserResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('phone')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('email_verified_at')
-                    ->dateTime()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('two_factor_confirmed_at')
-                    ->dateTime()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('current_team_id')
-                    ->numeric()
-                    ->sortable(),
+
                 Tables\Columns\ImageColumn::make('profile_photo_url')
                     ->label('Profile Photo')
                     ->circular()
                     ->defaultImageUrl(function (User $record): string {
                         return $record->profile_photo_url;
                     }),
-                Tables\Columns\TextColumn::make('role'),
+                Tables\Columns\BadgeColumn::make('role')
+                    ->colors([
+                        'primary' => 'admin',
+                        'success' => 'coordinator',
+                        'warning' => 'teller',
+                        'info' => 'customer',
+                    ]),
                 Tables\Columns\IconColumn::make('is_active')
                     ->boolean(),
-                Tables\Columns\TextColumn::make('location_id')
-                    ->numeric()
+                Tables\Columns\TextColumn::make('location.name')
+                    ->label('Location')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('coordinator.name')
+                    ->label('Coordinator')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()

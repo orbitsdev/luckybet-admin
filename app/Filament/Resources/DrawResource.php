@@ -24,15 +24,60 @@ class DrawResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\DatePicker::make('draw_date')
-                    ->required(),
-                Forms\Components\TimePicker::make('draw_time')
-                    ->seconds(true)
-                    ->required(),
-                // Game type field removed as per documentation
-                // Each result will have separate fields for different game types
-                Forms\Components\Toggle::make('is_open')
-                    ->required(),
+                Forms\Components\Wizard::make([
+                    Forms\Components\Wizard\Step::make('Draw Information')
+                        ->icon('heroicon-o-calendar')
+                        ->schema([
+                            Forms\Components\DatePicker::make('draw_date')
+                                ->required(),
+                            Forms\Components\Select::make('draw_time')
+                                ->label('Draw Time')
+                                ->options(function() {
+                                    $schedules = \App\Models\Schedule::where('is_active', true)->get();
+                                    $options = [];
+                                    foreach ($schedules as $schedule) {
+                                        $options[$schedule->draw_time] = "{$schedule->name} ({$schedule->draw_time})";
+                                    }
+                                    return $options;
+                                })
+                                ->searchable()
+                                ->required(),
+                            Forms\Components\Toggle::make('is_open')
+                                ->required()->default(true),
+                        ]),
+                    Forms\Components\Wizard\Step::make('Winning Numbers')
+                        ->icon('heroicon-o-trophy')
+                        ->schema([
+                            Forms\Components\Section::make('Add Winning Numbers')
+                                ->description('Enter the winning numbers for this draw')
+                                ->schema([
+                                    Forms\Components\Group::make()
+                                        ->relationship('result')
+                                        ->schema([
+                                            Forms\Components\TextInput::make('s2_winning_number')
+                                                ->label('2-Digit (S2)')
+                                                ->placeholder('00-99')
+                                                ->maxLength(2)
+                                                ->regex('/^\d{2}$/')
+                                                ->nullable(),
+                                            Forms\Components\TextInput::make('s3_winning_number')
+                                                ->label('3-Digit (S3)')
+                                                ->placeholder('000-999')
+                                                ->maxLength(3)
+                                                ->regex('/^\d{3}$/')
+                                                ->nullable(),
+                                            Forms\Components\TextInput::make('d4_winning_number')
+                                                ->label('4-Digit (D4)')
+                                                ->placeholder('0000-9999')
+                                                ->maxLength(4)
+                                                ->regex('/^\d{4}$/')
+                                                ->nullable(),
+                                        ])
+                                        ->columns(3)
+                                ])
+                        ])
+                ])
+                ->skippable()->columnSpanFull()
             ]);
     }
 
@@ -74,7 +119,7 @@ class DrawResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\ResultRelationManager::class,
         ];
     }
 

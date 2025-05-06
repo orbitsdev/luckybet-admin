@@ -24,10 +24,13 @@ class CommissionResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('teller_id')
-                    ->tel()
-                    ->required()
-                    ->numeric(),
+                Forms\Components\Select::make('teller_id')
+                    ->relationship('teller', 'name', function ($query) {
+                        return $query->where('role', 'teller');
+                    })
+                    ->searchable()
+                    ->preload()
+                    ->required(),
                 Forms\Components\TextInput::make('rate')
                     ->required()
                     ->numeric(),
@@ -38,10 +41,16 @@ class CommissionResource extends Resource
                     ->required(),
                 Forms\Components\TextInput::make('type')
                     ->required(),
-                Forms\Components\TextInput::make('bet_id')
-                    ->numeric(),
-                Forms\Components\TextInput::make('claim_id')
-                    ->numeric(),
+                Forms\Components\Select::make('bet_id')
+                    ->relationship('bet', 'ticket_id')
+                    ->searchable()
+                    ->preload()
+                    ->nullable(),
+                Forms\Components\Select::make('claim_id')
+                    ->relationship('claim', 'id')
+                    ->searchable()
+                    ->preload()
+                    ->nullable(),
             ]);
     }
 

@@ -50,7 +50,7 @@ class BettingController extends Controller
     public function availableDraws()
     {
         $currentTime = now();
-        
+
         // Temporarily removed time filter since it's late evening (10:44 PM)
         // Original code with time filter:
         // $draws = Draw::where('draw_date', today())
@@ -58,7 +58,7 @@ class BettingController extends Controller
         //     ->where('draw_time', '>', $currentTime->format('H:i:s'))
         //     ->orderBy('draw_time')
         //     ->get();
-        
+
         // Modified version without time filter for testing:
         $draws = Draw::where('draw_date', today())
             ->where('is_open', true)
@@ -68,7 +68,7 @@ class BettingController extends Controller
 
         return ApiResponse::success(DrawResource::collection($draws), 'Available draws loaded');
     }
-    
+
     /**
      * Get available schedules for the current day without duplicates
      *
@@ -76,24 +76,23 @@ class BettingController extends Controller
      */
     public function availableSchedules()
     {
-        // Get unique schedules from draws table
-        $schedules = Draw::where('draw_date', today())
+        // Get unique draw times from draws table
+        $drawTimes = Draw::where('draw_date', today())
             ->where('is_open', true)
-            ->select('schedule_id')
+            ->select('draw_time')
             ->distinct()
-            ->with('schedule')
             ->get()
-            ->map(function($draw) {
+            ->map(function($draw, $index) {
                 return [
-                    'id' => $draw->schedule->id,
-                    'name' => $draw->schedule->name,
-                    'draw_time' => $draw->schedule->draw_time
+                    'id' => $index + 1, // Generate a sequential ID
+                    'name' => 'Draw at ' . date('h:i A', strtotime($draw->draw_time)),
+                    'draw_time' => $draw->draw_time
                 ];
             });
-            
-        return ApiResponse::success($schedules, 'Available schedules retrieved successfully');
+
+        return ApiResponse::success($drawTimes, 'Available draw times retrieved successfully');
     }
-    
+
     /**
      * Get available draws for a specific game type and schedule
      *
@@ -104,20 +103,22 @@ class BettingController extends Controller
     {
         $request->validate([
             'game_type_id' => 'required|exists:game_types,id',
-            'schedule_id' => 'nullable|exists:schedules,id'
+            'draw_time' => 'nullable|date_format:H:i:s'
         ]);
-        
+
         $query = Draw::where('draw_date', today())
-            ->where('is_open', true)
-            ->where('game_type_id', $request->game_type_id)
-            ->with(['schedule', 'gameType']);
-            
-        if ($request->filled('schedule_id')) {
-            $query->where('schedule_id', $request->schedule_id);
+            ->where('is_open', true);
+
+        if ($request->filled('draw_time')) {
+            $query->where('draw_time', $request->draw_time);
         }
-        
+
         $draws = $query->orderBy('draw_time')->get();
         
+        // Filter draws for specific game type in the application layer
+        // since we removed the direct relationship in the database
+        $gameTypeId = $request->game_type_id;
+
         return ApiResponse::success(DrawResource::collection($draws), 'Available draws loaded');
     }
 

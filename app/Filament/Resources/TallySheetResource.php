@@ -24,13 +24,18 @@ class TallySheetResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('teller_id')
-                    ->tel()
-                    ->required()
-                    ->numeric(),
-                Forms\Components\TextInput::make('location_id')
-                    ->required()
-                    ->numeric(),
+                Forms\Components\Select::make('teller_id')
+                    ->relationship('teller', 'name', function ($query) {
+                        return $query->where('role', 'teller');
+                    })
+                    ->searchable()
+                    ->preload()
+                    ->required(),
+                Forms\Components\Select::make('location_id')
+                    ->relationship('location', 'name')
+                    ->searchable()
+                    ->preload()
+                    ->required(),
                 Forms\Components\DatePicker::make('sheet_date')
                     ->required(),
                 Forms\Components\TextInput::make('total_sales')
@@ -55,13 +60,14 @@ class TallySheetResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->columns([
-                Tables\Columns\TextColumn::make('teller_id')
-                    ->numeric()
+            ->columns([                
+                Tables\Columns\TextColumn::make('teller.name')
+                    ->label('Teller')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('location_id')
-                    ->numeric()
+                Tables\Columns\TextColumn::make('location.name')
+                    ->label('Location')
                     ->sortable(),
+
                 Tables\Columns\TextColumn::make('sheet_date')
                     ->date()
                     ->sortable(),

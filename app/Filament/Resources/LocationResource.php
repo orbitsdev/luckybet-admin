@@ -29,8 +29,13 @@ class LocationResource extends Resource
                     ->maxLength(255),
                 Forms\Components\TextInput::make('address')
                     ->maxLength(255),
-                Forms\Components\TextInput::make('coordinator_id')
-                    ->numeric(),
+                Forms\Components\Select::make('coordinator_id')
+                    ->relationship('coordinator', 'name', function ($query) {
+                        return $query->where('role', 'coordinator');
+                    })
+                    ->searchable()
+                    ->preload()
+                    ->nullable(),
                 Forms\Components\Toggle::make('is_active')
                     ->required(),
             ]);
@@ -44,8 +49,8 @@ class LocationResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('address')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('coordinator_id')
-                    ->numeric()
+                Tables\Columns\TextColumn::make('coordinator.name')
+                    ->label('Coordinator')
                     ->sortable(),
                 Tables\Columns\IconColumn::make('is_active')
                     ->boolean(),

@@ -33,7 +33,7 @@ class User extends Authenticatable
      *
      */
     protected $fillable = [
-        'username', 'password', 'name', 'email', 'phone', 'role', 'profile_image', 'is_active', 'location_id'
+        'username', 'password', 'name', 'email', 'phone', 'role', 'profile_image', 'is_active', 'location_id', 'coordinator_id'
     ];
 
 
@@ -90,6 +90,16 @@ class User extends Authenticatable
         return $this->hasMany(Commission::class, 'teller_id');
     }
 
+    public function coordinator()
+    {
+        return $this->belongsTo(User::class, 'coordinator_id')->where('role', 'coordinator');
+    }
+
+    public function tellers()
+    {
+        return $this->hasMany(User::class, 'coordinator_id')->where('role', 'teller');
+    }
+
     /**
      * Get the profile photo URL attribute or a default avatar if none exists.
      *
@@ -100,7 +110,7 @@ class User extends Authenticatable
         if ($this->profile_photo_path) {
             return url('storage/' . $this->profile_photo_path);
         }
-        
+
         // Return a free avatar URL based on the user's name
         $name = urlencode($this->name);
         return "https://ui-avatars.com/api/?name={$name}&color=7F9CF5&background=EBF4FF";
