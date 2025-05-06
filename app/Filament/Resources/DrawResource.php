@@ -28,20 +28,23 @@ class DrawResource extends Resource
                     Forms\Components\Wizard\Step::make('Draw Information')
                         ->icon('heroicon-o-calendar')
                         ->schema([
-                            Forms\Components\DatePicker::make('draw_date')
-                                ->required(),
-                            Forms\Components\Select::make('draw_time')
-                                ->label('Draw Time')
-                                ->options(function() {
-                                    $schedules = \App\Models\Schedule::where('is_active', true)->get();
-                                    $options = [];
-                                    foreach ($schedules as $schedule) {
-                                        $options[$schedule->draw_time] = "{$schedule->name} ({$schedule->draw_time})";
-                                    }
-                                    return $options;
-                                })
-                                ->searchable()
-                                ->required(),
+                            Forms\Components\Grid::make(2)
+                                ->schema([
+                                    Forms\Components\DatePicker::make('draw_date')
+                                        ->required(),
+                                    Forms\Components\Select::make('draw_time')
+                                        ->label('Draw Time')
+                                        ->options(function() {
+                                            $schedules = \App\Models\Schedule::where('is_active', true)->get();
+                                            $options = [];
+                                            foreach ($schedules as $schedule) {
+                                                $options[$schedule->draw_time] = "{$schedule->name} ({$schedule->draw_time})";
+                                            }
+                                            return $options;
+                                        })
+                                        ->searchable()
+                                        ->required(),
+                                ]),
                             Forms\Components\Toggle::make('is_open')
                                 ->required()->default(true),
                         ]),
@@ -54,28 +57,33 @@ class DrawResource extends Resource
                                     Forms\Components\Group::make()
                                         ->relationship('result')
                                         ->schema([
+                                            // Winning number fields
                                             Forms\Components\TextInput::make('s2_winning_number')
                                                 ->label('2-Digit (S2)')
-                                                ->placeholder('00-99')
-                                                ->maxLength(2)
-                                                ->regex('/^\d{2}$/')
+                                                ->mask('99')
                                                 ->nullable(),
                                             Forms\Components\TextInput::make('s3_winning_number')
                                                 ->label('3-Digit (S3)')
-                                                ->placeholder('000-999')
-                                                ->maxLength(3)
-                                                ->regex('/^\d{3}$/')
+                                                ->mask('999')
                                                 ->nullable(),
                                             Forms\Components\TextInput::make('d4_winning_number')
                                                 ->label('4-Digit (D4)')
-                                                ->placeholder('0000-9999')
-                                                ->maxLength(4)
-                                                ->regex('/^\d{4}$/')
+                                                ->mask('9999')
                                                 ->nullable(),
                                         ])
+                                        ->mutateRelationshipDataBeforeSaveUsing(function (array $data, $livewire) {
+                                            // Get the current Draw record being edited
+                                            $draw = $livewire->record;
+                                            
+                                            // Add draw_date and draw_time to the Result data
+                                            $data['draw_date'] = $draw->draw_date;
+                                            $data['draw_time'] = $draw->draw_time;
+                                            
+                                            return $data;
+                                        })
                                         ->columns(3)
                                 ])
-                        ])
+                        ])->hidden(fn(string $operation): bool => $operation === 'create'),
                 ])
                 ->skippable()->columnSpanFull()
             ]);
@@ -89,7 +97,8 @@ class DrawResource extends Resource
                     ->date()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('draw_time')
-                    ->time()
+                    ->time('h:i A')
+                    ->label('Draw Time')
                     ->sortable(),
                 // Game type column removed as per documentation
                 Tables\Columns\IconColumn::make('is_open')
@@ -119,7 +128,7 @@ class DrawResource extends Resource
     public static function getRelations(): array
     {
         return [
-            RelationManagers\ResultRelationManager::class,
+            // RelationManagers\ResultRelationManager::class,
         ];
     }
 

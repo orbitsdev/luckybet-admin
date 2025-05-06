@@ -2,12 +2,16 @@
 
 namespace App\Models;
 
-use App\Models\User;
 use App\Models\Draw;
+use App\Models\User;
 use App\Models\GameType;
+use App\Observers\ResultObserver;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+
+// #[ObservedBy([ResultObserver::class])]
 class Result extends Model
 {
     use HasFactory;
@@ -21,7 +25,7 @@ class Result extends Model
         'd4_winning_number',   // D4 winning number (e.g., 7890)
         'coordinator_id',      // User who inputted the result
     ];
-    
+
     protected $casts = [
         'draw_date' => 'date',
         'draw_time' => 'string',
@@ -31,12 +35,12 @@ class Result extends Model
     {
         return $this->belongsTo(User::class, 'coordinator_id');
     }
-    
+
     public function draw()
     {
         return $this->belongsTo(Draw::class);
     }
-    
+
     /**
      * Get the claims associated with this result
      */
