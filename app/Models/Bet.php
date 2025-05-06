@@ -9,12 +9,12 @@ use App\Models\Location;
 use App\Models\Schedule;
 use App\Models\Commission;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
+// SoftDeletes trait removed as per new structure
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Bet extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     protected $fillable = [
         'bet_number',

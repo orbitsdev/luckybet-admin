@@ -42,8 +42,13 @@ class BetSeeder extends Seeder
                 continue; // Skip if no game type
             }
             
-            // Determine max digits based on game type
-            $maxDigits = $gameType->digits;
+            // Determine max digits based on game type code
+            $maxDigits = 3; // Default to 3 digits (S3)
+            if ($gameType->code === 'S2') {
+                $maxDigits = 2;
+            } elseif ($gameType->code === 'D4') {
+                $maxDigits = 4;
+            }
             
             // Create bets for this draw
             for ($i = 1; $i <= $betCount; $i++) {
@@ -100,6 +105,7 @@ class BetSeeder extends Seeder
                         'bet_number' => $betNumber,
                         'amount' => rand(1, 5) * 20,
                         'draw_id' => $draw->id,
+                        'game_type_id' => $gameType->id, // Add the game type ID
                         'teller_id' => $teller->id,
                         'location_id' => $location->id,
                         'bet_date' => $drawDate,

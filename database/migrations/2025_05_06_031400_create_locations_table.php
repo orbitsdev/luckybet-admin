@@ -11,12 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('results', function (Blueprint $table) {
+        Schema::create('locations', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('draw_id');
-            $table->date('draw_date');
-            $table->string('winning_number');
-            $table->foreignId('coordinator_id')->constrained('users')->cascadeOnDelete();
+            $table->string('name');
+            $table->string('address');
+            $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
     }
@@ -26,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('results');
+        Schema::dropIfExists('locations');
     }
 };

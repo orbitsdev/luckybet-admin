@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class GameType extends Model
 {
@@ -12,7 +13,6 @@ class GameType extends Model
     protected $fillable = [
         'name',
         'code',
-        'description',
         'is_active',
     ];
 
@@ -23,8 +23,16 @@ class GameType extends Model
     /**
      * Get the bets for this game type
      */
-    public function bets()
+    public function bets(): HasMany
     {
-        return $this->hasMany(Bet::class, 'game_type', 'code');
+        return $this->hasMany(Bet::class);
+    }
+    
+    /**
+     * Get the draws for this game type
+     */
+    public function draws(): HasMany
+    {
+        return $this->hasMany(Draw::class);
     }
 }

@@ -2,27 +2,31 @@
 
 namespace App\Models;
 
-use App\Models\Bet;
-use App\Models\Result;
+use App\Models\Draw;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Schedule extends Model
 {
     use HasFactory;
-   
 
     protected $fillable = [
-        'name', 'draw_time', 'is_active', 'is_open'
+        'name',      // e.g., "2:00 PM"
+        'draw_time', // System time format
+        'is_active', // Show/Hide from dropdown
+    ];
+    
+    protected $casts = [
+        'draw_time' => 'string',
+        'is_active' => 'boolean',
     ];
 
-    public function bets()
+    /**
+     * Get the draws for this schedule
+     */
+    public function draws(): HasMany
     {
-        return $this->hasMany(Bet::class);
-    }
-
-    public function results()
-    {
-        return $this->hasMany(Result::class);
+        return $this->hasMany(Draw::class);
     }
 }

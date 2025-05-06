@@ -11,8 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // This migration is now handled by 2025_05_06_031450_add_location_foreign_key_to_users_table.php
-        // which runs after the locations table is created
+        Schema::table('users', function (Blueprint $table) {
+            // Add foreign key constraint to location_id
+            if (Schema::hasColumn('users', 'location_id')) {
+                $table->foreign('location_id')->references('id')->on('locations')->nullOnDelete();
+            }
+        });
     }
 
     /**

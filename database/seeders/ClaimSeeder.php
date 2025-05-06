@@ -22,25 +22,37 @@ class ClaimSeeder extends Seeder
             return; // No results to create claims for
         }
         
-        // Get bets that match the winning number
-        $winningNumber = $result->winning_number;
-        $bets = Bet::where('bet_number', $winningNumber)
-            ->orWhere('bet_number', 'like', "%{$winningNumber}%") // For combination bets
-            ->where('status', 'won')
+        // Get bets that match the winning number based on game type
+        $bets = Bet::where('status', 'won')
             ->take(3)
             ->get();
+            
+        // If no won bets, use active bets
+        if ($bets->isEmpty()) {
+            $bets = Bet::where('status', 'active')
+                ->take(3)
+                ->get();
+        }
             
         // If no matching bets, create some dummy winning bets
         if ($bets->isEmpty()) {
             // Create a few winning bets
             for ($i = 0; $i < 3; $i++) {
+                // Generate a random bet number
+                $betNumber = rand(100, 999);
+                
+                // Get the game type from the draw
+                $draw = \App\Models\Draw::find($result->draw_id);
+                $gameTypeId = $draw ? $draw->game_type_id : 1; // Default to first game type if draw not found
+                
                 $bet = Bet::create([
-                    'bet_number' => $winningNumber,
+                    'bet_number' => $betNumber,
                     'amount' => rand(20, 100),
                     'draw_id' => $result->draw_id,
+                    'game_type_id' => $gameTypeId,
                     'teller_id' => 3, // Teller Jane
                     'location_id' => 1, // Main Branch
-                    'bet_date' => $result->draw_date,
+                    'bet_date' => now()->format('Y-m-d'),
                     'ticket_id' => 'WIN' . uniqid(),
                     'status' => 'won',
                     'is_combination' => false,
@@ -52,23 +64,32 @@ class ClaimSeeder extends Seeder
         
         // Create claims for these bets
         foreach ($bets as $bet) {
-            // Calculate payout based on bet type
+            // Calculate payout based on game type
             $payout = $bet->amount;
-            if ($bet->draw && $bet->draw->type == 'S2') {
+            
+            // Get the game type code
+            $gameType = $bet->gameType;
+            $gameTypeCode = $gameType ? $gameType->code : 'S3'; // Default to S3 if no game type
+            
+            if ($gameTypeCode == 'S2') {
                 $payout *= $bet->is_combination ? 1.5 : 2;
-            } elseif ($bet->draw && $bet->draw->type == 'S3') {
+            } elseif ($gameTypeCode == 'S3') {
                 $payout *= $bet->is_combination ? 2 : 3;
-            } elseif ($bet->draw && $bet->draw->type == 'D4') {
+            } elseif ($gameTypeCode == 'D4') {
                 $payout *= $bet->is_combination ? 2.5 : 4;
             }
+            
+            // Calculate commission (5% of payout)
+            $commission = $payout * 0.05;
             
             Claim::create([
                 'bet_id' => $bet->id,
                 'result_id' => $result->id,
                 'teller_id' => $bet->teller_id,
                 'amount' => $payout,
+                'commission_amount' => $commission,
                 'status' => 'processed',
-                'claimed_at' => now(),
+                'claim_at' => now(),
             ]);
             
             // Update bet status to claimed

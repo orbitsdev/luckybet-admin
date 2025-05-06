@@ -15,7 +15,7 @@ use App\Http\Resources\DrawResource;
 class BettingController extends Controller
 {
     /**
-     * List bets for the authenticated teller with optional filtering
+     * List bets for the authenticated user with optional filtering
      *
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
@@ -24,7 +24,7 @@ class BettingController extends Controller
     {
         $user = $request->user();
 
-        $query = Bet::with(['draw', 'customer', 'location'])
+        $query = Bet::with(['draw', 'customer', 'location', 'gameType'])
             ->where('teller_id', $user->id)
             ->when($request->filled('search'), function ($q) use ($request) {
                 $q->where(function ($sub) use ($request) {
@@ -76,8 +76,6 @@ class BettingController extends Controller
      */
     public function availableSchedules()
     {
-        $currentTime = now();
-        
         // Get unique schedules from draws table
         $schedules = Draw::where('draw_date', today())
             ->where('is_open', true)
@@ -89,12 +87,11 @@ class BettingController extends Controller
                 return [
                     'id' => $draw->schedule->id,
                     'name' => $draw->schedule->name,
-                    'draw_time' => $draw->schedule->draw_time,
-                    'formatted_time' => date('g:i A', strtotime($draw->schedule->draw_time)) // Format as 2:00 PM
+                    'draw_time' => $draw->schedule->draw_time
                 ];
             });
             
-        return ApiResponse::success($schedules, 'Available schedules loaded');
+        return ApiResponse::success($schedules, 'Available schedules retrieved successfully');
     }
     
     /**
@@ -141,14 +138,14 @@ class BettingController extends Controller
             'is_combination' => 'boolean'
         ]);
 
-        $teller = $request->user();
+        $user = $request->user();
 
-        if (!$teller->location_id) {
-            return ApiResponse::error('Teller does not have a location assigned', 422);
+        if (!$user->location_id) {
+            return ApiResponse::error('User does not have a location assigned', 422);
         }
 
         try {
-                
+            // Verify the draw is still open
             $draw = Draw::findOrFail($data['draw_id']);
             if (!$draw->is_open) {
                 return ApiResponse::error('This draw is no longer accepting bets', 422);
@@ -156,6 +153,7 @@ class BettingController extends Controller
 
             DB::beginTransaction();
 
+            // Generate a unique ticket ID
             $ticketId = strtoupper(Str::random(10));
 
             $bet = Bet::create([
@@ -163,9 +161,9 @@ class BettingController extends Controller
                 'amount' => $data['amount'],
                 'draw_id' => $data['draw_id'],
                 'game_type_id' => $data['game_type_id'],
-                'teller_id' => $teller->id,
+                'teller_id' => $user->id,
                 'customer_id' => $data['customer_id'] ?? null,
-                'location_id' => $teller->location_id,
+                'location_id' => $user->location_id,
                 'bet_date' => today(),
                 'ticket_id' => $ticketId,
                 'is_combination' => $data['is_combination'] ?? false,
@@ -174,9 +172,16 @@ class BettingController extends Controller
 
             DB::commit();
 
-            $bet->load(['draw', 'location', 'teller', 'customer']);
+            // Load relationships for the response
+            $bet->load(['gameType']);
 
-            return ApiResponse::success(new BetResource($bet), 'Bet placed successfully');
+            // Return a simplified response according to the mobile API spec
+            return ApiResponse::success([
+                'ticket_id' => $bet->ticket_id,
+                'bet_number' => $bet->bet_number,
+                'amount' => $bet->amount,
+                'status' => $bet->status
+            ], 'Bet placed successfully');
 
         } catch (\Exception $e) {
             // Rollback the transaction in case of error
@@ -190,19 +195,16 @@ class BettingController extends Controller
      * Cancel an active bet
      *
      * @param Request $request
+     * @param int $id Bet ID
      * @return \Illuminate\Http\JsonResponse
      */
-    public function cancelBet(Request $request)
+    public function cancelBet(Request $request, $id)
     {
-        $request->validate([
-            'ticket_id' => 'required|string|exists:bets,ticket_id',
-        ]);
-
         try {
-
             DB::beginTransaction();
 
-            $bet = Bet::where('ticket_id', $request->ticket_id)
+            // Find the bet by ID and ensure it belongs to the current user
+            $bet = Bet::where('id', $id)
                 ->where('teller_id', $request->user()->id)
                 ->where('status', 'active')
                 ->lockForUpdate()
@@ -212,28 +214,23 @@ class BettingController extends Controller
                 return ApiResponse::error('Bet not found or already cancelled', 404);
             }
 
-
+            // Check if the draw is still open
             $draw = Draw::find($bet->draw_id);
             if ($draw && !$draw->is_open) {
                 return ApiResponse::error('Cannot cancel bet as the draw is closed', 422);
             }
 
+            // Update the bet status
             $bet->status = 'cancelled';
             $bet->save();
 
-
             DB::commit();
 
-
-            $bet->load(['draw', 'location', 'teller', 'customer']);
-
-            return ApiResponse::success(new BetResource($bet), 'Bet cancelled successfully');
+            // Return a simplified response according to the mobile API spec
+            return ApiResponse::success(null, 'Bet cancelled successfully');
 
         } catch (\Exception $e) {
-
             DB::rollBack();
-
-
             return ApiResponse::error('Failed to cancel bet: ' . $e->getMessage(), 500);
         }
     }

@@ -11,11 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('locations', function (Blueprint $table) {
+        Schema::create('number_flags', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('address')->nullable();
-            $table->foreignId('coordinator_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->string('number');
+            $table->foreignId('schedule_id')->constrained('schedules');
+            $table->date('date');
+            $table->foreignId('location_id')->constrained('locations');
+            $table->enum('type', ['sold_out', 'low_win']);
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
@@ -26,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('locations');
+        Schema::dropIfExists('number_flags');
     }
 };

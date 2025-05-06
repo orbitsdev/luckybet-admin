@@ -17,11 +17,13 @@ class GameTypeController extends Controller
      */
     public function index()
     {
-        $gameTypes = GameType::orderBy('name')->get();
+        $gameTypes = GameType::where('is_active', true)
+            ->orderBy('name')
+            ->get();
             
         return ApiResponse::success(
             GameTypeResource::collection($gameTypes), 
-            'Game types loaded'
+            'Game types retrieved'
         );
     }
 }

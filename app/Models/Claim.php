@@ -18,12 +18,15 @@ class Claim extends Model
         'result_id',
         'teller_id',
         'amount',
-        'commission_amount',  // optional
+        'commission_amount',  // Commission from the claim
         'status',            // pending, processed, rejected
-        'claimed_at',
-        'qr_code_data',       // optional
+        'claim_at',          // When claim was processed
+        'qr_code_data',      // Embedded QR ticket data
     ];
-
+    
+    protected $casts = [
+        'claim_at' => 'datetime',
+    ];
 
     public function bet()
     {
@@ -35,13 +38,13 @@ class Claim extends Model
         return $this->belongsTo(User::class, 'teller_id');
     }
 
-    public function commission()
-    {
-        return $this->hasOne(Commission::class, 'claim_id');
-    }
-    
     public function result()
     {
         return $this->belongsTo(Result::class);
+    }
+    
+    public function commission()
+    {
+        return $this->hasOne(Commission::class, 'claim_id');
     }
 }

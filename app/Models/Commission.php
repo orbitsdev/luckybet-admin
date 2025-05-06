@@ -13,7 +13,19 @@ class Commission extends Model
     use HasFactory;
 
     protected $fillable = [
-        'teller_id', 'rate', 'amount', 'commission_date', 'type', 'bet_id', 'claim_id'
+        'teller_id',       // References users.id
+        'rate',            // % rate
+        'amount',          // Computed commission
+        'commission_date', // Date of commission
+        'type',            // 'bet' or 'claim'
+        'bet_id',          // For type 'bet'
+        'claim_id'         // For type 'claim'
+    ];
+    
+    protected $casts = [
+        'rate' => 'decimal:2',
+        'amount' => 'decimal:2',
+        'commission_date' => 'date',
     ];
 
     public function teller()

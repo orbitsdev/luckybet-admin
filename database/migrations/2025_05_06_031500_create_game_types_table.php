@@ -11,8 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('results', function (Blueprint $table) {
-            $table->foreign('draw_id')->references('id')->on('draws')->cascadeOnDelete();
+        Schema::create('game_types', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('code', 5)->unique();
+            $table->boolean('is_active')->default(true);
+            $table->timestamps();
         });
     }
 
@@ -21,8 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('results', function (Blueprint $table) {
-            $table->dropForeign(['draw_id']);
-        });
+        Schema::dropIfExists('game_types');
     }
 };

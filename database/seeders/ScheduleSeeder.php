@@ -13,10 +13,15 @@ class ScheduleSeeder extends Seeder
      */
     public function run(): void
     {
+        // Only create schedules if none exist
+        if (Schedule::count() > 0) {
+            return;
+        }
+        
         $schedules = [
-            ['name' => '2PM', 'draw_time' => '14:00:00'],
-            ['name' => '5PM', 'draw_time' => '17:00:00'],
-            ['name' => '9PM', 'draw_time' => '21:00:00'],
+            ['name' => '2:00 PM', 'draw_time' => '14:00:00', 'is_active' => true],
+            ['name' => '5:00 PM', 'draw_time' => '17:00:00', 'is_active' => true],
+            ['name' => '9:00 PM', 'draw_time' => '21:00:00', 'is_active' => true],
         ];
 
         foreach ($schedules as $schedule) {

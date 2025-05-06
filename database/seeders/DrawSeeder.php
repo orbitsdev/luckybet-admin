@@ -11,18 +11,15 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 class DrawSeeder extends Seeder
 {
     /**
-     * Run the database seeds.
-     */
-    /**
      * Create default schedules if none exist
      */
     private function createSchedulesIfNeeded(): void
     {
         if (Schedule::count() === 0) {
             $defaultSchedules = [
-                ['name' => 'Morning', 'draw_time' => '11:00:00'],
-                ['name' => 'Afternoon', 'draw_time' => '14:00:00'],
-                ['name' => 'Evening', 'draw_time' => '19:00:00']
+                ['name' => '2:00 PM', 'draw_time' => '14:00:00', 'is_active' => true],
+                ['name' => '5:00 PM', 'draw_time' => '17:00:00', 'is_active' => true],
+                ['name' => '9:00 PM', 'draw_time' => '21:00:00', 'is_active' => true]
             ];
             
             foreach ($defaultSchedules as $schedule) {
@@ -31,28 +28,40 @@ class DrawSeeder extends Seeder
         }
     }
     
+    /**
+     * Create default game types if none exist
+     */
+    private function createGameTypesIfNeeded(): void
+    {
+        if (GameType::count() === 0) {
+            $gameTypes = [
+                ['name' => '2 Digit', 'code' => 'S2', 'is_active' => true],
+                ['name' => '3 Digit', 'code' => 'S3', 'is_active' => true],
+                ['name' => '4 Digit', 'code' => 'D4', 'is_active' => true],
+            ];
+            
+            foreach ($gameTypes as $gameType) {
+                GameType::create($gameType);
+            }
+        }
+    }
+    
+    /**
+     * Run the database seeds.
+     */
     public function run(): void
     {
         // Make sure we have schedules
         $this->createSchedulesIfNeeded();
         
+        // Make sure we have game types
+        $this->createGameTypesIfNeeded();
+        
         // Get all schedules
-        $schedules = \App\Models\Schedule::all();
+        $schedules = Schedule::all();
         
         // Get all game types
-        $gameTypes = \App\Models\GameType::all();
-        if ($gameTypes->isEmpty()) {
-            // Create default game types if they don't exist
-            $s2 = \App\Models\GameType::create(['code' => 'S2', 'name' => 'Swertres 2-Digit', 'digits' => 2]);
-            $s3 = \App\Models\GameType::create(['code' => 'S3', 'name' => 'Swertres 3-Digit', 'digits' => 3]);
-            $d4 = \App\Models\GameType::create(['code' => 'D4', 'name' => 'Digit 4', 'digits' => 4]);
-            
-            // Refresh the collection after creating
-            $gameTypes = \App\Models\GameType::all();
-        }
-        
-        // Default game type (S3)
-        $defaultGameType = $gameTypes->where('code', 'S3')->first() ?? $gameTypes->first();
+        $gameTypes = GameType::where('is_active', true)->get();
         
         // Create draws for yesterday (closed with results)
         $yesterday = now()->subDay()->format('Y-m-d');
@@ -61,8 +70,7 @@ class DrawSeeder extends Seeder
             foreach ($gameTypes as $gameType) {
                 Draw::create([
                     'draw_date' => $yesterday,
-                    'draw_time' => $schedule->draw_time ?? '14:00:00',
-                    'schedule_id' => $schedule->id ?? null,
+                    'draw_time' => $schedule->draw_time,
                     'game_type_id' => $gameType->id,
                     'is_open' => false, // Closed because it's in the past
                 ]);
@@ -97,8 +105,7 @@ class DrawSeeder extends Seeder
             foreach ($gameTypes as $gameType) {
                 Draw::create([
                     'draw_date' => $today,
-                    'draw_time' => $scheduleTime,
-                    'schedule_id' => $schedule->id,
+                    'draw_time' => $schedule->draw_time,
                     'game_type_id' => $gameType->id,
                     'is_open' => $isOpen,
                 ]);
@@ -118,7 +125,6 @@ class DrawSeeder extends Seeder
                 Draw::create([
                     'draw_date' => $tomorrow,
                     'draw_time' => $schedule->draw_time,
-                    'schedule_id' => $schedule->id,
                     'game_type_id' => $gameType->id,
                     'is_open' => true, // All tomorrow's draws are open
                 ]);

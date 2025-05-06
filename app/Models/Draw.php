@@ -3,42 +3,46 @@
 namespace App\Models;
 
 use App\Models\Bet;
-use App\Models\Transaction;
+use App\Models\Result;
+use App\Models\GameType;
+use App\Models\Schedule;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Draw extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'draw_date', 'draw_time', 'schedule_id', 'game_type_id',
+        'draw_date', 
+        'draw_time', 
+        'game_type_id', // Needed for multi-game lottery system
         'is_open',
     ];
     
     protected $casts = [
-        'draw_date' => 'date',
         'is_open' => 'boolean',
+        'draw_date' => 'date',
+        'draw_time' => 'string',
     ];
 
-    public function bets()
+    public function bets(): HasMany
     {
         return $this->hasMany(Bet::class);
     }
     
-    public function schedule()
-    {
-        return $this->belongsTo(Schedule::class);
-    }
+    // Schedule relationship removed as per new structure
     
-    public function gameType()
+    public function gameType(): BelongsTo
     {
         return $this->belongsTo(GameType::class);
     }
     
-    public function result()
+    public function result(): HasOne
     {
-        return $this->hasOne(Result::class)->where('draw_date', $this->draw_date)
-                                         ->where('draw_time', $this->draw_time);
+        return $this->hasOne(Result::class);
     }
 }

@@ -32,28 +32,39 @@ class ResultSeeder extends Seeder
                 continue;
             }
             
-            // Generate winning numbers for each game type
-            $s2WinningNumber = sprintf('%02d', rand(0, 99));
-            $s3WinningNumber = sprintf('%03d', rand(0, 999));
-            $d4WinningNumber = sprintf('%04d', rand(0, 9999));
+            // Generate winning number based on game type
+            $winningNumber = '';
+            $gameType = $draw->gameType;
+            
+            if ($gameType->code === 'S2') {
+                $winningNumber = sprintf('%02d', rand(0, 99));
+            } elseif ($gameType->code === 'S3') {
+                $winningNumber = sprintf('%03d', rand(0, 999));
+            } elseif ($gameType->code === 'D4') {
+                $winningNumber = sprintf('%04d', rand(0, 9999));
+            }
             
             // Randomly select a coordinator
             $coordinator = $coordinators[array_rand($coordinators->toArray())];
             
-            // Create the result with all game types
-            Result::create([
-                's2_winning_number' => $s2WinningNumber,
-                's3_winning_number' => $s3WinningNumber,
-                'd4_winning_number' => $d4WinningNumber,
+            // Create the result for this specific draw and game type
+            $result = Result::create([
                 'draw_id' => $draw->id,
-                'game_type_id' => $draw->game_type_id, // Add the game type ID
                 'draw_date' => $draw->draw_date,
                 'draw_time' => $draw->draw_time,
-                'coordinator_id' => $coordinator->id,
+                's2_winning_number' => $gameType->code === 'S2' ? $winningNumber : null,
+                's3_winning_number' => $gameType->code === 'S3' ? $winningNumber : null,
+                'd4_winning_number' => $gameType->code === 'D4' ? $winningNumber : null,
+                // coordinator_id removed as per new structure
             ]);
             
             // Update bets for this draw to won/lost based on winning numbers
-            $this->updateBetStatuses($draw->id, $s2WinningNumber, $s3WinningNumber, $d4WinningNumber);
+            $this->updateBetStatuses(
+                $draw->id, 
+                $result->s2_winning_number, 
+                $result->s3_winning_number, 
+                $result->d4_winning_number
+            );
         }
     }
     
@@ -77,7 +88,13 @@ class ResultSeeder extends Seeder
             
             // Get the appropriate winning number based on the bet's game type
             $winningNumber = '';
-            switch ($bet->game_type) {
+            $gameType = $bet->gameType;
+            
+            if (!$gameType) {
+                continue; // Skip if no game type
+            }
+            
+            switch ($gameType->code) {
                 case 'S2':
                     $winningNumber = $s2WinningNumber;
                     break;
@@ -88,7 +105,7 @@ class ResultSeeder extends Seeder
                     $winningNumber = $d4WinningNumber;
                     break;
                 default:
-                    // If no game type specified, default to S3 (for backward compatibility)
+                    // If no game type specified, default to S3
                     $winningNumber = $s3WinningNumber;
             }
             

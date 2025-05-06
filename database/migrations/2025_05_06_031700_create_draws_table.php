@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->date('draw_date');
             $table->time('draw_time');
-            $table->enum('type', ['S2', 'S3', 'D4']);
-            $table->boolean('is_open')->default(false); // for betting open/close
+            $table->foreignId('game_type_id')->constrained('game_types');
+            $table->boolean('is_open')->default(true);
             $table->timestamps();
         });
     }

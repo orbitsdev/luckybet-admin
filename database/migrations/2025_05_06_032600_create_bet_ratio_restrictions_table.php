@@ -11,12 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tellers', function (Blueprint $table) {
+        Schema::create('bet_ratio_restrictions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('coordinator_id')->constrained('users')->cascadeOnDelete();
-            $table->decimal('commission_rate', 5, 2)->default(5);
-            $table->decimal('balance', 10, 2)->default(0);
+            $table->foreignId('bet_ratio_id')->constrained('bet_ratios');
+            $table->foreignId('game_type_id')->constrained('game_types');
+            $table->string('number');
+            $table->decimal('amount_limit', 10, 2);
+            $table->time('draw_time')->nullable();
             $table->timestamps();
         });
     }
@@ -26,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('tellers');
+        Schema::dropIfExists('bet_ratio_restrictions');
     }
 };

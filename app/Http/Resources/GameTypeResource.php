@@ -18,8 +18,6 @@ class GameTypeResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'code' => $this->code,
-            'description' => $this->description,
-            'is_active' => $this->is_active,
         ];
     }
 }
