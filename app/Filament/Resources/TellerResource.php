@@ -4,7 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\TellerResource\Pages;
 use App\Filament\Resources\TellerResource\RelationManagers;
-use App\Models\Teller;
+use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -12,10 +12,16 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Hash;
 
 class TellerResource extends Resource
 {
-    protected static ?string $model = Teller::class;
+    protected static ?string $model = User::class;
+    
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->where('role', 'teller');
+    }
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
     protected static ?int $navigationSort = 5;
@@ -24,20 +30,46 @@ class TellerResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('user_id')
+                Forms\Components\TextInput::make('name')
                     ->required()
-                    ->numeric(),
-                Forms\Components\TextInput::make('coordinator_id')
+                    ->maxLength(255),
+                Forms\Components\TextInput::make('username')
                     ->required()
-                    ->numeric(),
-                Forms\Components\TextInput::make('commission_rate')
+                    ->unique(ignoreRecord: true)
+                    ->maxLength(255),
+                Forms\Components\TextInput::make('email')
+                    ->email()
                     ->required()
-                    ->numeric()
-                    ->default(5.00),
-                Forms\Components\TextInput::make('balance')
+                    ->unique(ignoreRecord: true)
+                    ->maxLength(255),
+                Forms\Components\TextInput::make('phone')
+                    ->tel()
+                    ->nullable()
+                    ->maxLength(255),
+                Forms\Components\TextInput::make('password')
+                    ->password()
+                    ->dehydrateStateUsing(fn ($state) => Hash::make($state))
+                    ->dehydrated(fn ($state) => filled($state))
+                    ->required(fn (string $context): bool => $context === 'create'),
+                Forms\Components\Select::make('coordinator_id')
+                    ->relationship(
+                        name: 'coordinator',
+                        titleAttribute: 'name',
+                        modifyQueryUsing: fn (Builder $query) => $query->where('role', 'coordinator')
+                    )
+                    ->searchable()
+                    ->preload()
+                    ->required(),
+                Forms\Components\Select::make('location_id')
+                    ->relationship('location', 'name')
+                    ->searchable()
+                    ->preload()
+                    ->required(),
+                Forms\Components\Toggle::make('is_active')
                     ->required()
-                    ->numeric()
-                    ->default(0.00),
+                    ->default(true),
+                Forms\Components\Hidden::make('role')
+                    ->default('teller'),
             ]);
     }
 
@@ -45,17 +77,27 @@ class TellerResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('user_id')
-                    ->numeric()
+                Tables\Columns\TextColumn::make('name')
+                    ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('coordinator_id')
-                    ->numeric()
+                Tables\Columns\TextColumn::make('username')
+                    ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('commission_rate')
-                    ->numeric()
+                Tables\Columns\TextColumn::make('email')
+                    ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('balance')
-                    ->numeric()
+                Tables\Columns\TextColumn::make('phone')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('coordinator.name')
+                    ->label('Coordinator')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('location.name')
+                    ->label('Location')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\IconColumn::make('is_active')
+                    ->boolean()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()

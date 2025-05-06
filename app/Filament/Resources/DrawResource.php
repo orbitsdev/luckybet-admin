@@ -26,13 +26,11 @@ class DrawResource extends Resource
             ->schema([
                 Forms\Components\DatePicker::make('draw_date')
                     ->required(),
-                Forms\Components\TextInput::make('draw_time')
-                    ->required()
-                    ->hint('Format: HH:MM:SS'),
-                Forms\Components\Select::make('schedule_id')
-                    ->relationship('schedule', 'name')
-                    ->label('Schedule')
-                    ->searchable(),
+                Forms\Components\TimePicker::make('draw_time')
+                    ->seconds(true)
+                    ->required(),
+                // Game type field removed as per documentation
+                // Each result will have separate fields for different game types
                 Forms\Components\Toggle::make('is_open')
                     ->required(),
             ]);
@@ -45,10 +43,10 @@ class DrawResource extends Resource
                 Tables\Columns\TextColumn::make('draw_date')
                     ->date()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('draw_time'),
-                Tables\Columns\TextColumn::make('schedule.name')
-                    ->label('Schedule')
-                    ->searchable(),
+                Tables\Columns\TextColumn::make('draw_time')
+                    ->time()
+                    ->sortable(),
+                // Game type column removed as per documentation
                 Tables\Columns\IconColumn::make('is_open')
                     ->boolean(),
                 Tables\Columns\TextColumn::make('created_at')

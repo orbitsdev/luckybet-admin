@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id();
             $table->date('draw_date');
             $table->time('draw_time');
-            $table->foreignId('game_type_id')->constrained('game_types');
             $table->boolean('is_open')->default(true);
             $table->timestamps();
         });

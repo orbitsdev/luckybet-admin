@@ -19,10 +19,9 @@ class Draw extends Model
     protected $fillable = [
         'draw_date', 
         'draw_time', 
-        'game_type_id', // Needed for multi-game lottery system
         'is_open',
     ];
-    
+
     protected $casts = [
         'is_open' => 'boolean',
         'draw_date' => 'date',
@@ -33,14 +32,13 @@ class Draw extends Model
     {
         return $this->hasMany(Bet::class);
     }
-    
-    // Schedule relationship removed as per new structure
-    
-    public function gameType(): BelongsTo
-    {
-        return $this->belongsTo(GameType::class);
-    }
-    
+
+    // Schedule is used only as a reference for draw_time
+    // No direct relationship as per the documentation
+
+    // Game type relationship removed as per documentation
+    // Each result will have separate fields for different game types
+
     public function result(): HasOne
     {
         return $this->hasOne(Result::class);

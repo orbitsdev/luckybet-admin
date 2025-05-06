@@ -25,34 +25,60 @@ class ResultResource extends Resource
         return $form
             ->schema([
                 Forms\Components\Select::make('draw_id')
-                    ->relationship('draw', 'id')
+                    ->relationship('draw', function ($query) {
+                        return $query->select('id', 'draw_date', 'draw_time')
+                            ->orderBy('draw_date', 'desc')
+                            ->orderBy('draw_time', 'desc');
+                    })
+                    ->getOptionLabelFromRecordUsing(fn ($record) => 
+                        "Draw #{$record->id} - {$record->draw_date->format('M d, Y')} {$record->draw_time}")
                     ->required()
                     ->searchable()
-                    ->preload(),
+                    ->preload()
+                    ->reactive()
+                    ->afterStateUpdated(function ($state, callable $set) {
+                        if ($state) {
+                            $draw = \App\Models\Draw::find($state);
+                            if ($draw) {
+                                $set('draw_date', $draw->draw_date);
+                                $set('draw_time', $draw->draw_time);
+                            }
+                        }
+                    }),
                 Forms\Components\DatePicker::make('draw_date')
-                    ->required(),
+                    ->required()
+                    ->disabled(),
                 Forms\Components\TimePicker::make('draw_time')
-                    ->required(),
-                Forms\Components\TextInput::make('s2_winning_number')
-                    ->label('S2 Winning Number (2-digit)')
+                    ->seconds(true)
                     ->required()
-                    ->maxLength(2)
-                    ->regex('/^\d{2}$/'),
-                Forms\Components\TextInput::make('s3_winning_number')
-                    ->label('S3 Winning Number (3-digit)')
-                    ->required()
-                    ->maxLength(3)
-                    ->regex('/^\d{3}$/'),
-                Forms\Components\TextInput::make('d4_winning_number')
-                    ->label('D4 Winning Number (4-digit)')
-                    ->required()
-                    ->maxLength(4)
-                    ->regex('/^\d{4}$/'),
-                Forms\Components\Select::make('coordinator_id')
-                    ->relationship('coordinator', 'name')
-                    ->required()
-                    ->searchable()
-                    ->preload(),
+                    ->disabled(),
+                Forms\Components\Section::make('Winning Numbers')
+                    ->description('Enter the winning numbers for each game type')
+                    ->schema([
+                        Forms\Components\TextInput::make('s2_winning_number')
+                            ->label('2-Digit (S2)')
+                            ->placeholder('00-99')
+                            ->helperText('Enter exactly 2 digits')
+                            ->maxLength(2)
+                            ->regex('/^\d{2}$/')
+                            ->nullable(),
+                        Forms\Components\TextInput::make('s3_winning_number')
+                            ->label('3-Digit (S3)')
+                            ->placeholder('000-999')
+                            ->helperText('Enter exactly 3 digits')
+                            ->maxLength(3)
+                            ->regex('/^\d{3}$/')
+                            ->nullable(),
+                        Forms\Components\TextInput::make('d4_winning_number')
+                            ->label('4-Digit (D4)')
+                            ->placeholder('0000-9999')
+                            ->helperText('Enter exactly 4 digits')
+                            ->maxLength(4)
+                            ->regex('/^\d{4}$/')
+                            ->nullable(),
+                    ])
+                    ->columns(3),
+                // Coordinator field removed as per new structure
             ]);
     }
 
@@ -88,9 +114,7 @@ class ResultResource extends Resource
                     ->copyable()
                     ->badge()
                     ->color('danger'),
-                Tables\Columns\TextColumn::make('coordinator.name')
-                    ->searchable()
-                    ->sortable(),
+                // Coordinator column removed as per new structure
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

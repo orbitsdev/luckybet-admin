@@ -24,27 +24,43 @@ class ClaimResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('bet_id')
-                    ->required()
-                    ->numeric(),
-                Forms\Components\TextInput::make('result_id')
-                    ->required()
-                    ->numeric(),
-                Forms\Components\TextInput::make('teller_id')
-                    ->tel()
-                    ->required()
-                    ->numeric(),
+                Forms\Components\Select::make('bet_id')
+                    ->relationship('bet', 'ticket_id')
+                    ->searchable()
+                    ->preload()
+                    ->required(),
+                Forms\Components\Select::make('result_id')
+                    ->relationship('result', 'id')
+                    ->searchable()
+                    ->preload()
+                    ->required(),
+                Forms\Components\Select::make('teller_id')
+                    ->relationship('teller', 'name')
+                    ->searchable()
+                    ->preload()
+                    ->required(),
                 Forms\Components\TextInput::make('amount')
                     ->required()
-                    ->numeric(),
+                    ->numeric()
+                    ->prefix('₱'),
                 Forms\Components\TextInput::make('commission_amount')
                     ->required()
                     ->numeric()
+                    ->prefix('₱')
                     ->default(0.00),
-                Forms\Components\DateTimePicker::make('claimed_at'),
-                Forms\Components\TextInput::make('qr_code_data')
-                    ->required()
-                    ->maxLength(255),
+                Forms\Components\Select::make('status')
+                    ->options([
+                        'pending' => 'Pending',
+                        'processed' => 'Processed',
+                        'rejected' => 'Rejected',
+                    ])
+                    ->default('pending')
+                    ->required(),
+                Forms\Components\DateTimePicker::make('claim_at')
+                    ->label('Claim Date/Time'),
+                Forms\Components\Textarea::make('qr_code_data')
+                    ->nullable()
+                    ->columnSpanFull(),
             ]);
     }
 
@@ -52,26 +68,32 @@ class ClaimResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('bet_id')
-                    ->numeric()
+                Tables\Columns\TextColumn::make('bet.ticket_id')
+                    ->label('Ticket ID')
+                    ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('result_id')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('teller_id')
-                    ->numeric()
+                Tables\Columns\TextColumn::make('bet.bet_number')
+                    ->label('Bet Number')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('teller.name')
+                    ->label('Teller')
+                    ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('amount')
-                    ->numeric()
+                    ->money('PHP')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('commission_amount')
-                    ->numeric()
+                    ->money('PHP')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('claimed_at')
+                Tables\Columns\BadgeColumn::make('status')
+                    ->colors([
+                        'warning' => 'pending',
+                        'success' => 'processed',
+                        'danger' => 'rejected',
+                    ]),
+                Tables\Columns\TextColumn::make('claim_at')
                     ->dateTime()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('qr_code_data')
-                    ->searchable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

@@ -22,11 +22,6 @@ class Schedule extends Model
         'is_active' => 'boolean',
     ];
 
-    /**
-     * Get the draws for this schedule
-     */
-    public function draws(): HasMany
-    {
-        return $this->hasMany(Draw::class);
-    }
+    // The draws relationship has been removed since schedule_id was removed from the Draw model
+    // Schedules are now used as a reference only
 }
