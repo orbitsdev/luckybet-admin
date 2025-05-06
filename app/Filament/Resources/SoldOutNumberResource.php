@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class SoldOutNumberResource extends Resource
 {
+    // protected static bool $shouldRegisterNavigation = false;
     protected static ?string $model = SoldOutNumber::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-no-symbol';

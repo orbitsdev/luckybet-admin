@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class LowWinNumberResource extends Resource
 {
+    // protected static bool $shouldRegisterNavigation = false;
     protected static ?string $model = LowWinNumber::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-arrow-trending-down';
