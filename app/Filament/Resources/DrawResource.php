@@ -103,6 +103,22 @@ class DrawResource extends Resource
                 // Game type column removed as per documentation
                 Tables\Columns\IconColumn::make('is_open')
                     ->boolean(),
+                // Custom columns for winning numbers from result relationship
+                Tables\Columns\TextColumn::make('result.s2_winning_number')
+                    ->label('S2 Winner')
+                    ->placeholder('-')
+                    ->badge()
+                    ->color('success'),
+                Tables\Columns\TextColumn::make('result.s3_winning_number')
+                    ->label('S3 Winner')
+                    ->placeholder('-')
+                    ->badge()
+                    ->color('warning'),
+                Tables\Columns\TextColumn::make('result.d4_winning_number')
+                    ->label('D4 Winner')
+                    ->placeholder('-')
+                    ->badge()
+                    ->color('danger'),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
