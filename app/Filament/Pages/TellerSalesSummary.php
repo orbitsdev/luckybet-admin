@@ -23,9 +23,12 @@ class TellerSalesSummary extends Page
             ->get()
             ->filter(fn($draw) => $draw->result) // Only draws with results
             ->map(function($draw) {
+                $date = $draw->draw_date ? $draw->draw_date->format('Y-m-d') : '';
+                $time = $draw->draw_time ? \Carbon\Carbon::createFromFormat('H:i:s', $draw->draw_time)->format('g:i A') : '';
+                $label = trim($date . ' ' . $time);
                 return [
                     'id' => $draw->id,
-                    'label' => $draw->draw_date->format('Y-m-d') . ' ' . \Carbon\Carbon::createFromFormat('H:i:s', $draw->draw_time)->format('g:i A'),
+                    'label' => $label !== '' ? $label : 'Draw #' . $draw->id,
                 ];
             })->values()->toArray();
 

@@ -49,8 +49,21 @@ class DrawReportService
 
             foreach ($bets as $tellerId => $tellerBets) {
                 $totalSales = $tellerBets->sum('amount');
-                $betIds = $tellerBets->pluck('id');
-                $totalHits = Claim::whereIn('bet_id', $betIds)->sum('amount');
+                $totalHits = 0;
+                foreach ($tellerBets as $bet) {
+                    $result = $bet->draw->result;
+                    if (!$result) continue;
+                    // S2: 2 Digit
+                    if (
+                        ($bet->game_type_id == 1 && $bet->bet_number == $result->s2_winning_number) ||
+                        // S3: 3 Digit
+                        ($bet->game_type_id == 2 && $bet->bet_number == $result->s3_winning_number) ||
+                        // D4: 4 Digit
+                        ($bet->game_type_id == 3 && $bet->bet_number == $result->d4_winning_number)
+                    ) {
+                        $totalHits += $bet->amount;
+                    }
+                }
                 $tellerSummaries[] = [
                     'teller_id' => $tellerId,
                     'teller_name' => optional($tellerBets->first()->teller)->name ?? 'Unknown',
