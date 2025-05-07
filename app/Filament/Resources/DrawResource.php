@@ -74,11 +74,11 @@ class DrawResource extends Resource
                                         ->mutateRelationshipDataBeforeSaveUsing(function (array $data, $livewire) {
                                             // Get the current Draw record being edited
                                             $draw = $livewire->record;
-                                            
+
                                             // Add draw_date and draw_time to the Result data
                                             $data['draw_date'] = $draw->draw_date;
                                             $data['draw_time'] = $draw->draw_time;
-                                            
+
                                             return $data;
                                         })
                                         ->columns(3)
@@ -138,7 +138,7 @@ class DrawResource extends Resource
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])->modifyQueryUsing(fn (Builder $query): Builder => $query->orderBy('draw_date', 'desc')->orderBy('draw_time', 'desc'));
     }
 
     public static function getRelations(): array

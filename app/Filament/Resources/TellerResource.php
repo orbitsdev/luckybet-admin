@@ -44,6 +44,7 @@ class TellerResource extends Resource
                     ->maxLength(255),
                 Forms\Components\TextInput::make('phone')
                     ->tel()
+                    ->mask('99999999999')
                     ->nullable()
                     ->maxLength(255),
                 Forms\Components\TextInput::make('password')

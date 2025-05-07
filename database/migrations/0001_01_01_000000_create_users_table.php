@@ -16,14 +16,13 @@ return new class extends Migration
             $table->string('name');
             $table->string('username')->unique();
             $table->string('email')->unique();
-            $table->string('phone')->nullable(); 
+            $table->string('phone')->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();
             $table->foreignId('current_team_id')->nullable();
             $table->string('profile_photo_path', 2048)->nullable();
-            $table->enum('role', ['admin', 'coordinator', 'teller', 'customer']);
-
+            $table->enum('role', ['admin', 'coordinator', 'teller', 'customer']); $table->foreignId('coordinator_id')->nullable()->constrained('users')->nullOnDelete();
             $table->boolean('is_active')->default(true);
             $table->foreignId('location_id')->nullable();
             $table->timestamps();

@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('game_type_id')->constrained();
             $table->foreignId('teller_id')->constrained('users');
             $table->foreignId('customer_id')->nullable()->constrained('users');
-            $table->foreignId('location_id')->constrained();
+            $table->foreignId('location_id')->nullable()->constrained('locations');
             $table->string('ticket_id')->unique();
             $table->string('bet_number');
             $table->decimal('amount', 10, 2);
