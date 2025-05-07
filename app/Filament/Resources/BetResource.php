@@ -64,7 +64,7 @@ class BetResource extends Resource
                     ->searchable()
                     ->preload(),
                 Forms\Components\TextInput::make('ticket_id')
-                    ->required()
+                 
                     ->unique(ignoreRecord: true)
                     ->maxLength(255),
                     Forms\Components\TextInput::make('bet_number')

@@ -43,4 +43,6 @@ class Draw extends Model
     {
         return $this->hasOne(Result::class);
     }
+
+    
 }

@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('d4_winning_number')->nullable();
             $table->timestamps();
         });
+        
     }
 
     /**

@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class TallySheetResource extends Resource
 {
-    // protected static bool $shouldRegisterNavigation = false;
+    protected static bool $shouldRegisterNavigation = false;
     protected static ?string $model = TallySheet::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
