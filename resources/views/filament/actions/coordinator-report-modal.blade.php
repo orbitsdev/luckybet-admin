@@ -69,9 +69,9 @@
                             <td class="px-4 py-2">₱{{ number_format($coordinator->total_gross ?? 0, 2) }}</td>
                             <td class="px-4 py-2">
                                 <div class="flex space-x-2">
-                                    <a href="#" class="px-3 py-1 bg-amber-500 text-white rounded text-xs">Coordinator Sheet</a>
-                                    <a href="#" class="px-3 py-1 bg-blue-500 text-white rounded text-xs">Teller Sheet</a>
-                                    <a href="#" class="px-3 py-1 bg-green-500 text-white rounded text-xs">Tally Sheet</a>
+                                    <a href="#" style="margin: 10px;  " class=" bg-amber-500 text-white rounded text-xs">Coordinator Sheet</a>
+                                    <a href="#" style="margin: 10px;  " class=" bg-blue-500 text-white rounded text-xs">Teller Sheet</a>
+                                    <a href="#" style="margin: 10px;  " class=" bg-green-500 text-white rounded text-xs">Tally Sheet</a>
                                 </div>
                             </td>
                         </tr>
