@@ -54,7 +54,7 @@
 }
 
 /* Search icon styling - specifically for our report pages */
-.p-6 .relative svg {
+.p-6 .search-input-icon svg {
     position: absolute !important;
     left: 1rem !important;
     top: 50% !important;

@@ -84,12 +84,39 @@ class CoordinatorDetails extends Page
         }
         
         $tellers = $query->get()->map(function($teller) {
-            // Calculate sales, hits, and gross for this teller on the selected date
-            // This is a placeholder - you'll need to replace with your actual calculation logic
-            $sales = 12000.00; // Example value
-            $hits = 1000.00;   // Example value
-            $gross = 11000.00; // Example value
-            
+            $sales = 0;
+            $hits = 0;
+
+            // Get all draws for the selected date
+            $draws = \App\Models\Draw::whereDate('draw_date', $this->date)->get();
+
+            foreach ($draws as $draw) {
+                // Get all bets for this teller and draw
+                $bets = \App\Models\Bet::where('teller_id', $teller->id)
+                    ->where('draw_id', $draw->id)
+                    ->where('is_rejected', false)
+                    ->get();
+
+                $sales += $bets->sum('amount');
+
+                // Get the result for this draw
+                $result = $draw->result;
+                if ($result) {
+                    foreach ($bets as $bet) {
+                        // Check if bet number matches winning number based on game type
+                        if (
+                            ($bet->game_type_id == 1 && $bet->bet_number == $result->s2_winning_number) ||
+                            ($bet->game_type_id == 2 && $bet->bet_number == $result->s3_winning_number) ||
+                            ($bet->game_type_id == 3 && $bet->bet_number == $result->d4_winning_number)
+                        ) {
+                            $hits += $bet->amount;
+                        }
+                    }
+                }
+            }
+
+            $gross = $sales - $hits;
+
             return [
                 'id' => $teller->id,
                 'name' => $teller->name,
@@ -109,7 +136,7 @@ class CoordinatorDetails extends Page
         $items = array_slice($tellers, ($page - 1) * $perPage, $perPage);
 
         // Create a paginator instance
-        $paginator = new LengthAwarePaginator(
+        $paginator = new \Illuminate\Pagination\LengthAwarePaginator(
             $items,
             $total,
             $perPage,

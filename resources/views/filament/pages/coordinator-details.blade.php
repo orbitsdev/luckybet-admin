@@ -73,7 +73,7 @@
                 </div>
                 <div class="bg-gray-50 p-3 rounded-lg">
                     <p class="text-sm text-gray-500">Total Gross:</p>
-                    <p class="text-xl font-bold text-gray-800">₱{{ number_format($this->tellers->sum('total_gross'), 2) }}</p>
+                    <p class="text-xl font-bold text-gray-800">₱{{ number_format($this->tellers->sum('total_sales') - $this->tellers->sum('total_hits'), 2) }}</p>
                 </div>
             </div>
 

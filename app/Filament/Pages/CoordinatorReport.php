@@ -169,12 +169,49 @@ class CoordinatorReport extends Page
         return $paginator;
     }
     
-    public function viewCoordinatorDetailsAction(): Action
+    public function getCoordinatorDetailsAction(): Action
     {
-        return Action::make('viewCoordinatorDetails')
-            ->label('View Details')
-            ->icon('heroicon-o-eye')
-            ->url(fn (array $arguments): string => route('filament.admin.pages.coordinator-details', ['id' => $arguments['coordinator_id']]))
+        return Action::make('coordinatorDetails')
+            ->label('Coordinator Sheet')
+            ->icon('heroicon-o-document-chart-bar')
+            ->color('warning')
+            ->url(function (array $arguments) {
+                return route('filament.admin.pages.coordinator-details', [
+                    'coordinatorId' => $arguments['coordinatorId'],
+                    'date' => $arguments['date']
+                ]);
+            })
+            ->openUrlInNewTab();
+    }
+    
+    public function getTellerSheetAction(): Action
+    {
+        return Action::make('tellerSheet')
+            ->label('Teller Sheet')
+            ->icon('heroicon-o-users')
+            ->color('primary')
+            ->url(function (array $arguments) {
+                return route('filament.admin.pages.teller-sales-summary', [
+                    'coordinatorId' => $arguments['coordinatorId'],
+                    'date' => $arguments['date']
+                ]);
+            })
+            ->openUrlInNewTab();
+    }
+    
+    public function getTallySheetAction(): Action
+    {
+        return Action::make('tallySheet')
+            ->label('Tally Sheet')
+            ->icon('heroicon-o-table-cells')
+            ->color('success')
+            ->url(function (array $arguments) {
+                return route('filament.admin.pages.coordinator-details', [
+                    'coordinatorId' => $arguments['coordinatorId'],
+                    'date' => $arguments['date'],
+                    'view' => 'tally'
+                ]);
+            })
             ->openUrlInNewTab();
     }
 }

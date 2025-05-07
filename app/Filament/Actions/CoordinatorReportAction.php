@@ -32,7 +32,7 @@ class CoordinatorReportAction extends Action
             $date = $arguments['date'] ?? null;
             
             // Return the view with coordinator data
-            return view('filament.actions.coordinator-report', [
+            return view('filament.actions.coordinator-report-modal', [
                 'coordinatorId' => $coordinatorId,
                 'date' => $date,
             ]);

@@ -43,7 +43,7 @@
             </div>
 
             <!-- Search Box -->
-            <div class="relative">
+            <div class="relative search-input-icon">
                 <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                     <svg class="w-4 h-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
@@ -104,9 +104,19 @@
                                 <td class="px-4 py-2">₱{{ number_format($coordinator['total_gross'], 2) }}</td>
                                 <td class="px-4 py-2">
                                     <div class="flex space-x-2">
-                                        <a href="/admin/coordinator-details?coordinatorId={{ $coordinator['id'] }}&date={{ $selectedDate }}" class="px-3 py-1 bg-amber-500 text-white rounded text-xs">Coordinator Sheet</a>
-                                        <a href="/admin/teller-sales-summary?coordinatorId={{ $coordinator['id'] }}&date={{ $selectedDate }}" class="px-3 py-1 bg-blue-500 text-white rounded text-xs">Teller Sheet</a>
-                                        <a href="/admin/coordinator-details?coordinatorId={{ $coordinator['id'] }}&date={{ $selectedDate }}&view=tally" class="px-3 py-1 bg-green-500 text-white rounded text-xs">Tally Sheet</a>
+                                        {{ $this->getCoordinatorDetailsAction()->arguments([
+                                            'coordinatorId' => $coordinator['id'],
+                                            'date' => $selectedDate,
+                                        ])->render() }}
+                                        {{ $this->getTellerSheetAction()->arguments([
+                                            'coordinatorId' => $coordinator['id'],
+                                            'date' => $selectedDate,
+                                        ])->render() }}
+                                        {{ $this->getTallySheetAction()->arguments([
+                                            'coordinatorId' => $coordinator['id'],
+                                            'date' => $selectedDate,
+                                            'view' => 'tally',
+                                        ])->render() }}
                                     </div>
                                 </td>
                             </tr>
