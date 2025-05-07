@@ -5,13 +5,19 @@ use App\Models\Bet;
 use App\Models\Claim;
 use App\Models\Result;
 use Filament\Pages\Page;
+use Livewire\Attributes\Url;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Computed;
+use Filament\Forms\Concerns\InteractsWithForms;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Livewire\Attributes\Url;
-
+use Filament\Actions\Concerns\InteractsWithActions;
+use Filament\Actions\Action;
+use App\Filament\Actions\CoordinatorReportAction;
 class WinnersReport extends Page
 {
+
+    use InteractsWithActions;
+    use InteractsWithForms;
     protected static ?string $navigationIcon = 'heroicon-o-star';
     protected static ?string $navigationGroup = 'Reports';
     protected static ?string $navigationLabel = 'Winners';
@@ -20,10 +26,10 @@ class WinnersReport extends Page
 
     public $selectedDate;
     public $dateOptions = [];
-    
+
     #[Url]
     public $search = '';
-    
+
     public $perPage = 10;
     public $page = 1;
 
@@ -51,7 +57,7 @@ class WinnersReport extends Page
         // Reset pagination when date changes
         $this->page = 1;
     }
-    
+
     public function updatedSearch(): void
     {
         // Reset pagination when search changes
@@ -133,8 +139,8 @@ class WinnersReport extends Page
         if (!empty($this->search)) {
             $search = strtolower($this->search);
             $winners = array_filter($winners, function($winner) use ($search) {
-                return str_contains(strtolower($winner['ticket_id']), $search) || 
-                       str_contains(strtolower($winner['bet_number']), $search) || 
+                return str_contains(strtolower($winner['ticket_id']), $search) ||
+                       str_contains(strtolower($winner['bet_number']), $search) ||
                        str_contains(strtolower($winner['winning_number']), $search);
             });
         }
@@ -158,4 +164,22 @@ class WinnersReport extends Page
 
         return $paginator;
     }
+
+    public function testAction(): Action
+    {
+        return Action::make('test')
+            ->requiresConfirmation()
+            ->action(function () {
+                dd('test');
+            });
+    }
+    
+    public function coordinatorReportAction(): Action
+    {
+        return CoordinatorReportAction::make()
+            ->arguments([
+                'date' => $this->selectedDate,
+            ]);
+    }
+    //
 }
