@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 use App\Models\Draw;
 use App\Models\Result;
 use Filament\Pages\Page;
+use Livewire\Attributes\Computed;
 use App\Services\DrawReportService;
 
 class TellerSalesSummary extends Page
@@ -11,24 +12,30 @@ class TellerSalesSummary extends Page
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
     protected static string $view = 'filament.pages.teller-sales-summary';
 
-    public  $summary;
-    public string $selectedDate;
+    public $selectedDrawId;
+    public $drawOptions = [];
 
     public function mount(): void
     {
-        $this->selectedDate = today()->toDateString();
-        $this->loadSummary();
+        $this->drawOptions = Draw::with('result')->orderByDesc('draw_date')->orderByDesc('draw_time')->get()->map(function($draw) {
+            return [
+                'id' => $draw->id,
+                'label' => $draw->draw_date->format('Y-m-d') . ' ' . $draw->draw_time . ($draw->result ? ' (Has Result)' : ' (No Result)'),
+            ];
+        })->toArray();
+        $this->selectedDrawId = $this->drawOptions[0]['id'] ?? null;
     }
 
-    public function updatedSelectedDate(): void
+    public function updatedSelectedDrawId(): void
     {
-        $this->loadSummary();
+        // No need to call loadSummary() as the computed property will handle it
     }
 
-    protected function loadSummary(): void
+    #[Computed]
+    public function summary()
     {
-        $this->summary = app(DrawReportService::class)
-            ->getSummaryForAll()
+        return app(DrawReportService::class)
+            ->getSummaryForAll($this->selectedDrawId)
             ->toArray();
     }
 }

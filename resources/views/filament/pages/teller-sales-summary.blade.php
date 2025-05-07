@@ -1,16 +1,13 @@
 <x-filament-panels::page>
     <div class="p-6 space-y-4 w-full">
         <div class="flex items-center justify-between">
-       
-
             <div class="flex items-center space-x-2">
-                <label for="selectedDate" class="text-sm font-medium">Select Date:</label>
-                <input
-                    wire:model="selectedDate"
-                    type="date"
-                    id="selectedDate"
-                    class="border rounded px-2 py-1 text-sm"
-                />
+                <label for="selectedDrawId" class="text-sm font-medium">Select Draw:</label>
+                <select wire:model.live="selectedDrawId" id="selectedDrawId" class="border rounded px-2 py-1 text-sm">
+                    @foreach ($drawOptions as $draw)
+                        <option value="{{ $draw['id'] }}">{{ $draw['label'] }}</option>
+                    @endforeach
+                </select>
             </div>
         </div>
 

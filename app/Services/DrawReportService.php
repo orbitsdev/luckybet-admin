@@ -35,9 +35,13 @@ class DrawReportService
         });
     }
 
-    public function getSummaryForAll(): Collection
+    public function getSummaryForAll($drawId = null): Collection
     {
-        $draws = Draw::with('result')->get();
+        $query = Draw::with('result');
+        if ($drawId) {
+            $query->where('id', $drawId);
+        }
+        $draws = $query->get();
 
         return $draws->map(function ($draw) {
             $bets = Bet::where('draw_id', $draw->id)->get()->groupBy('teller_id');
