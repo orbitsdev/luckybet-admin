@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreignId('teller_id')->constrained('users');
             $table->foreignId('customer_id')->nullable()->constrained('users');
             $table->foreignId('location_id')->nullable()->constrained('locations');
-            $table->string('ticket_id')->unique();
+            $table->string('ticket_id')->unique()->nullable();
             $table->string('bet_number');
             $table->decimal('amount', 10, 2);
             $table->enum('status', ['active', 'cancelled', 'won', 'lost', 'claimed'])->default('active');

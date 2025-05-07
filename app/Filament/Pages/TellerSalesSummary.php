@@ -17,12 +17,18 @@ class TellerSalesSummary extends Page
 
     public function mount(): void
     {
-        $this->drawOptions = Draw::with('result')->orderByDesc('draw_date')->orderByDesc('draw_time')->get()->map(function($draw) {
-            return [
-                'id' => $draw->id,
-                'label' => $draw->draw_date->format('Y-m-d') . ' ' . $draw->draw_time . ($draw->result ? ' (Has Result)' : ' (No Result)'),
-            ];
-        })->toArray();
+        $this->drawOptions = Draw::with('result')
+            ->orderByDesc('draw_date')
+            ->orderByDesc('draw_time')
+            ->get()
+            ->filter(fn($draw) => $draw->result) // Only draws with results
+            ->map(function($draw) {
+                return [
+                    'id' => $draw->id,
+                    'label' => $draw->draw_date->format('Y-m-d') . ' ' . \Carbon\Carbon::createFromFormat('H:i:s', $draw->draw_time)->format('g:i A'),
+                ];
+            })->values()->toArray();
+
         $this->selectedDrawId = $this->drawOptions[0]['id'] ?? null;
     }
 
