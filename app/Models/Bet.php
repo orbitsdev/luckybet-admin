@@ -8,10 +8,13 @@ use App\Models\Claim;
 use App\Models\Location;
 use App\Models\Schedule;
 use App\Models\Commission;
+use App\Observers\BetObserver;
 use Illuminate\Database\Eloquent\Model;
 // SoftDeletes trait removed as per new structure
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 
+#[ObservedBy([BetObserver::class])]
 class Bet extends Model
 {
     use HasFactory;

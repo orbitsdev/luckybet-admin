@@ -26,55 +26,44 @@ class BetResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Select::make('draw_id')
-                    ->relationship('draw', function ($query) {
-                        return $query->select('id', 'draw_date', 'draw_time')
-                            ->orderBy('draw_date', 'desc')
-                            ->orderBy('draw_time', 'desc');
-                    })
-                    ->getOptionLabelFromRecordUsing(function ($record) {
-                        $formattedTime = \Carbon\Carbon::createFromFormat('H:i:s', $record->draw_time)->format('g:i A');
-                        return "{$record->draw_date->format('M d, Y')} ({$formattedTime})";
-                    })
-                    ->required()
-                    ->searchable()
-                    ->preload(),
-                Forms\Components\Select::make('game_type_id')
-                    ->relationship('gameType', 'name')
-                    ->required()
-                    ->live()
-                    ->afterStateUpdated(function ($set, $state, $context) {
-                        $set('bet_number', '');
-                    })
-                    ->searchable()
-                    ->preload(),
-                Forms\Components\Select::make('teller_id')
-                    ->relationship('teller', 'name', function ($query) {
-                        return $query->where('role', 'teller');
-                    })
-                    ->required()
-                    ->searchable()
-                    ->preload(),
-                Forms\Components\Select::make('customer_id')
-                    ->relationship('customer', 'name', function ($query) {
-                        return $query->where('role', 'customer');
-                    })
-                    ->nullable()
-                    ->searchable()
-                    ->preload(),
-                Forms\Components\Select::make('location_id')
-                    ->relationship('location', 'name')
-                    ->required()
-                    ->searchable()
-                    ->preload(),
-                Forms\Components\Section::make('Bet Details')
-                    ->description('Enter the ticket ID and bet number')
+                // Main section with draw and game type selection
+                Forms\Components\Section::make('Draw Information')
+                    ->description('Select the draw and game type for this bet')
                     ->schema([
-                        Forms\Components\TextInput::make('ticket_id')
-                            ->label('Ticket ID')
-                            ->unique(ignoreRecord: true)
-                            ->maxLength(255)
-                            ->placeholder('Enter ticket ID'),
+                        Forms\Components\Grid::make(2)
+                            ->schema([
+                                Forms\Components\Select::make('draw_id')
+                                    ->label('Draw Date & Time')
+                                    ->relationship('draw', function ($query) {
+                                        return $query->select('id', 'draw_date', 'draw_time')
+                                            ->orderBy('draw_date', 'desc')
+                                            ->orderBy('draw_time', 'desc');
+                                    })
+                                    ->getOptionLabelFromRecordUsing(function ($record) {
+                                        $formattedTime = \Carbon\Carbon::createFromFormat('H:i:s', $record->draw_time)->format('g:i A');
+                                        return "{$record->draw_date->format('M d, Y')} ({$formattedTime})";
+                                    })
+                                    ->required()
+                                    ->searchable()
+                                    ->preload(),
+                                Forms\Components\Select::make('game_type_id')
+                                    ->label('Game Type')
+                                    ->relationship('gameType', 'name')
+                                    ->required()
+                                    ->live()
+                                    ->afterStateUpdated(function ($set, $state, $context) {
+                                        $set('bet_number', '');
+                                    })
+                                    ->searchable()
+                                    ->preload(),
+                            ]),
+                    ])
+                    ->collapsible(),
+
+                // Bet details section
+                Forms\Components\Section::make('Bet Details')
+                    ->description('Enter the bet number and amount')
+                    ->schema([
                         Forms\Components\Grid::make(2)
                             ->schema([
                                 Forms\Components\TextInput::make('bet_number')
@@ -106,48 +95,82 @@ class BetResource extends Resource
                                             default => 'Select game type first',
                                         };
                                     }),
-                                Forms\Components\Toggle::make('format_bet_number')
-                                    ->label('Format Number')
-                                    ->helperText('Toggle ON to format the bet number with leading zeros')
-                                    ->default(true)
-                                    ->live()
-                                    ->afterStateUpdated(function ($set, $state, $get) {
-                                        // Re-trigger the bet number formatting
-                                        $set('bet_number', $get('bet_number'));
-                                    }),
+                                Forms\Components\TextInput::make('amount')
+                                    ->required()
+                                    ->numeric()
+                                    ->prefix('₱'),
                             ]),
-                    ]),
-                Forms\Components\TextInput::make('amount')
-                    ->required()
-                    ->numeric()
-                    ->prefix('₱'),
-                Forms\Components\Section::make('Bet Status')
-                    ->description('Manage the current status of this bet')
-                    ->schema([
-                        Forms\Components\Toggle::make('is_claimed')
-                            ->label('Claimed')
-                            ->helperText('Toggle ON if this bet has been claimed by the customer')
-                            ->required()
-                            ->default(false),
-                        Forms\Components\Toggle::make('is_rejected')
-                            ->label('Rejected/Cancelled')
-                            ->helperText('Toggle ON if this bet has been cancelled or rejected')
-                            ->required()
-                            ->default(false),
-                    ])
-                    ->columns(2),
-                Forms\Components\Section::make('Bet Options')
-                    ->description('Additional options for this bet')
-                    ->schema([
+                        // Forms\Components\Toggle::make('format_bet_number')
+                        //     ->label('Format Number')
+                        //     ->helperText('Toggle ON to format the bet number with leading zeros')
+                        //     ->default(true)
+                        //     ->live()
+                        //     ->afterStateUpdated(function ($set, $state, $get) {
+                        //         // Re-trigger the bet number formatting
+                        //         $set('bet_number', $get('bet_number'));
+                        //     }),
                         Forms\Components\Toggle::make('is_combination')
                             ->label('Combination Bet')
                             ->helperText('Toggle ON if this bet is a combination bet (allows winning with different number arrangements)')
                             ->required()
                             ->default(false),
                     ]),
-                Forms\Components\DateTimePicker::make('bet_date')
-                    ->required()
-                    ->default(now()),
+
+                // Customer and location information
+                Forms\Components\Section::make('Customer & Location')
+                    ->description('Select the teller, customer, and location')
+                    ->schema([
+                        Forms\Components\Grid::make(2)
+                            ->schema([
+                                Forms\Components\Select::make('teller_id')
+                                    ->label('Teller')
+                                    ->relationship('teller', 'name', function ($query) {
+                                        return $query->where('role', 'teller');
+                                    })
+                                    ->required()
+                                    ->searchable()
+                                    ->preload(),
+                                Forms\Components\Select::make('customer_id')
+                                    ->label('Customer')
+                                    ->relationship('customer', 'name', function ($query) {
+                                        return $query->where('role', 'customer');
+                                    })
+                                    ->nullable()
+                                    ->searchable()
+                                    ->preload(),
+                            ]),
+                        Forms\Components\Select::make('location_id')
+                            ->label('Location')
+                            ->relationship('location', 'name')
+                            ->required()
+                            ->searchable()
+                            ->preload(),
+                        Forms\Components\DateTimePicker::make('bet_date')
+                            ->label('Bet Date & Time')
+                            ->required()
+                            ->default(now()),
+                    ])
+                    ->collapsible(),
+
+                // Bet status section
+                Forms\Components\Section::make('Bet Status')
+                    ->description('Manage the current status of this bet')
+                    ->schema([
+                        Forms\Components\Grid::make(2)
+                            ->schema([
+                                Forms\Components\Toggle::make('is_claimed')
+                                    ->label('Claimed')
+                                    ->helperText('Toggle ON if this bet has been claimed by the customer')
+                                    ->required()
+                                    ->default(false),
+                                Forms\Components\Toggle::make('is_rejected')
+                                    ->label('Rejected/Cancelled')
+                                    ->helperText('Toggle ON if this bet has been cancelled or rejected')
+                                    ->required()
+                                    ->default(false),
+                            ]),
+                    ])
+                    ->collapsible(),
             ]);
     }
 
@@ -271,7 +294,7 @@ class BetResource extends Resource
                             fn (Builder $query): Builder => $query->where('is_rejected', $data['is_rejected']),
                         );
                     }),
-                
+
                 // Bet information filters
                 Tables\Filters\SelectFilter::make('game_type_id')
                     ->relationship('gameType', 'name')
@@ -285,7 +308,7 @@ class BetResource extends Resource
                     ->indicator('Teller')
                     ->preload()
                     ->searchable(),
-                
+
                 // Date range filter
                 Tables\Filters\Filter::make('bet_date')
                     ->form([
@@ -303,15 +326,15 @@ class BetResource extends Resource
                     ])
                     ->indicateUsing(function (array $data): ?string {
                         $indicators = [];
-                        
+
                         if ($data['bet_date_from'] ?? null) {
                             $indicators[] = 'From ' . \Carbon\Carbon::parse($data['bet_date_from'])->format('M d, Y');
                         }
-                        
+
                         if ($data['bet_date_until'] ?? null) {
                             $indicators[] = 'To ' . \Carbon\Carbon::parse($data['bet_date_until'])->format('M d, Y');
                         }
-                        
+
                         return count($indicators) > 0 ? implode(' - ', $indicators) : null;
                     })
                     ->query(function (Builder $query, array $data): Builder {

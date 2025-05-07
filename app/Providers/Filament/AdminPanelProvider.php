@@ -7,7 +7,11 @@ use Filament\Panel;
 use Filament\Widgets;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\Support\Enums\MaxWidth;
+use App\Filament\Pages\WinnersReport;
+use App\Filament\Pages\BetSalesReport;
 use Filament\Navigation\NavigationItem;
+use App\Filament\Pages\DrawResultsReport;
 use App\Filament\Pages\TellerSalesSummary;
 use Filament\Http\Middleware\Authenticate;
 use Illuminate\Session\Middleware\StartSession;
@@ -58,6 +62,9 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
-            ]);
+            ])
+            // ->viteTheme('resources/css/filament/admin.css');
+
+            ->maxContentWidth(MaxWidth::Full);
     }
 }
