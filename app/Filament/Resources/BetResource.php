@@ -3,12 +3,14 @@
 namespace App\Filament\Resources;
 
 use App\Models\Bet;
-use App\Models\GameType;
 use Filament\Forms;
 use Filament\Tables;
+use App\Models\GameType;
 use Filament\Forms\Form;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
+use Filament\Notifications\Notification;
+use Filament\Tables\Enums\FiltersLayout;
 use Illuminate\Database\Eloquent\Builder;
 use App\Filament\Resources\BetResource\Pages;
 
@@ -30,8 +32,10 @@ class BetResource extends Resource
                             ->orderBy('draw_date', 'desc')
                             ->orderBy('draw_time', 'desc');
                     })
-                    ->getOptionLabelFromRecordUsing(fn ($record) =>
-                        "Draw #{$record->id} - {$record->draw_date->format('M d, Y')} {$record->draw_time}")
+                    ->getOptionLabelFromRecordUsing(function ($record) {
+                        $formattedTime = \Carbon\Carbon::createFromFormat('H:i:s', $record->draw_time)->format('g:i A');
+                        return "{$record->draw_date->format('M d, Y')} ({$formattedTime})";
+                    })
                     ->required()
                     ->searchable()
                     ->preload(),
@@ -63,47 +67,84 @@ class BetResource extends Resource
                     ->required()
                     ->searchable()
                     ->preload(),
-                Forms\Components\TextInput::make('ticket_id')
-                 
-                    ->unique(ignoreRecord: true)
-                    ->maxLength(255),
-                    Forms\Components\TextInput::make('bet_number')
-                    ->label('Bet Number')
-                    ->required()
-                    ->maxLength(4) // Max is 4, since D4 is highest
-                    ->reactive() // ensures mask can react to game_type_id change
-                    ->live()
-                    ->afterStateUpdated(function ($set, $state) {
-                        // Keep only digits
-                        $state = preg_replace('/\D/', '', $state);
-                        $set('bet_number', $state);
-                    })
-                    ->mask(function ($get) {
-                        $code = optional(GameType::find($get('game_type_id')))->code;
-                        return match ($code) {
-                            'S2' => '99',
-                            'S3' => '999',
-                            'D4' => '9999',
-                            default => null,
-                        };
-                    }),
+                Forms\Components\Section::make('Bet Details')
+                    ->description('Enter the ticket ID and bet number')
+                    ->schema([
+                        Forms\Components\TextInput::make('ticket_id')
+                            ->label('Ticket ID')
+                            ->unique(ignoreRecord: true)
+                            ->maxLength(255)
+                            ->placeholder('Enter ticket ID'),
+                        Forms\Components\Grid::make(2)
+                            ->schema([
+                                Forms\Components\TextInput::make('bet_number')
+                                    ->label('Bet Number')
+                                    ->required()
+                                    ->maxLength(4) // Max is 4, since D4 is highest
+                                    ->reactive() // ensures mask can react to game_type_id change
+                                    ->live()
+                                    ->afterStateUpdated(function ($set, $state) {
+                                        // Keep only digits
+                                        $state = preg_replace('/\D/', '', $state);
+                                        $set('bet_number', $state);
+                                    })
+                                    ->mask(function ($get) {
+                                        $code = optional(GameType::find($get('game_type_id')))->code;
+                                        return match ($code) {
+                                            'S2' => '99',
+                                            'S3' => '999',
+                                            'D4' => '9999',
+                                            default => null,
+                                        };
+                                    })
+                                    ->placeholder(function ($get) {
+                                        $code = optional(GameType::find($get('game_type_id')))->code;
+                                        return match ($code) {
+                                            'S2' => 'Enter 2 digits',
+                                            'S3' => 'Enter 3 digits',
+                                            'D4' => 'Enter 4 digits',
+                                            default => 'Select game type first',
+                                        };
+                                    }),
+                                Forms\Components\Toggle::make('format_bet_number')
+                                    ->label('Format Number')
+                                    ->helperText('Toggle ON to format the bet number with leading zeros')
+                                    ->default(true)
+                                    ->live()
+                                    ->afterStateUpdated(function ($set, $state, $get) {
+                                        // Re-trigger the bet number formatting
+                                        $set('bet_number', $get('bet_number'));
+                                    }),
+                            ]),
+                    ]),
                 Forms\Components\TextInput::make('amount')
                     ->required()
                     ->numeric()
                     ->prefix('₱'),
-                Forms\Components\Select::make('status')
-                    ->options([
-                        'active' => 'Active',
-                        'cancelled' => 'Cancelled',
-                        'won' => 'Won',
-                        'lost' => 'Lost',
-                        'claimed' => 'Claimed',
+                Forms\Components\Section::make('Bet Status')
+                    ->description('Manage the current status of this bet')
+                    ->schema([
+                        Forms\Components\Toggle::make('is_claimed')
+                            ->label('Claimed')
+                            ->helperText('Toggle ON if this bet has been claimed by the customer')
+                            ->required()
+                            ->default(false),
+                        Forms\Components\Toggle::make('is_rejected')
+                            ->label('Rejected/Cancelled')
+                            ->helperText('Toggle ON if this bet has been cancelled or rejected')
+                            ->required()
+                            ->default(false),
                     ])
-                    ->required()
-                    ->default('active'),
-                Forms\Components\Toggle::make('is_combination')
-                    ->required()
-                    ->default(false),
+                    ->columns(2),
+                Forms\Components\Section::make('Bet Options')
+                    ->description('Additional options for this bet')
+                    ->schema([
+                        Forms\Components\Toggle::make('is_combination')
+                            ->label('Combination Bet')
+                            ->helperText('Toggle ON if this bet is a combination bet (allows winning with different number arrangements)')
+                            ->required()
+                            ->default(false),
+                    ]),
                 Forms\Components\DateTimePicker::make('bet_date')
                     ->required()
                     ->default(now()),
@@ -114,13 +155,7 @@ class BetResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('ticket_id')
-                    ->label('Ticket ID')
-                    ->searchable()
-                    ->copyable()
-                    ->copyMessage('Ticket ID copied to clipboard')
-                    ->copyMessageDuration(1500)
-                    ->toggleable(isToggledHiddenByDefault: true),
+                // Primary information - most important columns first
                 Tables\Columns\TextColumn::make('bet_number')
                     ->label('Bet Number')
                     ->formatStateUsing(function ($state, $record) {
@@ -133,10 +168,37 @@ class BetResource extends Resource
                             default => $state,
                         };
                     })
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable()
+                    ->weight('bold'),
                 Tables\Columns\TextColumn::make('gameType.name')
                     ->label('Game Type')
-                    ->sortable(),
+                    ->sortable()
+                    ->badge(),
+                Tables\Columns\TextColumn::make('amount')
+                    ->label('Amount')
+                    ->money('PHP')
+                    ->sortable()
+                    ->alignRight(),
+
+                // Status indicators - grouped together
+                Tables\Columns\IconColumn::make('is_claimed')
+                    ->label('Claimed')
+                    ->boolean()
+                    ->trueColor('success')
+                    ->falseColor('gray'),
+                Tables\Columns\IconColumn::make('is_rejected')
+                    ->label('Rejected')
+                    ->boolean()
+                    ->trueColor('danger')
+                    ->falseColor('gray'),
+                Tables\Columns\IconColumn::make('is_combination')
+                    ->label('Combination')
+                    ->boolean()
+                    ->trueColor('warning')
+                    ->falseColor('gray'),
+
+                // Draw information - grouped together
                 Tables\Columns\TextColumn::make('draw.draw_date')
                     ->label('Draw Date')
                     ->date('M d, Y')
@@ -145,30 +207,24 @@ class BetResource extends Resource
                     ->label('Draw Time')
                     ->time('h:i A')
                     ->sortable(),
+
+                // Secondary information
                 Tables\Columns\TextColumn::make('teller.name')
                     ->label('Teller')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('amount')
-                    ->label('Amount')
-                    ->money('PHP')
-                    ->sortable(),
-                Tables\Columns\BadgeColumn::make('status')
-                    ->label('Status')
-                    ->formatStateUsing(fn (string $state): string => ucfirst($state))
-                    ->colors([
-                        'primary' => 'active',
-                        'danger' => 'cancelled',
-                        'success' => 'won',
-                        'warning' => 'lost',
-                        'info' => 'claimed',
-                    ]),
-                Tables\Columns\IconColumn::make('is_combination')
-                    ->label('Combination')
-                    ->boolean(),
+                Tables\Columns\TextColumn::make('ticket_id')
+                    ->label('Ticket ID')
+                    ->searchable()
+                    ->copyable()
+                    ->copyMessage('Ticket ID copied to clipboard')
+                    ->copyMessageDuration(1500),
+
+                // Timestamps - less important, at the end
                 Tables\Columns\TextColumn::make('bet_date')
                     ->label('Bet Date & Time')
                     ->dateTime('M d, Y - h:i A')
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Created At')
                     ->dateTime('M d, Y - h:i A')
@@ -176,23 +232,88 @@ class BetResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('status')
-                    ->options([
-                        'active' => 'Active',
-                        'cancelled' => 'Cancelled',
-                        'won' => 'Won',
-                        'lost' => 'Lost',
-                        'claimed' => 'Claimed',
-                    ]),
+                // Status filters
+                Tables\Filters\Filter::make('is_claimed')
+                    ->label('Claimed Status')
+                    ->indicator('Claimed')
+                    ->form([
+                        Forms\Components\Select::make('is_claimed')
+                            ->label('Claimed Status')
+                            ->options([
+                                '1' => 'Claimed',
+                                '0' => 'Not Claimed',
+                            ])
+                            ->placeholder('All')
+                            ->native(false),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query->when(
+                            $data['is_claimed'] !== null,
+                            fn (Builder $query): Builder => $query->where('is_claimed', $data['is_claimed']),
+                        );
+                    }),
+                Tables\Filters\Filter::make('is_rejected')
+                    ->label('Rejected Status')
+                    ->indicator('Rejected')
+                    ->form([
+                        Forms\Components\Select::make('is_rejected')
+                            ->label('Rejected Status')
+                            ->options([
+                                '1' => 'Rejected',
+                                '0' => 'Not Rejected',
+                            ])
+                            ->placeholder('All')
+                            ->native(false),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query->when(
+                            $data['is_rejected'] !== null,
+                            fn (Builder $query): Builder => $query->where('is_rejected', $data['is_rejected']),
+                        );
+                    }),
+                
+                // Bet information filters
                 Tables\Filters\SelectFilter::make('game_type_id')
-                    ->relationship('gameType', 'name'),
+                    ->relationship('gameType', 'name')
+                    ->label('Game Type')
+                    ->indicator('Game Type')
+                    ->preload()
+                    ->searchable(),
                 Tables\Filters\SelectFilter::make('teller_id')
-                    ->relationship('teller', 'name'),
+                    ->relationship('teller', 'name')
+                    ->label('Teller')
+                    ->indicator('Teller')
+                    ->preload()
+                    ->searchable(),
+                
+                // Date range filter
                 Tables\Filters\Filter::make('bet_date')
                     ->form([
-                        Forms\Components\DatePicker::make('bet_date_from'),
-                        Forms\Components\DatePicker::make('bet_date_until'),
+                        Forms\Components\Grid::make(2)
+                            ->schema([
+                                Forms\Components\DatePicker::make('bet_date_from')
+                                    ->label('From Date')
+                                    ->placeholder('Start date')
+                                    ->native(false),
+                                Forms\Components\DatePicker::make('bet_date_until')
+                                    ->label('To Date')
+                                    ->placeholder('End date')
+                                    ->native(false),
+                            ]),
                     ])
+                    ->indicateUsing(function (array $data): ?string {
+                        $indicators = [];
+                        
+                        if ($data['bet_date_from'] ?? null) {
+                            $indicators[] = 'From ' . \Carbon\Carbon::parse($data['bet_date_from'])->format('M d, Y');
+                        }
+                        
+                        if ($data['bet_date_until'] ?? null) {
+                            $indicators[] = 'To ' . \Carbon\Carbon::parse($data['bet_date_until'])->format('M d, Y');
+                        }
+                        
+                        return count($indicators) > 0 ? implode(' - ', $indicators) : null;
+                    })
                     ->query(function (Builder $query, array $data): Builder {
                         return $query
                             ->when(
@@ -204,10 +325,42 @@ class BetResource extends Resource
                                 fn (Builder $query, $date): Builder => $query->whereDate('bet_date', '<=', $date),
                             );
                     }),
-            ])
+            ], layout: FiltersLayout::AboveContent)
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\ViewAction::make()
+                        ->icon('heroicon-o-eye'),
+                    Tables\Actions\EditAction::make()
+                        ->icon('heroicon-o-pencil'),
+                    Tables\Actions\Action::make('claim')
+                        ->label('Mark as Claimed')
+                        ->icon('heroicon-o-check-circle')
+                        ->color('success')
+                        ->visible(fn (Bet $record): bool => !$record->is_claimed && !$record->is_rejected)
+                        ->action(function (Bet $record): void {
+                            $record->is_claimed = true;
+                            $record->save();
+                            Notification::make()
+                                ->title('Bet marked as claimed')
+                                ->success()
+                                ->send();
+                        }),
+                    Tables\Actions\Action::make('reject')
+                        ->label('Mark as Rejected')
+                        ->icon('heroicon-o-x-circle')
+                        ->color('danger')
+                        ->visible(fn (Bet $record): bool => !$record->is_claimed && !$record->is_rejected)
+                        ->action(function (Bet $record): void {
+                            $record->is_rejected = true;
+                            $record->save();
+                            Notification::make()
+                                ->title('Bet marked as rejected')
+                                ->success()
+                                ->send();
+                        }),
+                    Tables\Actions\DeleteAction::make()
+                        ->icon('heroicon-o-trash'),
+                ])
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

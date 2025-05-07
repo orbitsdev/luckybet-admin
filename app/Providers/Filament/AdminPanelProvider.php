@@ -54,11 +54,6 @@ class AdminPanelProvider extends PanelProvider
                 DispatchServingFilamentEvent::class,
             ])
             ->navigationItems([
-             NavigationItem::make('Reports')
-                ->url(fn (): string => TellerSalesSummary::getUrl())
-                    ->icon('heroicon-o-arrow-down-tray')
-                    ->group('Reports')
-                    ->sort(3),
                 // NavigationItem::make(    // optional icon
             ])
             ->authMiddleware([

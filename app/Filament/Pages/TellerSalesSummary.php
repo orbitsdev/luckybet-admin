@@ -9,7 +9,10 @@ use App\Services\DrawReportService;
 
 class TellerSalesSummary extends Page
 {
-    protected static ?string $navigationIcon = 'heroicon-o-document-text';
+    protected static ?string $navigationIcon = 'heroicon-o-chart-bar';
+    protected static ?string $navigationGroup = 'Reports';
+    protected static ?string $navigationLabel = 'Sales Summary';
+    protected static ?int $navigationSort = 1;
     protected static string $view = 'filament.pages.teller-sales-summary';
 
     public $selectedDrawId;

@@ -141,19 +141,17 @@ class ResultController extends Controller
      */
     private function updateBetStatuses($drawId, $s2WinningNumber, $s3WinningNumber, $d4WinningNumber)
     {
-        // Mark all active bets for this draw as lost by default
-        Bet::where('draw_id', $drawId)
-           ->where('status', 'active')
-           ->update(['status' => 'lost']);
+        // We don't need to mark bets as lost by default anymore
+        // Instead, we'll identify winning bets directly
         
         // Process S2 bets
-        $this->processGameTypeBets($drawId, 'S2', $s2WinningNumber);
+        $this->processGameTypeBets($drawId, 1, $s2WinningNumber); // 1 = S2 game_type_id
         
         // Process S3 bets
-        $this->processGameTypeBets($drawId, 'S3', $s3WinningNumber);
+        $this->processGameTypeBets($drawId, 2, $s3WinningNumber); // 2 = S3 game_type_id
         
         // Process D4 bets
-        $this->processGameTypeBets($drawId, 'D4', $d4WinningNumber);
+        $this->processGameTypeBets($drawId, 3, $d4WinningNumber); // 3 = D4 game_type_id
     }
     
     /**
@@ -164,12 +162,14 @@ class ResultController extends Controller
      * @param string $winningNumber
      * @return void
      */
-    private function processGameTypeBets($drawId, $gameType, $winningNumber)
+    private function processGameTypeBets($drawId, $gameTypeId, $winningNumber)
     {
-        // Mark winning bets for this game type
-        Bet::where('draw_id', $drawId)
-           ->where('game_type', $gameType)
-           ->where('status', 'lost')
+        // Find winning bets for this game type
+        // We don't update them directly, but create a collection to process
+        $winningBets = Bet::where('draw_id', $drawId)
+           ->where('game_type_id', $gameTypeId)
+           ->where('is_claimed', false)
+           ->where('is_rejected', false)
            ->where(function($query) use ($winningNumber) {
                 // Exact match
                 $query->where('bet_number', $winningNumber);
@@ -180,6 +180,11 @@ class ResultController extends Controller
                       ->whereRaw("? LIKE CONCAT('%', bet_number, '%')", [$winningNumber]);
                 });
            })
-           ->update(['status' => 'won']);
+           ->get();
+           
+        // Process each winning bet
+        // In the new system, we don't need to update any status
+        // The winning bets are determined by matching the bet_number with the winning_number
+        // and checking that is_claimed and is_rejected are false
     }
 }

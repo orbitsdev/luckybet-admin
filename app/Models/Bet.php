@@ -26,13 +26,16 @@ class Bet extends Model
         'location_id',
         'bet_date',
         'ticket_id',
-        'status',         // active, cancelled, won, lost, claimed
+        'is_claimed',     // boolean, default false
+        'is_rejected',    // boolean, default false
         'is_combination', // true/false
     ];
     
     protected $casts = [
         'bet_date' => 'date',
         'is_combination' => 'boolean',
+        'is_claimed' => 'boolean',
+        'is_rejected' => 'boolean',
     ];
 
 

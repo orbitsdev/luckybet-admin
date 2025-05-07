@@ -41,11 +41,11 @@ class TallySheetController extends Controller
                     d.draw_time as draw_time,
                     d.type as type,
                     r.winning_number as winning_number,
-                    SUM(CASE WHEN b.status IN ('active', 'won', 'lost') THEN b.amount ELSE 0 END) as sales,
-                    SUM(CASE WHEN b.status = 'won' THEN b.amount ELSE 0 END) as hits,
-                    COUNT(CASE WHEN b.status = 'cancelled' THEN 1 END) as voided,
-                    SUM(CASE WHEN b.status IN ('active', 'won', 'lost') THEN b.amount ELSE 0 END) - 
-                    SUM(CASE WHEN b.status = 'won' THEN b.amount ELSE 0 END) as gross
+                    SUM(CASE WHEN b.is_rejected = 0 THEN b.amount ELSE 0 END) as sales,
+                    SUM(CASE WHEN b.is_claimed = 1 THEN b.amount ELSE 0 END) as hits,
+                    COUNT(CASE WHEN b.is_rejected = 1 THEN 1 END) as voided,
+                    SUM(CASE WHEN b.is_rejected = 0 THEN b.amount ELSE 0 END) - 
+                    SUM(CASE WHEN b.is_claimed = 1 THEN b.amount ELSE 0 END) as gross
                 FROM bets b
                 JOIN draws d ON b.draw_id = d.id
                 LEFT JOIN results r ON r.draw_date = d.draw_date AND r.draw_time = d.draw_time AND r.type = d.type

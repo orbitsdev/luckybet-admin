@@ -21,7 +21,8 @@ return new class extends Migration
             $table->string('ticket_id')->unique()->nullable();
             $table->string('bet_number');
             $table->decimal('amount', 10, 2);
-            $table->enum('status', ['active', 'cancelled', 'won', 'lost', 'claimed'])->default('active');
+            $table->boolean('is_claimed')->default(false);
+            $table->boolean('is_rejected')->default(false);
             $table->boolean('is_combination')->default(false);
             $table->dateTime('bet_date');
             $table->timestamps();

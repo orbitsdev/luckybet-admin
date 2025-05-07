@@ -207,7 +207,8 @@ class BettingController extends Controller
             // Find the bet by ID and ensure it belongs to the current user
             $bet = Bet::where('id', $id)
                 ->where('teller_id', $request->user()->id)
-                ->where('status', 'active')
+                ->where('is_claimed', false)
+                ->where('is_rejected', false)
                 ->lockForUpdate()
                 ->first();
 
@@ -221,8 +222,8 @@ class BettingController extends Controller
                 return ApiResponse::error('Cannot cancel bet as the draw is closed', 422);
             }
 
-            // Update the bet status
-            $bet->status = 'cancelled';
+            // Update the bet to mark it as rejected
+            $bet->is_rejected = true;
             $bet->save();
 
             DB::commit();

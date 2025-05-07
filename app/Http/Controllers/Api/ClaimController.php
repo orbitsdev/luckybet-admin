@@ -31,7 +31,8 @@ class ClaimController extends Controller
             
             // Use lockForUpdate to prevent race conditions
             $bet = Bet::where('ticket_id', $data['ticket_id'])
-                ->where('status', 'won')
+                ->where('is_claimed', false)
+                ->where('is_rejected', false)
                 ->lockForUpdate()
                 ->first();
 
@@ -67,8 +68,8 @@ class ClaimController extends Controller
                 'qr_code_data' => $bet->ticket_id,
             ]);
 
-            // Update bet status
-            $bet->status = 'claimed';
+            // Update bet claimed status
+            $bet->is_claimed = true;
             $bet->save();
             
             // Load relationships for response

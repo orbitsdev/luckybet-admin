@@ -36,11 +36,11 @@ class CoordinatorReportController extends Controller
                     b.teller_id,
                     u.name,
                     u.username,
-                    SUM(CASE WHEN b.status = 'active' THEN b.amount ELSE 0 END) as sales,
-                    SUM(CASE WHEN b.status = 'won' THEN b.amount ELSE 0 END) as hits,
-                    SUM(CASE WHEN b.status = 'active' THEN b.amount ELSE 0 END) - 
-                    SUM(CASE WHEN b.status = 'won' THEN b.amount ELSE 0 END) as gross,
-                    COUNT(CASE WHEN b.status = 'cancelled' THEN 1 END) as voided,
+                    SUM(CASE WHEN b.is_rejected = 0 THEN b.amount ELSE 0 END) as sales,
+                    SUM(CASE WHEN b.is_claimed = 1 THEN b.amount ELSE 0 END) as hits,
+                    SUM(CASE WHEN b.is_rejected = 0 THEN b.amount ELSE 0 END) - 
+                    SUM(CASE WHEN b.is_claimed = 1 THEN b.amount ELSE 0 END) as gross,
+                    COUNT(CASE WHEN b.is_rejected = 1 THEN 1 END) as voided,
                     COUNT(DISTINCT b.id) as total_bets
                 FROM bets b
                 JOIN users u ON b.teller_id = u.id

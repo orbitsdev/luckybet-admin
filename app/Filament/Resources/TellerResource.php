@@ -23,8 +23,10 @@ class TellerResource extends Resource
         return parent::getEloquentQuery()->where('role', 'teller');
     }
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-    protected static ?int $navigationSort = 5;
+    protected static ?string $navigationIcon = 'heroicon-o-identification';
+    protected static ?string $navigationGroup = 'User Management';
+    protected static ?string $navigationLabel = 'Tellers';
+    protected static ?int $navigationSort = 3;
 
     public static function form(Form $form): Form
     {

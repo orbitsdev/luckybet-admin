@@ -17,7 +17,8 @@ class DrawResource extends Resource
 {
     protected static ?string $model = Draw::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationGroup = 'Draw Management';
+    protected static ?string $navigationIcon = 'heroicon-o-calendar-days';
     protected static ?int $navigationSort = 4;
 
     public static function form(Form $form): Form
@@ -46,7 +47,9 @@ class DrawResource extends Resource
                                         ->required(),
                                 ]),
                             Forms\Components\Toggle::make('is_open')
-                                ->required()->default(true),
+                                ->required()->default(true)
+                                ->live()
+                                ->helperText('Note: Winning numbers can only be entered after the draw is closed.'),
                         ]),
                     Forms\Components\Wizard\Step::make('Winning Numbers')
                         ->icon('heroicon-o-trophy')
@@ -83,7 +86,19 @@ class DrawResource extends Resource
                                         })
                                         ->columns(3)
                                 ])
-                        ])->hidden(fn(string $operation): bool => $operation === 'create'),
+                        ])->hidden(function (string $operation, $livewire, $get): bool {
+                            // Hide when creating a new record
+                            if ($operation === 'create') {
+                                return true;
+                            }
+                            
+                            // Hide when the draw is still open - use the live toggle value
+                            if ($operation === 'edit') {
+                                return $get('is_open') === true;
+                            }
+                            
+                            return false;
+                        }),
                 ])
                 ->skippable()->columnSpanFull()
             ]);
