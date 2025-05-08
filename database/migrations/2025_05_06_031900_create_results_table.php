@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('results', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('draw_id')->constrained('draws');
+            $table->foreignId('draw_id')->constrained('draws')->onDelete('cascade');
             $table->date('draw_date')->nullable();
             $table->time('draw_time')->nullable();
             $table->string('s2_winning_number')->nullable();

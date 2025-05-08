@@ -88,7 +88,7 @@ class TellerReportController extends Controller
                     return number_format($value, 2);
                 }
             };
-            
+
             return [
                 'draw_id' => $draw->id,
                 'type' => $draw->type ?? null,
@@ -275,7 +275,7 @@ class TellerReportController extends Controller
                 // Format time for better readability
                 $formattedTime = Carbon::parse($draw->draw_time)->format('h:i A');
                 $drawTime = $draw->draw_time;
-                
+
                 if (!isset($timeGroupedDraws[$drawTime])) {
                     $timeGroupedDraws[$drawTime] = [
                         'time' => $formattedTime,
@@ -287,21 +287,21 @@ class TellerReportController extends Controller
                         'bet_count' => 0,
                     ];
                 }
-                
+
                 // Add values to the time group
                 $timeGroupedDraws[$drawTime]['sales'] += (float) $draw->sales;
                 $timeGroupedDraws[$drawTime]['hits'] += (float) $draw->hits;
                 $timeGroupedDraws[$drawTime]['gross'] += (float) $draw->gross;
                 $timeGroupedDraws[$drawTime]['voided'] += (int) $draw->voided;
                 $timeGroupedDraws[$drawTime]['bet_count'] += (int) $draw->sales > 0 ? 1 : 0;
-                
+
                 // Update overall totals
                 $totals['sales'] += (float) $draw->sales;
                 $totals['hits'] += (float) $draw->hits;
                 $totals['gross'] += (float) $draw->gross;
                 $totals['voided'] += (int) $draw->voided;
             }
-            
+
             // Format the consolidated draw data
             $formattedDraws = [];
             foreach ($timeGroupedDraws as $time => $data) {
@@ -319,7 +319,7 @@ class TellerReportController extends Controller
                     'bet_count' => $data['bet_count'],
                 ];
             }
-            
+
             // Sort by time
             usort($formattedDraws, function($a, $b) {
                 return strcmp($a['time'], $b['time']);
@@ -336,7 +336,7 @@ class TellerReportController extends Controller
                     return number_format($value, 2);
                 }
             };
-            
+
             $formattedTotals = [
                 'sales' => $totals['sales'],
                 'sales_formatted' => $formatNumber($totals['sales']),
