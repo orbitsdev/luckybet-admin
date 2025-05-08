@@ -44,11 +44,21 @@ class DropdownController extends Controller
      */
     public function availableDates()
     {
-        // Use DrawResource for consistency with other endpoints
-        // This requires selecting all necessary fields
-        $dates = Draw::orderBy('draw_date', 'desc')
-            ->groupBy('draw_date')
-            ->get(['id', 'draw_date', 'draw_time', 'is_open', 'is_active']);
+        // Get distinct dates first
+        $distinctDates = Draw::select('draw_date')
+            ->distinct()
+            ->orderBy('draw_date', 'desc')
+            ->pluck('draw_date');
+        
+        // Then get one complete draw record for each date
+        $dates = collect();
+        foreach ($distinctDates as $date) {
+            $draw = Draw::where('draw_date', $date)
+                ->first();
+            if ($draw) {
+                $dates->push($draw);
+            }
+        }
             
         return ApiResponse::success([
             'available_dates' => DrawResource::collection($dates),
