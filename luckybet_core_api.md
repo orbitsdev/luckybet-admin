@@ -4,6 +4,97 @@
 
 The LuckyBet Admin API provides endpoints for managing betting operations, including user authentication, bet placement, reporting, and dropdown data for the frontend. This document outlines all available endpoints, request parameters, and response formats.
 
+## Purpose and Architecture
+
+### Purpose
+
+The LuckyBet Admin API serves as the backend interface for the LuckyBet betting system, enabling:
+
+1. **Teller Operations**: Allows tellers to place bets, view bet history, and cancel bets
+2. **Reporting**: Provides detailed reports on sales and performance metrics
+3. **Data Management**: Offers access to game types, schedules, and draw information
+4. **Authentication**: Secures the system with token-based authentication
+
+### System Architecture
+
+```
+┌─────────────────┐      ┌────────────────┐      ┌────────────────┐
+│                 │      │                │      │                │
+│  Mobile Client  │◄────►│  LuckyBet API  │◄────►│    Database    │
+│                 │      │                │      │                │
+└─────────────────┘      └────────────────┘      └────────────────┘
+                                 ▲
+                                 │
+                                 ▼
+                         ┌────────────────┐
+                         │                │
+                         │ Admin Dashboard│
+                         │                │
+                         └────────────────┘
+```
+
+### Key Workflows
+
+#### Betting Flow
+
+```
+┌─────────┐     ┌────────────────┐     ┌───────────────┐
+│  Teller │     │ Betting System │     │ Report System │
+│         │     │                │     │               │
+└────┬────┘     └────────┬───────┘     └───────┬───────┘
+     │                   │                     │
+     │  Get Available    │                     │
+     │  Draws            │                     │
+     │ ─────────────────>│                     │
+     │                   │                     │
+     │   Return Draws    │                     │
+     │ <─────────────────│                     │
+     │                   │                     │
+     │   Place Bet       │                     │
+     │ ─────────────────>│                     │
+     │                   │                     │
+     │   Bet Confirmed   │                     │
+     │ <─────────────────│                     │
+     │                   │                     │
+     │   Cancel Bet      │                     │
+     │ ─────────────────>│                     │
+     │                   │                     │
+     │  Cancellation     │                     │
+     │  Confirmed        │                     │
+     │ <─────────────────│                     │
+     │                   │                     │
+     │  Request Report   │                     │
+     │ ───────────────────────────────────────>│
+     │                   │                     │
+     │   Return Report   │                     │
+     │ <───────────────────────────────────────│
+     │                   │                     │
+```
+
+### Implementation Requirements
+
+#### For Mobile Developers
+
+1. **Authentication**: 
+   - Implement secure token storage
+   - Include token in all API requests
+   - Handle token expiration and refresh
+
+2. **Data Handling**:
+   - Cache dropdown data (game types, schedules)
+   - Implement proper date formatting
+   - Handle pagination for list endpoints
+
+3. **Error Handling**:
+   - Check `status` field in all responses
+   - Display appropriate error messages
+   - Implement retry logic for network failures
+
+4. **UI Requirements**:
+   - Implement bet slip creation interface
+   - Display reports with proper formatting
+   - Show bet history with filtering options
+
 ## Table of Contents
 
 - [Authentication](#authentication)
@@ -681,4 +772,33 @@ Common HTTP status codes:
    - Response dates include both raw (`date`) and formatted (`date_formatted`) versions
 3. **Dropdown Data**: Cache dropdown data where appropriate to reduce API calls
 4. **Error Handling**: Always check the `status` field to determine if the request was successful
-5. **Pagination**: For list endpoints, check the `meta` object for pagination information
+5. **Pagination**: For list endpoints, check the `pagination` object for pagination information
+
+## Testing the API
+
+To test the API endpoints, you can use tools like Postman or cURL. Here's a sample testing workflow:
+
+1. **Authentication**:
+   ```bash
+   curl -X POST http://your-domain.com/api/login \
+     -H "Content-Type: application/json" \
+     -d '{"email":"teller@example.com","password":"password123"}'
+   ```
+
+2. **Place a Bet**:
+   ```bash
+   curl -X POST http://your-domain.com/api/betting/place \
+     -H "Authorization: Bearer YOUR_TOKEN" \
+     -H "Content-Type: application/json" \
+     -d '{"bet_number":"123","amount":50,"draw_id":1,"game_type_id":1}'
+   ```
+
+3. **Get a Report**:
+   ```bash
+   curl -X GET "http://your-domain.com/api/reports/tallysheet?date=2025-05-08" \
+     -H "Authorization: Bearer YOUR_TOKEN"
+   ```
+
+## Conclusion
+
+The LuckyBet Admin API provides a comprehensive set of endpoints for managing betting operations. By following the documentation and implementation guidelines, developers can create robust mobile and web applications that interact seamlessly with the betting system.
