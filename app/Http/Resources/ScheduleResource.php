@@ -5,7 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class DrawResource extends JsonResource
+class ScheduleResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -16,11 +16,9 @@ class DrawResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'draw_date' => $this->draw_date,
+            'name' => $this->name,
             'draw_time' => $this->draw_time,
             'draw_time_formatted' => \Carbon\Carbon::createFromFormat('H:i:s', $this->draw_time)->format('g:i A'),
-            'is_open' => $this->is_open,
-            'is_active' => $this->is_active,
         ];
     }
 }
