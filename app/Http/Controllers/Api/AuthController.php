@@ -18,6 +18,12 @@ class AuthController extends Controller
             'username' => 'required|string|unique:users',
             'email' => 'required|email|unique:users',
             'password' => 'required|string|confirmed|min:6',
+            'role' => 'sometimes|in:admin,coordinator,teller,customer',
+            'phone' => 'nullable|string|max:20',
+            'location_id' => 'nullable|exists:locations,id',
+            'is_active' => 'sometimes|boolean',
+            'coordinator_id' => 'nullable|exists:users,id',
+            'profile_photo_path' => 'nullable|string|max:2048',
         ]);
 
         $user = User::create([
@@ -25,6 +31,12 @@ class AuthController extends Controller
             'username' => $data['username'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
+            'role' => $data['role'] ?? 'teller',
+            'phone' => $data['phone'] ?? null,
+            'location_id' => $data['location_id'] ?? null,
+            'is_active' => $data['is_active'] ?? true,
+            'coordinator_id' => $data['coordinator_id'] ?? null,
+            'profile_photo_path' => $data['profile_photo_path'] ?? null,
         ]);
 
         $user->load('location');
