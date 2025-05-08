@@ -9,6 +9,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Schedule extends Model
 {
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
     use HasFactory;
 
     protected $fillable = [

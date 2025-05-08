@@ -24,14 +24,17 @@ class BetResource extends JsonResource
             'bet_number' => $this->bet_number,
             'amount' => $this->amount,
             'status' => $this->status,
+            'is_claimed' => $this->is_claimed,
+            'is_rejected' => $this->is_rejected,
+            'is_combination' => $this->is_combination,
+            'bet_date' => $this->bet_date,
+            'bet_date_formatted' => $this->bet_date ? $this->bet_date->format('M d, Y h:i A') : null,
+            'created_at' => $this->created_at,
             'game_type' => new GameTypeResource($this->whenLoaded('gameType')),
             'draw' => new DrawResource($this->whenLoaded('draw')),
             'teller' => new UserResource($this->whenLoaded('teller')),
             'location' => new LocationResource($this->whenLoaded('location')),
             'customer' => $this->when($this->customer_id, new UserResource($this->whenLoaded('customer'))),
-            'is_combination' => $this->is_combination,
-            'bet_date' => $this->bet_date,
-            'created_at' => $this->created_at,
         ];
     }
 }

@@ -15,111 +15,18 @@ use App\Http\Resources\DrawResource;
 class BettingController extends Controller
 {
     /**
-     * List bets for the authenticated user with optional filtering
-     *
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function listBets(Request $request)
-    {
-        $user = $request->user();
-
-        $query = Bet::with(['draw', 'customer', 'location', 'gameType'])
-            ->where('teller_id', $user->id)
-            ->when($request->filled('search'), function ($q) use ($request) {
-                $q->where(function ($sub) use ($request) {
-                    $sub->where('ticket_id', 'like', '%' . $request->search . '%')
-                        ->orWhere('bet_number', 'like', '%' . $request->search . '%');
-                });
-            })
-            ->when($request->filled('status'), fn($q) => $q->where('status', $request->status))
-            ->when($request->filled('draw_id'), fn($q) => $q->where('draw_id', $request->draw_id))
-            ->when($request->filled('date'), fn($q) => $q->whereDate('bet_date', $request->date))
-            ->latest();
-
-        $bets = $query->paginate($request->get('per_page', 20));
-
-        return ApiResponse::paginated($bets, 'Bets retrieved', BetResource::class);
-    }
-
-    /**
-     * Get available draws for the current day
+     * Get available draws for betting today
      *
      * @return \Illuminate\Http\JsonResponse
      */
     public function availableDraws()
     {
-        $currentTime = now();
-
-        // Temporarily removed time filter since it's late evening (10:44 PM)
-        // Original code with time filter:
-        // $draws = Draw::where('draw_date', today())
-        //     ->where('is_open', true)
-        //     ->where('draw_time', '>', $currentTime->format('H:i:s'))
-        //     ->orderBy('draw_time')
-        //     ->get();
-
-        // Modified version without time filter for testing:
         $draws = Draw::where('draw_date', today())
             ->where('is_open', true)
             ->orderBy('draw_time')
-            ->with(['schedule', 'gameType']) // Eagerly load relationships
             ->get();
 
-        return ApiResponse::success(DrawResource::collection($draws), 'Available draws loaded');
-    }
-
-    /**
-     * Get available schedules for the current day without duplicates
-     *
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function availableSchedules()
-    {
-        // Get unique draw times from draws table
-        $drawTimes = Draw::where('draw_date', today())
-            ->where('is_open', true)
-            ->select('draw_time')
-            ->distinct()
-            ->get()
-            ->map(function($draw, $index) {
-                return [
-                    'id' => $index + 1, // Generate a sequential ID
-                    'name' => 'Draw at ' . date('h:i A', strtotime($draw->draw_time)),
-                    'draw_time' => $draw->draw_time
-                ];
-            });
-
-        return ApiResponse::success($drawTimes, 'Available draw times retrieved successfully');
-    }
-
-    /**
-     * Get available draws for a specific game type and schedule
-     *
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function availableDrawsByGameType(Request $request)
-    {
-        $request->validate([
-            'game_type_id' => 'required|exists:game_types,id',
-            'draw_time' => 'nullable|date_format:H:i:s'
-        ]);
-
-        $query = Draw::where('draw_date', today())
-            ->where('is_open', true);
-
-        if ($request->filled('draw_time')) {
-            $query->where('draw_time', $request->draw_time);
-        }
-
-        $draws = $query->orderBy('draw_time')->get();
-        
-        // Filter draws for specific game type in the application layer
-        // since we removed the direct relationship in the database
-        $gameTypeId = $request->game_type_id;
-
-        return ApiResponse::success(DrawResource::collection($draws), 'Available draws loaded');
+        return ApiResponse::success(DrawResource::collection($draws));
     }
 
     /**
@@ -146,7 +53,7 @@ class BettingController extends Controller
         }
 
         try {
-            // Verify the draw is still open
+          
             $draw = Draw::findOrFail($data['draw_id']);
             if (!$draw->is_open) {
                 return ApiResponse::error('This draw is no longer accepting bets', 422);
@@ -154,7 +61,6 @@ class BettingController extends Controller
 
             DB::beginTransaction();
 
-            // Generate a unique ticket ID
             $ticketId = strtoupper(Str::random(10));
 
             $bet = Bet::create([
@@ -173,25 +79,62 @@ class BettingController extends Controller
 
             DB::commit();
 
-            // Load relationships for the response
+       
             $bet->load(['gameType']);
 
-            // Return a simplified response according to the mobile API spec
-            return ApiResponse::success([
-                'ticket_id' => $bet->ticket_id,
-                'bet_number' => $bet->bet_number,
-                'amount' => $bet->amount,
-                'status' => $bet->status
-            ], 'Bet placed successfully');
+          
+            return ApiResponse::success(new BetResource($bet), 'Bet placed successfully');
 
         } catch (\Exception $e) {
-            // Rollback the transaction in case of error
             DB::rollBack();
 
-            // Return error response
             return ApiResponse::error('Failed to place bet: ' . $e->getMessage(), 500);
         }
     }
+
+    /**
+     * List bets for the authenticated user with optional filtering
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+  public function listBets(Request $request)
+  {
+      $user = $request->user();
+  
+      $validated = $request->validate([
+          'page' => 'sometimes|integer|min:1',
+          'per_page' => 'sometimes|integer|min:1|max:100',
+          'all' => 'sometimes|boolean',
+          'draw_id' => 'sometimes|integer|exists:draws,id',
+          'date' => 'sometimes|date',
+      ]);
+      $perPage = $validated['per_page'] ?? 20;
+  
+      $query = Bet::with(['draw', 'customer', 'location', 'gameType'])
+          ->where('teller_id', $user->id)
+          // ... (other filters as before)
+          ->when($request->filled('search'), function ($q) use ($request) {
+              $q->where(function ($sub) use ($request) {
+                  $sub->where('ticket_id', 'like', '%' . $request->search . '%')
+                      ->orWhere('bet_number', 'like', '%' . $request->search . '%');
+              });
+          })
+          ->when($request->filled('status'), fn($q) => $q->where('status', $request->status))
+          ->when($request->filled('draw_id'), fn($q) => $q->where('draw_id', $request->draw_id))
+          ->when($request->filled('date'), fn($q) => $q->whereDate('bet_date', $request->date))
+          ->latest();
+  
+      if ($request->boolean('all', false)) {
+          // Cap to 1000 for safety
+          $bets = $query->limit(1000)->get();
+          return ApiResponse::success(BetResource::collection($bets), 'All bets retrieved');
+      } else {
+          $bets = $query->paginate($perPage);
+          return ApiResponse::paginated($bets, 'Bets retrieved', BetResource::class);
+      }
+  }
+
     /**
      * Cancel an active bet
      *
@@ -236,4 +179,5 @@ class BettingController extends Controller
             return ApiResponse::error('Failed to cancel bet: ' . $e->getMessage(), 500);
         }
     }
+
 }

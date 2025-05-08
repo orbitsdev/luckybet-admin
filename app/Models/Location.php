@@ -10,6 +10,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Location extends Model
 {
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
     use HasFactory;
     
     protected $fillable = [

@@ -16,20 +16,23 @@ class DropdownController extends Controller
 {
     public function gameTypes()
     {
-        $gameTypes = GameType::where('is_active', true)->get();
-        return ApiResponse::success(GameTypeResource::collection($gameTypes));
+        $gameTypes = cache()->remember('dropdown_game_types', 3600, function() {
+            return GameTypeResource::collection(GameType::where('is_active', true)->get());
+        });
+        return ApiResponse::success($gameTypes);
     }
 
     public function schedules()
     {
-        $schedules = Schedule::where('is_active', true)->get();
-        return ApiResponse::success(ScheduleResource::collection($schedules));
+        $schedules = cache()->remember('dropdown_schedules', 3600, function() {
+            return ScheduleResource::collection(Schedule::where('is_active', true)->get());
+        });
+        return ApiResponse::success($schedules);
     }
 
     public function draws()
     {
-        $draws = Draw::where('is_active', true)
-            ->where('is_open', true)
+        $draws = Draw::where('is_open', true)
             ->orderBy('draw_date')
             ->orderBy('draw_time')
             ->get();
