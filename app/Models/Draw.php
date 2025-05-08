@@ -14,17 +14,18 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Draw extends Model
 {
-    
+
     use HasFactory;
 
     protected $fillable = [
-        'draw_date', 
-        'draw_time', 
+        'draw_date',
+        'draw_time',
         'is_open',
     ];
 
     protected $casts = [
         'is_open' => 'boolean',
+        'is_active' => 'boolean',
         'draw_date' => 'date',
         'draw_time' => 'string',
     ];
@@ -45,5 +46,5 @@ class Draw extends Model
         return $this->hasOne(Result::class);
     }
 
-    
+
 }
