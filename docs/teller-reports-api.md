@@ -301,8 +301,8 @@ Common error codes:
            "id": 1,
            "draw_date": "2025-05-08",
            "draw_date_formatted": "May 8, 2025",
-           "draw_time": null,
-           "draw_time_formatted": null,
+           "draw_time": "10:30:00",
+           "draw_time_formatted": "10:30 AM",
            "is_open": true,
            "is_active": true
          },
@@ -310,8 +310,8 @@ Common error codes:
            "id": 2,
            "draw_date": "2025-05-07",
            "draw_date_formatted": "May 7, 2025",
-           "draw_time": null,
-           "draw_time_formatted": null,
+           "draw_time": "14:00:00",
+           "draw_time_formatted": "2:00 PM",
            "is_open": true,
            "is_active": true
          }
