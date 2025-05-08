@@ -38,4 +38,26 @@ class DropdownController extends Controller
             ->get();
         return ApiResponse::success(DrawResource::collection($draws));
     }
+
+    /**
+     * Get all available draw dates for dropdown/calendar
+     */
+    public function availableDates()
+    {
+        $dates = Draw::select('draw_date')
+            ->distinct()
+            ->orderBy('draw_date', 'desc')
+            ->pluck('draw_date');
+
+        $datesWithFormatted = $dates->map(function ($date) {
+            return [
+                'date' => $date,
+                'date_formatted' => \Carbon\Carbon::parse($date)->format('F j, Y'),
+            ];
+        });
+
+        return ApiResponse::success([
+            'available_dates' => $datesWithFormatted,
+        ], 'Available draw dates fetched successfully');
+    }
 }

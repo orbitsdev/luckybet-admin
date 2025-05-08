@@ -178,6 +178,28 @@ class BettingController extends Controller
             DB::rollBack();
             return ApiResponse::error('Failed to cancel bet: ' . $e->getMessage(), 500);
         }
+        /**
+     * List cancelled bets for the authenticated user, searchable by bet number or ticket number
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function listCancelledBets(Request $request)
+    {
+        $user = $request->user();
+        $query = Bet::with(['draw', 'customer', 'location', 'gameType'])
+            ->where('teller_id', $user->id)
+            ->where('is_rejected', true)
+            ->when($request->filled('search'), function ($q) use ($request) {
+                $q->where(function ($sub) use ($request) {
+                    $sub->where('ticket_id', 'like', '%' . $request->search . '%')
+                        ->orWhere('bet_number', 'like', '%' . $request->search . '%');
+                });
+            })
+            ->latest();
+
+        $bets = $query->get();
+        return ApiResponse::success(BetResource::collection($bets), 'Cancelled bets retrieved');
     }
 
 }
