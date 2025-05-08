@@ -50,6 +50,10 @@ class DrawResource extends Resource
                                 ->required()->default(true)
                                 ->live()
                                 ->helperText('Note: Winning numbers can only be entered after the draw is closed.'),
+                            Forms\Components\Toggle::make('is_active')
+                                ->label('Active')
+                                ->default(true)
+                                ->helperText('Hide this draw from dropdowns and betting screens without deleting.'),
                         ]),
                     Forms\Components\Wizard\Step::make('Winning Numbers')
                         ->icon('heroicon-o-trophy')
@@ -117,7 +121,12 @@ class DrawResource extends Resource
                     ->sortable(),
                 // Game type column removed as per documentation
                 Tables\Columns\IconColumn::make('is_open')
-                    ->boolean(),
+                    ->boolean()
+                    ->tooltip('Whether this draw is currently open for accepting bets.'),
+                Tables\Columns\IconColumn::make('is_active')
+                    ->boolean()
+                    ->label('Active')
+                    ->tooltip('Hide this draw from dropdowns and betting screens without deleting.'),
                 // Custom columns for winning numbers from result relationship
                 Tables\Columns\TextColumn::make('result.s2_winning_number')
                     ->label('S2 Winner')
