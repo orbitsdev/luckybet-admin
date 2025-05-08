@@ -11,8 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('cascade', function (Blueprint $table) {
-            //
+        Schema::table('results', function (Blueprint $table) {
+            // Drop the existing foreign key
+            $table->dropForeign(['draw_id']);
+            
+            // Add the foreign key with cascade delete
+            $table->foreign('draw_id')
+                  ->references('id')
+                  ->on('draws')
+                  ->onDelete('cascade');
         });
     }
 
@@ -21,8 +28,14 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('cascade', function (Blueprint $table) {
-            //
+        Schema::table('results', function (Blueprint $table) {
+            // Drop the cascade foreign key
+            $table->dropForeign(['draw_id']);
+            
+            // Restore the original foreign key without cascade
+            $table->foreign('draw_id')
+                  ->references('id')
+                  ->on('draws');
         });
     }
 };
