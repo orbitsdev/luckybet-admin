@@ -298,22 +298,46 @@ Common error codes:
      "data": {
        "available_dates": [
          {
-           "id": 1,
-           "draw_date": "2025-05-08",
-           "draw_date_formatted": "May 8, 2025",
-           "draw_time": "10:30:00",
-           "draw_time_formatted": "10:30 AM",
-           "is_open": true,
-           "is_active": true
+           "date": "2025-05-08",
+           "date_formatted": "May 8, 2025",
+           "draw_times": [
+             {
+               "id": 1,
+               "draw_time": "10:30:00",
+               "draw_time_formatted": "10:30 AM",
+               "is_open": true
+             },
+             {
+               "id": 2,
+               "draw_time": "14:00:00",
+               "draw_time_formatted": "2:00 PM",
+               "is_open": true
+             },
+             {
+               "id": 3,
+               "draw_time": "17:00:00",
+               "draw_time_formatted": "5:00 PM",
+               "is_open": true
+             }
+           ]
          },
          {
-           "id": 2,
-           "draw_date": "2025-05-07",
-           "draw_date_formatted": "May 7, 2025",
-           "draw_time": "14:00:00",
-           "draw_time_formatted": "2:00 PM",
-           "is_open": true,
-           "is_active": true
+           "date": "2025-05-07",
+           "date_formatted": "May 7, 2025",
+           "draw_times": [
+             {
+               "id": 4,
+               "draw_time": "10:30:00",
+               "draw_time_formatted": "10:30 AM",
+               "is_open": true
+             },
+             {
+               "id": 5,
+               "draw_time": "14:00:00",
+               "draw_time_formatted": "2:00 PM",
+               "is_open": true
+             }
+           ]
          }
        ]
      }

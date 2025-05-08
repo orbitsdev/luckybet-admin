@@ -45,23 +45,14 @@ class DropdownController extends Controller
     public function availableDates()
     {
         // Get distinct dates first
-        $distinctDates = Draw::select('draw_date')
-            ->distinct()
-            ->orderBy('draw_date', 'desc')
-            ->pluck('draw_date');
-        
-        // Then get one complete draw record for each date
-        $dates = collect();
-        foreach ($distinctDates as $date) {
-            $draw = Draw::where('draw_date', $date)
-                ->first();
-            if ($draw) {
-                $dates->push($draw);
-            }
-        }
-            
-        return ApiResponse::success([
-            'available_dates' => DrawResource::collection($dates),
-        ], 'Available draw dates fetched successfully');
+        $draws = Draw::orderBy('draw_date', 'desc')
+        ->orderBy('draw_time', 'asc')
+        ->get();
+
+    return ApiResponse::success([
+        'available_draws' => DrawResource::collection($draws),
+    ], 'Available draw list fetched successfully');
+
+
     }
 }
