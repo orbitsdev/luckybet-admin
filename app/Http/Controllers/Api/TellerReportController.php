@@ -257,50 +257,73 @@ class TellerReportController extends Controller
                 'voided' => 0,
             ];
 
-            // Format the draw summary data
-            $formattedDraws = [];
+            // Helper function to format numbers - only show decimal places if needed
+            $formatNumber = function($value) {
+                // Check if the value has decimal places
+                if (floor($value) == $value) {
+                    // No decimal places needed
+                    return number_format($value, 0);
+                } else {
+                    // Has decimal places, format with 2 decimal places
+                    return number_format($value, 2);
+                }
+            };
+
+            // Group draws by time
+            $timeGroupedDraws = [];
             foreach ($drawSummary as $draw) {
                 // Format time for better readability
                 $formattedTime = Carbon::parse($draw->draw_time)->format('h:i A');
-
-                // Helper function to format numbers - only show decimal places if needed
-                $formatNumber = function($value) {
-                    // Check if the value has decimal places
-                    if (floor($value) == $value) {
-                        // No decimal places needed
-                        return number_format($value, 0);
-                    } else {
-                        // Has decimal places, format with 2 decimal places
-                        return number_format($value, 2);
-                    }
-                };
+                $drawTime = $draw->draw_time;
                 
-                $formattedDraw = [
-                    'draw_id' => $draw->draw_id,
-                    'time' => $formattedTime,
-                    'time_formatted' => $formattedTime,
-                    'game_type_code' => $draw->game_type_code,
-                    'game_type_name' => $draw->game_type_name,
-                    'winning_number' => $draw->winning_number ?? '--',
-                    'sales' => (float) $draw->sales,
-                    'sales_formatted' => $formatNumber((float) $draw->sales),
-                    'hits' => (float) $draw->hits,
-                    'hits_formatted' => $formatNumber((float) $draw->hits),
-                    'gross' => (float) $draw->gross,
-                    'gross_formatted' => $formatNumber((float) $draw->gross),
-                    'voided' => (int) $draw->voided,
-                    'voided_formatted' => (int) $draw->voided . ' bet(s)',
-                    'draw_label' => "Draw #{$draw->draw_id}: {$formattedTime} ({$draw->game_type_name})",
-                ];
-
-                $formattedDraws[] = $formattedDraw;
-
-                // Update totals
+                if (!isset($timeGroupedDraws[$drawTime])) {
+                    $timeGroupedDraws[$drawTime] = [
+                        'time' => $formattedTime,
+                        'time_formatted' => $formattedTime,
+                        'sales' => 0,
+                        'hits' => 0,
+                        'gross' => 0,
+                        'voided' => 0,
+                        'bet_count' => 0,
+                    ];
+                }
+                
+                // Add values to the time group
+                $timeGroupedDraws[$drawTime]['sales'] += (float) $draw->sales;
+                $timeGroupedDraws[$drawTime]['hits'] += (float) $draw->hits;
+                $timeGroupedDraws[$drawTime]['gross'] += (float) $draw->gross;
+                $timeGroupedDraws[$drawTime]['voided'] += (int) $draw->voided;
+                $timeGroupedDraws[$drawTime]['bet_count'] += (int) $draw->sales > 0 ? 1 : 0;
+                
+                // Update overall totals
                 $totals['sales'] += (float) $draw->sales;
                 $totals['hits'] += (float) $draw->hits;
                 $totals['gross'] += (float) $draw->gross;
                 $totals['voided'] += (int) $draw->voided;
             }
+            
+            // Format the consolidated draw data
+            $formattedDraws = [];
+            foreach ($timeGroupedDraws as $time => $data) {
+                $formattedDraws[] = [
+                    'time' => $data['time'],
+                    'time_formatted' => $data['time_formatted'],
+                    'sales' => $data['sales'],
+                    'sales_formatted' => $formatNumber($data['sales']),
+                    'hits' => $data['hits'],
+                    'hits_formatted' => $formatNumber($data['hits']),
+                    'gross' => $data['gross'],
+                    'gross_formatted' => $formatNumber($data['gross']),
+                    'voided' => $data['voided'],
+                    'voided_formatted' => $data['voided'] . ' bet(s)',
+                    'bet_count' => $data['bet_count'],
+                ];
+            }
+            
+            // Sort by time
+            usort($formattedDraws, function($a, $b) {
+                return strcmp($a['time'], $b['time']);
+            });
 
             // Add formatted values to totals using the same formatting logic
             $formatNumber = function($value) {
