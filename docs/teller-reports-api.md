@@ -288,56 +288,41 @@ Common error codes:
 
 7. **Default Date**: The Sales Report endpoint uses today's date by default if no date parameter is provided. The Tallysheet Report requires a date parameter.
 
-8. **Available Dates**: You can use the `/api/dropdown/available-dates` endpoint to get a list of dates for which draw data is available. This is useful for implementing date pickers in your application.
+8. **Available Dates**: You can use the `/api/dropdown/available-dates` endpoint to get a list of all available draws ordered by date and time. This is useful for implementing date and time selection in your application.
 
    **Example Response:**
    ```json
    {
      "success": true,
-     "message": "Available draw dates fetched successfully",
+     "message": "Available draw list fetched successfully",
      "data": {
-       "available_dates": [
+       "available_draws": [
          {
-           "date": "2025-05-08",
-           "date_formatted": "May 8, 2025",
-           "draw_times": [
-             {
-               "id": 1,
-               "draw_time": "10:30:00",
-               "draw_time_formatted": "10:30 AM",
-               "is_open": true
-             },
-             {
-               "id": 2,
-               "draw_time": "14:00:00",
-               "draw_time_formatted": "2:00 PM",
-               "is_open": true
-             },
-             {
-               "id": 3,
-               "draw_time": "17:00:00",
-               "draw_time_formatted": "5:00 PM",
-               "is_open": true
-             }
-           ]
+           "id": 1,
+           "draw_date": "2025-05-08",
+           "draw_date_formatted": "May 8, 2025",
+           "draw_time": "10:30:00",
+           "draw_time_formatted": "10:30 AM",
+           "is_open": true,
+           "is_active": true
          },
          {
-           "date": "2025-05-07",
-           "date_formatted": "May 7, 2025",
-           "draw_times": [
-             {
-               "id": 4,
-               "draw_time": "10:30:00",
-               "draw_time_formatted": "10:30 AM",
-               "is_open": true
-             },
-             {
-               "id": 5,
-               "draw_time": "14:00:00",
-               "draw_time_formatted": "2:00 PM",
-               "is_open": true
-             }
-           ]
+           "id": 2,
+           "draw_date": "2025-05-08",
+           "draw_date_formatted": "May 8, 2025",
+           "draw_time": "14:00:00",
+           "draw_time_formatted": "2:00 PM",
+           "is_open": true,
+           "is_active": true
+         },
+         {
+           "id": 3,
+           "draw_date": "2025-05-07",
+           "draw_date_formatted": "May 7, 2025",
+           "draw_time": "10:30:00",
+           "draw_time_formatted": "10:30 AM",
+           "is_open": true,
+           "is_active": true
          }
        ]
      }
