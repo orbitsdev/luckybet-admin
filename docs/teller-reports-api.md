@@ -9,7 +9,7 @@ This document provides detailed information about the Teller Reports API endpoin
 - [Sales Report](#sales-report)
 - [Response Format](#response-format)
 - [Error Handling](#error-handling)
-- [Example Implementations](#example-implementations)
+- [Implementation Guide](#implementation-guide)
 
 ## Authentication
 
@@ -54,15 +54,15 @@ GET /api/teller/tallysheet?date=2025-05-08&teller_id=3
     "date": "2025-05-08",
     "date_formatted": "May 8, 2025",
     "gross": 5000,
-    "gross_formatted": "₱5,000.00",
+    "gross_formatted": "5,000.00",
     "sales": 5000,
-    "sales_formatted": "₱5,000.00",
+    "sales_formatted": "5,000.00",
     "hits": 1000,
-    "hits_formatted": "₱1,000.00",
+    "hits_formatted": "1,000.00",
     "kabig": 4000,
-    "kabig_formatted": "₱4,000.00",
+    "kabig_formatted": "4,000.00",
     "voided": 0,
-    "voided_formatted": "₱0.00",
+    "voided_formatted": "0.00",
     "per_draw": [
       {
         "draw_id": 11,
@@ -72,29 +72,13 @@ GET /api/teller/tallysheet?date=2025-05-08&teller_id=3
         "draw_time_formatted": "2:00 PM",
         "draw_label": "Draw #11: 2:00 PM",
         "gross": 2000,
-        "gross_formatted": "₱2,000.00",
+        "gross_formatted": "2,000.00",
         "sales": 2000,
-        "sales_formatted": "₱2,000.00",
+        "sales_formatted": "2,000.00",
         "hits": 500,
-        "hits_formatted": "₱500.00",
+        "hits_formatted": "500.00",
         "kabig": 1500,
-        "kabig_formatted": "₱1,500.00"
-      },
-      {
-        "draw_id": 12,
-        "type": null,
-        "winning_number": "23",
-        "draw_time": "17:00:00",
-        "draw_time_formatted": "5:00 PM",
-        "draw_label": "Draw #12: 5:00 PM",
-        "gross": 3000,
-        "gross_formatted": "₱3,000.00",
-        "sales": 3000,
-        "sales_formatted": "₱3,000.00",
-        "hits": 500,
-        "hits_formatted": "₱500.00",
-        "kabig": 2500,
-        "kabig_formatted": "₱2,500.00"
+        "kabig_formatted": "1,500.00"
       }
     ]
   }
@@ -109,22 +93,17 @@ GET /api/teller/tallysheet?date=2025-05-08&teller_id=3
 |                    May 8, 2025                           |
 +----------------------------------------------------------+
 | SUMMARY                                                  |
-| Total Sales: ₱5,000.00                                   |
-| Total Hits:  ₱1,000.00                                   |
-| Total Gross: ₱4,000.00                                   |
-| Voided Bets: ₱0.00                                       |
+| Total Sales: 5,000.00                                   |
+| Total Hits:  1,000.00                                   |
+| Total Gross: 4,000.00                                   |
+| Voided Bets: 0.00                                       |
 +----------------------------------------------------------+
 | DRAW BREAKDOWN                                           |
 +----------------------------------------------------------+
 | Draw #11: 2:00 PM                                        |
-| Sales:     ₱2,000.00                                     |
-| Hits:      ₱500.00                                       |
-| Gross:     ₱1,500.00                                     |
-+----------------------------------------------------------+
-| Draw #12: 5:00 PM                                        |
-| Sales:     ₱3,000.00                                     |
-| Hits:      ₱500.00                                       |
-| Gross:     ₱2,500.00                                     |
+| Sales:     2,000.00                                     |
+| Hits:      500.00                                       |
+| Gross:     1,500.00                                     |
 +----------------------------------------------------------+
 ```
 
@@ -162,11 +141,11 @@ GET /api/teller/sales?date=2025-05-08
     "date_formatted": "May 8, 2025",
     "totals": {
       "sales": 5000,
-      "sales_formatted": "₱5,000.00",
+      "sales_formatted": "5,000.00",
       "hits": 1000,
-      "hits_formatted": "₱1,000.00",
+      "hits_formatted": "1,000.00",
       "gross": 4000,
-      "gross_formatted": "₱4,000.00",
+      "gross_formatted": "4,000.00",
       "voided": 2,
       "voided_formatted": "2 bet(s)"
     },
@@ -179,31 +158,14 @@ GET /api/teller/sales?date=2025-05-08
         "game_type_name": "Swertres 2",
         "winning_number": "23",
         "sales": 2000,
-        "sales_formatted": "₱2,000.00",
+        "sales_formatted": "2,000.00",
         "hits": 500,
-        "hits_formatted": "₱500.00",
+        "hits_formatted": "500.00",
         "gross": 1500,
-        "gross_formatted": "₱1,500.00",
+        "gross_formatted": "1,500.00",
         "voided": 1,
         "voided_formatted": "1 bet(s)",
         "draw_label": "Draw #11: 2:00 PM (Swertres 2)"
-      },
-      {
-        "draw_id": 12,
-        "time": "5:00 PM",
-        "time_formatted": "5:00 PM",
-        "game_type_code": "S3",
-        "game_type_name": "Swertres 3",
-        "winning_number": "123",
-        "sales": 3000,
-        "sales_formatted": "₱3,000.00",
-        "hits": 500,
-        "hits_formatted": "₱500.00",
-        "gross": 2500,
-        "gross_formatted": "₱2,500.00",
-        "voided": 1,
-        "voided_formatted": "1 bet(s)",
-        "draw_label": "Draw #12: 5:00 PM (Swertres 3)"
       }
     ]
   }
@@ -218,25 +180,18 @@ GET /api/teller/sales?date=2025-05-08
 |                    May 8, 2025                           |
 +----------------------------------------------------------+
 | SUMMARY                                                  |
-| Total Sales: ₱5,000.00                                   |
-| Total Hits:  ₱1,000.00                                   |
-| Total Gross: ₱4,000.00                                   |
+| Total Sales: 5,000.00                                   |
+| Total Hits:  1,000.00                                   |
+| Total Gross: 4,000.00                                   |
 | Voided Bets: 2 bet(s)                                    |
 +----------------------------------------------------------+
 | DRAW BREAKDOWN                                           |
 +----------------------------------------------------------+
 | Draw #11: 2:00 PM (Swertres 2)                           |
 | Winning Number: 23                                        |
-| Sales:     ₱2,000.00                                     |
-| Hits:      ₱500.00                                       |
-| Gross:     ₱1,500.00                                     |
-| Voided:    1 bet(s)                                      |
-+----------------------------------------------------------+
-| Draw #12: 5:00 PM (Swertres 3)                           |
-| Winning Number: 123                                       |
-| Sales:     ₱3,000.00                                     |
-| Hits:      ₱500.00                                       |
-| Gross:     ₱2,500.00                                     |
+| Sales:     2,000.00                                     |
+| Hits:      500.00                                       |
+| Gross:     1,500.00                                     |
 | Voided:    1 bet(s)                                      |
 +----------------------------------------------------------+
 ```
@@ -272,169 +227,56 @@ Common error codes:
 - 404: Not Found
 - 500: Server Error
 
-## Example Implementations
+## Implementation Guide
 
-### Mobile App Implementation
+### How to Use in Flutter
 
-```javascript
-// Example using React Native with Axios
-import axios from 'axios';
+1. **Making API Calls**: Use Flutter's http package or Dio to make API calls to the endpoints.
 
-const fetchTallysheet = async (date, tellerId = null) => {
-  try {
-    const params = { date };
-    if (tellerId) params.teller_id = tellerId;
-    
-    const response = await axios.get('https://api.luckybet.com/api/teller/tallysheet', {
-      params,
-      headers: {
-        'Authorization': `Bearer ${userToken}`
-      }
-    });
-    
-    if (response.data.success) {
-      // Process the data
-      const report = response.data.data;
-      
-      // Display summary
-      console.log(`Date: ${report.date_formatted}`);
-      console.log(`Total Sales: ${report.sales_formatted}`);
-      console.log(`Total Hits: ${report.hits_formatted}`);
-      console.log(`Total Gross: ${report.kabig_formatted}`);
-      
-      // Display per-draw breakdown
-      report.per_draw.forEach(draw => {
-        console.log(`\n${draw.draw_label}`);
-        console.log(`Sales: ${draw.sales_formatted}`);
-        console.log(`Hits: ${draw.hits_formatted}`);
-        console.log(`Gross: ${draw.kabig_formatted}`);
-      });
-    } else {
-      console.error(response.data.message);
-    }
-  } catch (error) {
-    console.error('Failed to fetch tallysheet:', error);
-  }
-};
+2. **Date Selection**: Implement a date picker to allow users to select the date for which they want to view reports.
 
-// Usage
-fetchTallysheet('2025-05-08', 3);
-```
+3. **Displaying Reports**: Use the formatted values provided in the API response for display purposes. For example:
+   - Use `date_formatted` for showing the date in a user-friendly format
+   - Use `sales_formatted`, `hits_formatted`, etc. for displaying monetary values with proper formatting
+   - Use `draw_label` for displaying draw information in headers
 
-### Web Dashboard Implementation
+4. **Handling Different Game Types**: The API handles different game types (S2, S3, D4) and their winning numbers automatically. The response includes game type information for each draw.
 
-```javascript
-// Example using Vue.js with Axios
-import axios from 'axios';
+5. **UI Components**: Consider using the following UI components:
+   - Cards for each draw
+   - Tables for displaying sales data
+   - Summary sections for totals
+   - Error messages for handling API errors
 
-export default {
-  data() {
-    return {
-      date: new Date().toISOString().split('T')[0],
-      salesReport: null,
-      loading: false,
-      error: null
-    };
-  },
-  methods: {
-    async fetchSalesReport() {
-      this.loading = true;
-      this.error = null;
-      
-      try {
-        const response = await axios.get('/api/teller/sales', {
-          params: { date: this.date }
-        });
-        
-        if (response.data.success) {
-          this.salesReport = response.data.data;
-        } else {
-          this.error = response.data.message;
-        }
-      } catch (error) {
-        this.error = error.response?.data?.message || 'Failed to fetch sales report';
-      } finally {
-        this.loading = false;
-      }
-    }
-  },
-  mounted() {
-    this.fetchSalesReport();
-  },
-  template: `
-    <div class="sales-report">
-      <h1>Sales Report</h1>
-      
-      <div class="date-picker">
-        <label for="date">Select Date:</label>
-        <input type="date" id="date" v-model="date" @change="fetchSalesReport">
-      </div>
-      
-      <div v-if="loading">Loading...</div>
-      <div v-else-if="error" class="error">{{ error }}</div>
-      <div v-else-if="salesReport" class="report-content">
-        <div class="report-header">
-          <h2>{{ salesReport.date_formatted }}</h2>
-        </div>
-        
-        <div class="report-summary">
-          <div class="summary-item">
-            <span class="label">Total Sales:</span>
-            <span class="value">{{ salesReport.totals.sales_formatted }}</span>
-          </div>
-          <div class="summary-item">
-            <span class="label">Total Hits:</span>
-            <span class="value">{{ salesReport.totals.hits_formatted }}</span>
-          </div>
-          <div class="summary-item">
-            <span class="label">Total Gross:</span>
-            <span class="value">{{ salesReport.totals.gross_formatted }}</span>
-          </div>
-          <div class="summary-item">
-            <span class="label">Voided Bets:</span>
-            <span class="value">{{ salesReport.totals.voided_formatted }}</span>
-          </div>
-        </div>
-        
-        <div class="draws-breakdown">
-          <h3>Draw Breakdown</h3>
-          <div v-for="draw in salesReport.draws" :key="draw.draw_id" class="draw-item">
-            <h4>{{ draw.draw_label }}</h4>
-            <div class="draw-details">
-              <div class="detail-item">
-                <span class="label">Winning Number:</span>
-                <span class="value">{{ draw.winning_number }}</span>
-              </div>
-              <div class="detail-item">
-                <span class="label">Sales:</span>
-                <span class="value">{{ draw.sales_formatted }}</span>
-              </div>
-              <div class="detail-item">
-                <span class="label">Hits:</span>
-                <span class="value">{{ draw.hits_formatted }}</span>
-              </div>
-              <div class="detail-item">
-                <span class="label">Gross:</span>
-                <span class="value">{{ draw.gross_formatted }}</span>
-              </div>
-              <div class="detail-item">
-                <span class="label">Voided:</span>
-                <span class="value">{{ draw.voided_formatted }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  `
-};
-```
+### Key Features to Implement
 
-## Important Notes for Developers
+1. **Date Navigation**: Allow users to navigate between dates easily (previous/next day buttons).
+
+2. **Filtering**: Implement filtering by draw ID when needed for detailed views.
+
+3. **Refresh Functionality**: Add pull-to-refresh to update the data.
+
+4. **Offline Support**: Consider caching responses for offline viewing.
+
+5. **Error Handling**: Display user-friendly error messages when API calls fail.
+
+### Data Fields Explanation
+
+1. **Raw vs. Formatted Values**: The API provides both raw numeric values (e.g., `sales: 5000`) and formatted values (e.g., `sales_formatted: "5,000.00"`).
+   - Use raw values for calculations
+   - Use formatted values for display
+
+2. **Draw Labels**: The `draw_label` field combines the draw ID, time, and game type in a user-friendly format, ready for display.
+
+3. **Totals**: The `totals` object in the sales report provides aggregated values across all draws.
+
+4. **Kabig**: This represents the gross profit (sales minus hits).
+
+### Important Notes
 
 1. **Game Types**: The system supports multiple game types (S2, S3, D4) with different digit counts. The winning number calculation is based on the game type of each bet.
 
-2. **Formatted Values**: All monetary values are provided in both raw format (for calculations) and formatted format (for display) with the ₱ symbol and proper number formatting.
+2. **Formatted Values**: All monetary values are provided in both raw format (for calculations) and formatted format (for display) with proper number formatting.
 
 3. **Draw Labels**: Use the provided `draw_label` field for user-friendly display of draw information.
 
@@ -443,3 +285,80 @@ export default {
 5. **Error Handling**: Implement proper error handling to provide a good user experience when API calls fail.
 
 6. **Caching**: Consider implementing client-side caching for reports to reduce server load and improve performance.
+
+7. **Default Date**: The Sales Report endpoint uses today's date by default if no date parameter is provided. The Tallysheet Report requires a date parameter.
+
+8. **Available Dates**: You can use the `/api/dropdown/available-dates` endpoint to get a list of dates for which draw data is available. This is useful for implementing date pickers in your application.
+
+   **Example Response:**
+   ```json
+   {
+     "success": true,
+     "message": "Available draw dates fetched successfully",
+     "data": {
+       "available_dates": [
+         {
+           "id": 1,
+           "draw_date": "2025-05-08",
+           "draw_date_formatted": "May 8, 2025",
+           "draw_time": null,
+           "draw_time_formatted": null,
+           "is_open": true,
+           "is_active": true
+         },
+         {
+           "id": 2,
+           "draw_date": "2025-05-07",
+           "draw_date_formatted": "May 7, 2025",
+           "draw_time": null,
+           "draw_time_formatted": null,
+           "is_open": true,
+           "is_active": true
+         }
+       ]
+     }
+   }
+   ```
+
+9. **Formatting Consistency**: All monetary values follow the same formatting pattern without peso symbols (e.g., "5,000.00"). This makes it easier to display values consistently across your application.
+
+10. **Game Type Information**: The Sales Report includes game type information for each draw, which can be useful for displaying different game types with appropriate visual indicators.
+
+11. **Draw Times**: You can use the `/api/dropdown/draws` endpoint to get a list of available draws with their times. This is useful for implementing draw time selection dropdowns in your application.
+
+   **Example Response:**
+   ```json
+   {
+     "success": true,
+     "message": "Success",
+     "data": [
+       {
+         "id": 1,
+         "draw_date": "2025-05-08",
+         "draw_date_formatted": "May 8, 2025",
+         "draw_time": "10:30:00",
+         "draw_time_formatted": "10:30 AM",
+         "is_open": true,
+         "is_active": true
+       },
+       {
+         "id": 2,
+         "draw_date": "2025-05-08",
+         "draw_date_formatted": "May 8, 2025",
+         "draw_time": "14:00:00",
+         "draw_time_formatted": "2:00 PM",
+         "is_open": true,
+         "is_active": true
+       },
+       {
+         "id": 3,
+         "draw_date": "2025-05-08",
+         "draw_date_formatted": "May 8, 2025",
+         "draw_time": "17:00:00",
+         "draw_time_formatted": "5:00 PM",
+         "is_open": true,
+         "is_active": true
+       }
+     ]
+   }
+   ```

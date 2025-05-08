@@ -49,16 +49,9 @@ class DropdownController extends Controller
             ->orderBy('draw_date', 'desc')
             ->get();
 
-        $datesWithFormatted = $dates->map(function ($draw) {
-            return [
-                'id' => $draw->id,
-                'date' => $draw->draw_date,
-                'date_formatted' => \Carbon\Carbon::parse($draw->draw_date)->format('F j, Y'),
-            ];
-        });
-
+        // Use DrawResource for consistency with other endpoints
         return ApiResponse::success([
-            'available_dates' => $datesWithFormatted,
+            'available_dates' => DrawResource::collection($dates),
         ], 'Available draw dates fetched successfully');
     }
 }
