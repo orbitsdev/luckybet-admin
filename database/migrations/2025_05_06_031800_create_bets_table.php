@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('bets', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('draw_id')->constrained();
+            $table->foreignId('draw_id')->constrained()->onDelete('cascade');
             $table->foreignId('game_type_id')->constrained();
             $table->foreignId('teller_id')->constrained('users');
             $table->foreignId('customer_id')->nullable()->constrained('users');
