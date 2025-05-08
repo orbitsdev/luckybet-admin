@@ -310,6 +310,7 @@ Authorization: Bearer <token>
     {
       "id": 1,
       "draw_date": "2025-05-08",
+      "draw_date_formatted": "May 08, 2025",
       "draw_time": "11:00:00",
       "draw_time_formatted": "11:00 AM",
       "is_open": true,
@@ -371,6 +372,7 @@ Authorization: Bearer <token>
     {
       "id": 1,
       "draw_date": "2025-05-08",
+      "draw_date_formatted": "May 08, 2025",
       "draw_time": "11:00:00",
       "draw_time_formatted": "11:00 AM",
       "is_open": true,
@@ -428,6 +430,7 @@ Authorization: Bearer <token>
     "draw": {
       "id": 1,
       "draw_date": "2025-05-08",
+      "draw_date_formatted": "May 08, 2025",
       "draw_time": "11:00:00",
       "draw_time_formatted": "11:00 AM",
       "is_open": true,
@@ -500,6 +503,7 @@ Authorization: Bearer <token>
       "draw": {
         "id": 1,
         "draw_date": "2025-05-08",
+        "draw_date_formatted": "May 08, 2025",
         "draw_time": "11:00:00",
         "draw_time_formatted": "11:00 AM",
         "is_open": true,
@@ -624,6 +628,7 @@ Authorization: Bearer <token>
       "draw": {
         "id": 5,
         "draw_date": "2025-05-08",
+        "draw_date_formatted": "May 08, 2025",
         "draw_time": "17:00:00",
         "draw_time_formatted": "05:00 PM",
         "is_open": true,

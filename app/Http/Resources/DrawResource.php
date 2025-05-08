@@ -17,6 +17,7 @@ class DrawResource extends JsonResource
         return [
             'id' => $this->id,
             'draw_date' => $this->draw_date,
+            'draw_date_formatted' => \Carbon\Carbon::createFromFormat('Y-m-d', $this->draw_date)->format('M d, Y'),
             'draw_time' => $this->draw_time,
             'draw_time_formatted' => \Carbon\Carbon::createFromFormat('H:i:s', $this->draw_time)->format('g:i A'),
             'is_open' => $this->is_open,
