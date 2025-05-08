@@ -68,7 +68,7 @@ class BettingController extends Controller
                 'status' => 'active'
             ]);
 
-            DB::commit();
+        DB::commit();
 
        
             $bet->load(['gameType']);

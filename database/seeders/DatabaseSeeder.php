@@ -43,14 +43,7 @@ class DatabaseSeeder extends Seeder
             // 7. Create results for closed draws and update bet statuses
             ResultSeeder::class,
             
-            // 8. Create claims for winning bets
-            ClaimSeeder::class,
-            
-            // 9. Generate tally sheets based on all the above data
-            TallySheetSeeder::class,
-            
-            // 10. Create number flags for risk management
-            NumberFlagSeeder::class,
+          
         ]);
     }
 }

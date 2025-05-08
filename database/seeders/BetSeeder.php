@@ -63,16 +63,11 @@ class BetSeeder extends Seeder
                 $location = $locations[array_rand($locations->toArray())];
                 
                 // Determine bet status based on draw date and time
-                $status = 'active';
                 $now = now();
-                // Fix the date parsing by ensuring we have the correct format
                 $drawDateTime = \Carbon\Carbon::parse($draw->draw_date->format('Y-m-d') . ' ' . $draw->draw_time);
-                
-                if ($drawDateTime < $now && !$draw->is_open) {
-                    // Draw is in the past and closed
-                    // 20% chance of winning, 80% chance of losing
-                    $status = (rand(1, 10) <= 2) ? 'won' : 'lost';
-                }
+                $is_claimed = false;
+                $is_rejected = false;
+                // For past draws, you may want to simulate some claimed bets, but default to false
                 
                 // Create the bet
                 Bet::create([
@@ -83,9 +78,8 @@ class BetSeeder extends Seeder
                     'teller_id' => $teller->id,
                     'location_id' => $location->id,
                     'bet_date' => $drawDate,
-                    'ticket_id' => strtoupper(substr(md5(uniqid()), 0, 10)),
-                    'status' => $status,
-                    'is_combination' => (rand(1, 10) <= 3), // 30% chance of being a combination bet
+                    'is_claimed' => $is_claimed,
+                    'is_rejected' => $is_rejected,
                 ]);
             }
             
@@ -97,10 +91,8 @@ class BetSeeder extends Seeder
                     for ($d = 0; $d < $maxDigits; $d++) {
                         $betNumber .= rand(0, 9);
                     }
-                    
                     $teller = $tellers[array_rand($tellers->toArray())];
                     $location = $locations[array_rand($locations->toArray())];
-                    
                     Bet::create([
                         'bet_number' => $betNumber,
                         'amount' => rand(1, 5) * 20,
@@ -109,9 +101,8 @@ class BetSeeder extends Seeder
                         'teller_id' => $teller->id,
                         'location_id' => $location->id,
                         'bet_date' => $drawDate,
-                        'ticket_id' => strtoupper(substr(md5(uniqid()), 0, 10)),
-                        'status' => 'cancelled',
-                        'is_combination' => (rand(1, 10) <= 3),
+                        'is_claimed' => false,
+                        'is_rejected' => true,
                     ]);
                 }
             }
