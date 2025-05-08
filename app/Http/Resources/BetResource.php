@@ -23,7 +23,6 @@ class BetResource extends JsonResource
             'ticket_id' => $this->ticket_id,
             'bet_number' => $this->bet_number,
             'amount' => $this->amount,
-            'status' => $this->status,
             'is_claimed' => $this->is_claimed,
             'is_rejected' => $this->is_rejected,
             'is_combination' => $this->is_combination,

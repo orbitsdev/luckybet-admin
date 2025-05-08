@@ -64,8 +64,7 @@ class BettingController extends Controller
                 'location_id' => $user->location_id,
                 'bet_date' => today(),
                 'ticket_id' => $ticketId,
-                'is_combination' => $data['is_combination'] ?? false,
-                'status' => 'active'
+                'is_combination' => $data['is_combination'] ?? false
             ]);
 
         DB::commit();
