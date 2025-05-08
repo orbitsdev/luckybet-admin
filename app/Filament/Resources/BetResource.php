@@ -78,22 +78,17 @@ class BetResource extends Resource
                                         $set('bet_number', $state);
                                     })
                                     ->mask(function ($get) {
-                                        $code = optional(GameType::find($get('game_type_id')))->code;
-                                        return match ($code) {
-                                            'S2' => '99',
-                                            'S3' => '999',
-                                            'D4' => '9999',
-                                            default => null,
-                                        };
+                                        $gameType = GameType::find($get('game_type_id'));
+                                        if (!$gameType) return null;
+                                        
+                                        // Create a mask with the correct number of digits (9's)
+                                        return str_repeat('9', $gameType->digit_count);
                                     })
                                     ->placeholder(function ($get) {
-                                        $code = optional(GameType::find($get('game_type_id')))->code;
-                                        return match ($code) {
-                                            'S2' => 'Enter 2 digits',
-                                            'S3' => 'Enter 3 digits',
-                                            'D4' => 'Enter 4 digits',
-                                            default => 'Select game type first',
-                                        };
+                                        $gameType = GameType::find($get('game_type_id'));
+                                        if (!$gameType) return 'Select game type first';
+                                        
+                                        return "Enter {$gameType->digit_count} digits";
                                     }),
                                 Forms\Components\TextInput::make('amount')
                                     ->required()

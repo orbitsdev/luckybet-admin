@@ -30,6 +30,13 @@ class GameTypeResource extends Resource
                     ->required()
                     ->maxLength(5)
                     ->helperText('Short code for the game type (e.g., S2, S3, D4)'),
+                Forms\Components\TextInput::make('digit_count')
+                    ->required()
+                    ->numeric()
+                    ->default(2)
+                    ->minValue(1)
+                    ->maxValue(10)
+                    ->helperText('Number of digits required for this game type (e.g., 2 for S2, 3 for S3, 4 for D4)'),
                 Forms\Components\Textarea::make('description')
                     ->maxLength(65535)
                     ->columnSpanFull(),
@@ -48,6 +55,9 @@ class GameTypeResource extends Resource
                 Tables\Columns\TextColumn::make('code')
                     ->searchable()
                     ->badge(),
+                Tables\Columns\TextColumn::make('digit_count')
+                    ->label('Digits')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('description')
                     ->limit(50)
                     ->searchable(),

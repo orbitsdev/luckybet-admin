@@ -20,16 +20,19 @@ class GameTypeSeeder extends Seeder
                 [
                     'name' => '2 Digit', 
                     'code' => 'S2', 
+                    'digit_count' => 2,
                     'is_active' => true
                 ],
                 [
                     'name' => '3 Digit', 
                     'code' => 'S3', 
+                    'digit_count' => 3,
                     'is_active' => true
                 ],
                 [
                     'name' => '4 Digit', 
                     'code' => 'D4', 
+                    'digit_count' => 4,
                     'is_active' => true
                 ],
             ];

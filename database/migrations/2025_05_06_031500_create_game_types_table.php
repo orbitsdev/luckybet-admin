@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('code', 5)->unique();
+            $table->integer('digit_count')->default(2);
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         }); 
