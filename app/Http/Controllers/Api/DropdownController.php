@@ -44,15 +44,16 @@ class DropdownController extends Controller
      */
     public function availableDates()
     {
-        $dates = Draw::select('draw_date')
-            ->distinct()
+        $dates = Draw::select('id', 'draw_date')
+            ->distinct('draw_date')
             ->orderBy('draw_date', 'desc')
-            ->pluck('draw_date');
+            ->get();
 
-        $datesWithFormatted = $dates->map(function ($date) {
+        $datesWithFormatted = $dates->map(function ($draw) {
             return [
-                'date' => $date,
-                'date_formatted' => \Carbon\Carbon::parse($date)->format('F j, Y'),
+                'id' => $draw->id,
+                'date' => $draw->draw_date,
+                'date_formatted' => \Carbon\Carbon::parse($draw->draw_date)->format('F j, Y'),
             ];
         });
 

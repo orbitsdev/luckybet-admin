@@ -20,10 +20,7 @@ class Location extends Model
         'address',   // Location address
         'is_active', // Show/Hide from dropdown
     ];
-    
-    protected $casts = [
-        'is_active' => 'boolean',
-    ];
+ 
     
     public function users()
     {

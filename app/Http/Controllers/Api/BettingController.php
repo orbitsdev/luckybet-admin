@@ -14,11 +14,7 @@ use App\Http\Resources\DrawResource;
 
 class BettingController extends Controller
 {
-    /**
-     * Get available draws for betting today
-     *
-     * @return \Illuminate\Http\JsonResponse
-     */
+    
     public function availableDraws()
     {
         $draws = Draw::where('draw_date', today())
@@ -29,12 +25,7 @@ class BettingController extends Controller
         return ApiResponse::success(DrawResource::collection($draws));
     }
 
-    /**
-     * Place a new bet
-     *
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
+   
     public function placeBet(Request $request)
     {
         $data = $request->validate([
@@ -92,12 +83,7 @@ class BettingController extends Controller
         }
     }
 
-    /**
-     * List bets for the authenticated user with optional filtering
-     *
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
+ 
   public function listBets(Request $request)
   {
       $user = $request->user();
@@ -113,7 +99,7 @@ class BettingController extends Controller
   
       $query = Bet::with(['draw', 'customer', 'location', 'gameType'])
           ->where('teller_id', $user->id)
-          // ... (other filters as before)
+         
           ->when($request->filled('search'), function ($q) use ($request) {
               $q->where(function ($sub) use ($request) {
                   $sub->where('ticket_id', 'like', '%' . $request->search . '%')
@@ -126,7 +112,7 @@ class BettingController extends Controller
           ->latest();
   
       if ($request->boolean('all', false)) {
-          // Cap to 1000 for safety
+         
           $bets = $query->limit(1000)->get();
           return ApiResponse::success(BetResource::collection($bets), 'All bets retrieved');
       } else {
@@ -135,13 +121,7 @@ class BettingController extends Controller
       }
   }
 
-    /**
-     * Cancel an active bet
-     *
-     * @param Request $request
-     * @param int $id Bet ID
-     * @return \Illuminate\Http\JsonResponse
-     */
+ 
     public function cancelBet(Request $request, $id)
     {
         try {
@@ -178,12 +158,7 @@ class BettingController extends Controller
             DB::rollBack();
             return ApiResponse::error('Failed to cancel bet: ' . $e->getMessage(), 500);
         }
-        /**
-     * List cancelled bets for the authenticated user, searchable by bet number or ticket number
-     *
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
+    }
     public function listCancelledBets(Request $request)
     {
         $user = $request->user();
@@ -201,5 +176,6 @@ class BettingController extends Controller
         $bets = $query->get();
         return ApiResponse::success(BetResource::collection($bets), 'Cancelled bets retrieved');
     }
+
 
 }

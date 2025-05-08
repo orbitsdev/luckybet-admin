@@ -17,6 +17,7 @@ class TallysheetReportResource extends JsonResource
         return [
             'date' => $this['date'],
             'gross' => $this['gross'],
+            'sales' => $this['sales'],
             'hits' => $this['hits'],
             'kabig' => $this['kabig'],
             'voided' => $this['voided'],

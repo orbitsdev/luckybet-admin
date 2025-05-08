@@ -46,7 +46,7 @@ class TellerReportController extends Controller
         $perDraw = $draws->map(function ($draw) use ($bets) {
             $drawBets = $bets->where('draw_id', $draw->id);
             $gross = $drawBets->sum('amount');
-            
+            $sales = $drawBets->where('is_rejected', false)->sum('amount');
             // Calculate hits based on matching bet numbers with winning number
             $hits = 0;
             if ($draw->winning_number) {
@@ -54,7 +54,6 @@ class TellerReportController extends Controller
                     return $bet->bet_number == $draw->winning_number;
                 })->sum('amount');
             }
-            
             $kabig = $gross - $hits;
             return [
                 'draw_id' => $draw->id,
@@ -62,6 +61,7 @@ class TellerReportController extends Controller
                 'winning_number' => $draw->winning_number ?? null, // If available on the Draw model
                 'draw_label' => $draw->id . ': ' . $draw->draw_time,
                 'gross' => $gross,
+                'sales' => $sales,
                 'hits' => $hits,
                 'kabig' => $kabig,
             ];
@@ -69,7 +69,7 @@ class TellerReportController extends Controller
 
         // Overall totals
         $gross = $bets->sum('amount');
-        
+        $sales = $bets->where('is_rejected', false)->sum('amount');
         // Calculate total hits based on matching bet numbers with winning numbers
         $hits = 0;
         foreach ($draws as $draw) {
@@ -80,7 +80,6 @@ class TellerReportController extends Controller
                     })->sum('amount');
             }
         }
-        
         $kabig = $gross - $hits;
         $voided = $bets->where('is_rejected', true)->sum('amount');
 
@@ -90,6 +89,7 @@ class TellerReportController extends Controller
             'date' => $date,
             'date_formatted' => $formattedDate,
             'gross' => $gross,
+            'sales' => $sales,
             'hits' => $hits,
             'kabig' => $kabig,
             'voided' => $voided,

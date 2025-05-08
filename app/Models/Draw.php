@@ -14,10 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Draw extends Model
 {
-    protected $casts = [
-        'is_active' => 'boolean',
-        'is_open' => 'boolean',
-    ];
+    
     use HasFactory;
 
     protected $fillable = [
