@@ -46,12 +46,12 @@ class TellerReportController extends Controller
         $perDraw = $draws->map(function ($draw) use ($bets) {
             $drawBets = $bets->where('draw_id', $draw->id);
             $gross = $drawBets->sum('amount');
-            
+
             $sales = $drawBets->where('is_rejected', false)->sum('amount');
-            
+
             // Get the result for this draw
             $result = $draw->result;
-            
+
             // Calculate hits based on matching bet numbers with winning numbers by game type
             $hits = 0;
             if ($result) {
@@ -59,7 +59,7 @@ class TellerReportController extends Controller
                     // Get the winning number based on game type
                     $gameTypeCode = $bet->gameType->code ?? '';
                     $winningNumber = null;
-                    
+
                     if ($gameTypeCode === 'S2' && !empty($result->s2_winning_number)) {
                         $winningNumber = $result->s2_winning_number;
                     } elseif ($gameTypeCode === 'S3' && !empty($result->s3_winning_number)) {
@@ -67,7 +67,7 @@ class TellerReportController extends Controller
                     } elseif ($gameTypeCode === 'D4' && !empty($result->d4_winning_number)) {
                         $winningNumber = $result->d4_winning_number;
                     }
-                    
+
                     // Check if bet number matches winning number
                     return $winningNumber && $bet->bet_number == $winningNumber;
                 })->sum('amount');
@@ -108,7 +108,7 @@ class TellerReportController extends Controller
                         // Get the winning number based on game type
                         $gameTypeCode = $bet->gameType->code ?? '';
                         $winningNumber = null;
-                        
+
                         if ($gameTypeCode === 'S2' && !empty($result->s2_winning_number)) {
                             $winningNumber = $result->s2_winning_number;
                         } elseif ($gameTypeCode === 'S3' && !empty($result->s3_winning_number)) {
@@ -116,7 +116,7 @@ class TellerReportController extends Controller
                         } elseif ($gameTypeCode === 'D4' && !empty($result->d4_winning_number)) {
                             $winningNumber = $result->d4_winning_number;
                         }
-                        
+
                         // Check if bet number matches winning number
                         return $winningNumber && $bet->bet_number == $winningNumber;
                     })->sum('amount');
@@ -178,26 +178,26 @@ class TellerReportController extends Controller
                     d.draw_time as draw_time,
                     gt.code as game_type_code,
                     gt.name as game_type_name,
-                    CASE 
+                    CASE
                         WHEN gt.code = 'S2' THEN r.s2_winning_number
                         WHEN gt.code = 'S3' THEN r.s3_winning_number
                         WHEN gt.code = 'D4' THEN r.d4_winning_number
                         ELSE NULL
                     END as winning_number,
                     SUM(CASE WHEN b.is_rejected = 0 THEN b.amount ELSE 0 END) as sales,
-                    SUM(CASE 
+                    SUM(CASE
                         WHEN gt.code = 'S2' AND b.bet_number = r.s2_winning_number THEN b.amount
                         WHEN gt.code = 'S3' AND b.bet_number = r.s3_winning_number THEN b.amount
                         WHEN gt.code = 'D4' AND b.bet_number = r.d4_winning_number THEN b.amount
-                        ELSE 0 
+                        ELSE 0
                     END) as hits,
                     COUNT(CASE WHEN b.is_rejected = 1 THEN 1 END) as voided,
                     SUM(CASE WHEN b.is_rejected = 0 THEN b.amount ELSE 0 END) -
-                    SUM(CASE 
+                    SUM(CASE
                         WHEN gt.code = 'S2' AND b.bet_number = r.s2_winning_number THEN b.amount
                         WHEN gt.code = 'S3' AND b.bet_number = r.s3_winning_number THEN b.amount
                         WHEN gt.code = 'D4' AND b.bet_number = r.d4_winning_number THEN b.amount
-                        ELSE 0 
+                        ELSE 0
                     END) as gross
                 FROM bets b
                 JOIN draws d ON b.draw_id = d.id
@@ -277,7 +277,7 @@ class TellerReportController extends Controller
                 'voided' => $totals['voided'],
                 'voided_formatted' => $totals['voided'] . ' bet(s)',
             ];
-            
+
             return ApiResponse::success([
                 'date' => $date,
                 'date_formatted' => $formattedDate,
