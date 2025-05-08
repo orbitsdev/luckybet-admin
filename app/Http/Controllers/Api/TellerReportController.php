@@ -55,15 +55,25 @@ class TellerReportController extends Controller
                 })->sum('amount');
             }
             $kabig = $gross - $hits;
+            
+            // Format draw time for better readability
+            $formattedTime = Carbon::parse($draw->draw_time)->format('h:i A');
+            
             return [
                 'draw_id' => $draw->id,
                 'type' => $draw->type ?? null,
                 'winning_number' => $draw->winning_number ?? null, // If available on the Draw model
-                'draw_label' => $draw->id . ': ' . $draw->draw_time,
+                'draw_time' => $draw->draw_time,
+                'draw_time_formatted' => $formattedTime,
+                'draw_label' => "Draw #{$draw->id}: {$formattedTime}",
                 'gross' => $gross,
+                'gross_formatted' => '₱' . number_format($gross, 2),
                 'sales' => $sales,
+                'sales_formatted' => '₱' . number_format($sales, 2),
                 'hits' => $hits,
+                'hits_formatted' => '₱' . number_format($hits, 2),
                 'kabig' => $kabig,
+                'kabig_formatted' => '₱' . number_format($kabig, 2),
             ];
         });
 
@@ -89,10 +99,15 @@ class TellerReportController extends Controller
             'date' => $date,
             'date_formatted' => $formattedDate,
             'gross' => $gross,
+            'gross_formatted' => '₱' . number_format($gross, 2),
             'sales' => $sales,
+            'sales_formatted' => '₱' . number_format($sales, 2),
             'hits' => $hits,
+            'hits_formatted' => '₱' . number_format($hits, 2),
             'kabig' => $kabig,
+            'kabig_formatted' => '₱' . number_format($kabig, 2),
             'voided' => $voided,
+            'voided_formatted' => '₱' . number_format($voided, 2),
             'per_draw' => $perDraw,
         ];
 
