@@ -77,6 +77,18 @@ class TellerReportController extends Controller
             // Format draw time for better readability
             $formattedTime = Carbon::parse($draw->draw_time)->format('h:i A');
 
+            // Helper function to format numbers - only show decimal places if needed
+            $formatNumber = function($value) {
+                // Check if the value has decimal places
+                if (floor($value) == $value) {
+                    // No decimal places needed
+                    return number_format($value, 0);
+                } else {
+                    // Has decimal places, format with 2 decimal places
+                    return number_format($value, 2);
+                }
+            };
+            
             return [
                 'draw_id' => $draw->id,
                 'type' => $draw->type ?? null,
@@ -85,13 +97,13 @@ class TellerReportController extends Controller
                 'draw_time_formatted' => $formattedTime,
                 'draw_label' => "Draw #{$draw->id}: {$formattedTime}",
                 'gross' => $gross,
-                'gross_formatted' => number_format($gross, 2),
+                'gross_formatted' => $formatNumber($gross),
                 'sales' => $sales,
-                'sales_formatted' => number_format($sales, 2),
+                'sales_formatted' => $formatNumber($sales),
                 'hits' => $hits,
-                'hits_formatted' => number_format($hits, 2),
+                'hits_formatted' => $formatNumber($hits),
                 'kabig' => $kabig,
-                'kabig_formatted' => number_format($kabig, 2),
+                'kabig_formatted' => $formatNumber($kabig),
             ];
         });
 
@@ -127,19 +139,31 @@ class TellerReportController extends Controller
 
         $formattedDate = Carbon::parse($date)->format('F j, Y');
 
+        // Helper function to format numbers - only show decimal places if needed
+        $formatNumber = function($value) {
+            // Check if the value has decimal places
+            if (floor($value) == $value) {
+                // No decimal places needed
+                return number_format($value, 0);
+            } else {
+                // Has decimal places, format with 2 decimal places
+                return number_format($value, 2);
+            }
+        };
+
         $report = [
             'date' => $date,
             'date_formatted' => $formattedDate,
             'gross' => $gross,
-            'gross_formatted' => number_format($gross, 2),
+            'gross_formatted' => $formatNumber($gross),
             'sales' => $sales,
-            'sales_formatted' => number_format($sales, 2),
+            'sales_formatted' => $formatNumber($sales),
             'hits' => $hits,
-            'hits_formatted' => number_format($hits, 2),
+            'hits_formatted' => $formatNumber($hits),
             'kabig' => $kabig,
-            'kabig_formatted' => number_format($kabig, 2),
+            'kabig_formatted' => $formatNumber($kabig),
             'voided' => $voided,
-            'voided_formatted' => number_format($voided, 2),
+            'voided_formatted' => $formatNumber($voided),
             'per_draw' => $perDraw,
         ];
 
@@ -239,6 +263,18 @@ class TellerReportController extends Controller
                 // Format time for better readability
                 $formattedTime = Carbon::parse($draw->draw_time)->format('h:i A');
 
+                // Helper function to format numbers - only show decimal places if needed
+                $formatNumber = function($value) {
+                    // Check if the value has decimal places
+                    if (floor($value) == $value) {
+                        // No decimal places needed
+                        return number_format($value, 0);
+                    } else {
+                        // Has decimal places, format with 2 decimal places
+                        return number_format($value, 2);
+                    }
+                };
+                
                 $formattedDraw = [
                     'draw_id' => $draw->draw_id,
                     'time' => $formattedTime,
@@ -247,11 +283,11 @@ class TellerReportController extends Controller
                     'game_type_name' => $draw->game_type_name,
                     'winning_number' => $draw->winning_number ?? '--',
                     'sales' => (float) $draw->sales,
-                    'sales_formatted' => number_format((float) $draw->sales, 2),
+                    'sales_formatted' => $formatNumber((float) $draw->sales),
                     'hits' => (float) $draw->hits,
-                    'hits_formatted' => number_format((float) $draw->hits, 2),
+                    'hits_formatted' => $formatNumber((float) $draw->hits),
                     'gross' => (float) $draw->gross,
-                    'gross_formatted' => number_format((float) $draw->gross, 2),
+                    'gross_formatted' => $formatNumber((float) $draw->gross),
                     'voided' => (int) $draw->voided,
                     'voided_formatted' => (int) $draw->voided . ' bet(s)',
                     'draw_label' => "Draw #{$draw->draw_id}: {$formattedTime} ({$draw->game_type_name})",
@@ -266,14 +302,25 @@ class TellerReportController extends Controller
                 $totals['voided'] += (int) $draw->voided;
             }
 
-            // Add formatted values to totals
+            // Add formatted values to totals using the same formatting logic
+            $formatNumber = function($value) {
+                // Check if the value has decimal places
+                if (floor($value) == $value) {
+                    // No decimal places needed
+                    return number_format($value, 0);
+                } else {
+                    // Has decimal places, format with 2 decimal places
+                    return number_format($value, 2);
+                }
+            };
+            
             $formattedTotals = [
                 'sales' => $totals['sales'],
-                'sales_formatted' => number_format($totals['sales'], 2),
+                'sales_formatted' => $formatNumber($totals['sales']),
                 'hits' => $totals['hits'],
-                'hits_formatted' => number_format($totals['hits'], 2),
+                'hits_formatted' => $formatNumber($totals['hits']),
                 'gross' => $totals['gross'],
-                'gross_formatted' => number_format($totals['gross'], 2),
+                'gross_formatted' => $formatNumber($totals['gross']),
                 'voided' => $totals['voided'],
                 'voided_formatted' => $totals['voided'] . ' bet(s)',
             ];
