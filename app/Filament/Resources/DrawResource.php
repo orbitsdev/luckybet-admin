@@ -32,7 +32,8 @@ class DrawResource extends Resource
                             Forms\Components\Grid::make(2)
                                 ->schema([
                                     Forms\Components\DatePicker::make('draw_date')
-                                        ->required(),
+                                        ->required()
+                                        ->default(now()),
                                     Forms\Components\Select::make('draw_time')
                                         ->label('Draw Time')
                                         ->options(function() {
