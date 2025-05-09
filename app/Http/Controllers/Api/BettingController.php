@@ -93,6 +93,8 @@ class BettingController extends Controller
           'all' => 'sometimes|boolean',
           'draw_id' => 'sometimes|integer|exists:draws,id',
           'date' => 'sometimes|date',
+          'is_rejected' => 'sometimes|boolean',
+          'is_claimed' => 'sometimes|boolean',
       ]);
       $perPage = $validated['per_page'] ?? 20;
   
@@ -108,6 +110,8 @@ class BettingController extends Controller
           ->when($request->filled('status'), fn($q) => $q->where('status', $request->status))
           ->when($request->filled('draw_id'), fn($q) => $q->where('draw_id', $request->draw_id))
           ->when($request->filled('date'), fn($q) => $q->whereDate('bet_date', $request->date))
+          ->when($request->filled('is_rejected'), fn($q) => $q->where('is_rejected', $request->boolean('is_rejected')))
+          ->when($request->filled('is_claimed'), fn($q) => $q->where('is_claimed', $request->boolean('is_claimed')))
           ->latest();
   
       if ($request->boolean('all', false)) {
