@@ -398,7 +398,7 @@ class TellerReportController extends Controller
 
             $data = [
                 'sales' => $sales,
-                'sales_formatted' => '₱ ' . $formatNumber($sales),
+                'sales_formatted' => $formatNumber($sales),
                 'commission_rate' => $commissionRate,
                 'commission_rate_formatted' => $commissionRate . '%',
                 'cancellations' => $cancellations,
