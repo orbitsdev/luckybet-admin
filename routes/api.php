@@ -37,6 +37,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Reports
     Route::get('/reports/tallysheet', [TellerReportController::class, 'tallysheet']);
     Route::get('/reports/sales', [TellerReportController::class, 'sales']);
+    Route::get('/teller/today-sales', [TellerReportController::class, 'todaySales']);
 });
 
 // Dropdown endpoints for frontend dropdowns and calendar

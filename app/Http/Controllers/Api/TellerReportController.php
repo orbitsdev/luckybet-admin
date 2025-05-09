@@ -8,7 +8,7 @@ use App\Models\Bet;
 use App\Models\Draw;
 use App\Helpers\ApiResponse;
 use App\Http\Resources\TallysheetReportResource;
-// use App\Http\Resources\SalesReportResource; // Uncomment/create if you want a custom resource for sales
+use App\Http\Resources\TodaySalesResource;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -357,6 +357,57 @@ class TellerReportController extends Controller
 
         } catch (\Exception $e) {
             return ApiResponse::error('Failed to generate tally sheet: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Get today's sales summary for the teller dashboard
+     */
+    public function todaySales(Request $request)
+    {
+        try {
+            $user = $request->user();
+            $today = now()->toDateString();
+
+            // Get total sales for today
+            $sales = Bet::where('teller_id', $user->id)
+                ->whereDate('bet_date', $today)
+                ->where('is_rejected', false)
+                ->sum('amount');
+
+            // Get commission rate for the teller (assuming it's stored in the users table)
+            // If it's stored elsewhere, adjust this query accordingly
+            $commissionRate = $user->commission_rate ?? 15; // Default to 15% if not set
+
+            // Get cancellation count for today
+            $cancellations = Bet::where('teller_id', $user->id)
+                ->whereDate('bet_date', $today)
+                ->where('is_rejected', true)
+                ->count();
+
+            // Helper function to format numbers with commas
+            $formatNumber = function($value) {
+                if (floor($value) == $value) {
+                    // No decimal places needed
+                    return number_format($value, 0, '.', ',');
+                } else {
+                    // Has decimal places, format with 2 decimal places
+                    return number_format($value, 2, '.', ',');
+                }
+            };
+
+            $data = [
+                'sales' => $sales,
+                'sales_formatted' => '₱ ' . $formatNumber($sales),
+                'commission_rate' => $commissionRate,
+                'commission_rate_formatted' => $commissionRate . '%',
+                'cancellations' => $cancellations,
+                'cancellations_formatted' => (string) $cancellations,
+            ];
+
+            return ApiResponse::success(new TodaySalesResource($data), 'Today\'s sales summary retrieved successfully');
+        } catch (\Exception $e) {
+            return ApiResponse::error('Failed to retrieve today\'s sales: ' . $e->getMessage(), 500);
         }
     }
 }
