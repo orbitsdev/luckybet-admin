@@ -262,9 +262,10 @@ Common error codes:
 
 ### Data Fields Explanation
 
-1. **Raw vs. Formatted Values**: The API provides both raw numeric values (e.g., `sales: 5000`) and formatted values (e.g., `sales_formatted: "5,000.00"`).
+1. **Raw vs. Formatted Values**: The API provides both raw numeric values (e.g., `sales: 5000`) and formatted values (e.g., `sales_formatted: "5,000"`).
    - Use raw values for calculations
    - Use formatted values for display
+   - Decimal places are only shown when needed (e.g., "5,000" for whole numbers, "5,000.50" for values with decimals)
 
 2. **Draw Labels**: The `draw_label` field combines the draw ID, time, and game type in a user-friendly format, ready for display.
 
@@ -276,7 +277,7 @@ Common error codes:
 
 1. **Game Types**: The system supports multiple game types (S2, S3, D4) with different digit counts. The winning number calculation is based on the game type of each bet.
 
-2. **Formatted Values**: All monetary values are provided in both raw format (for calculations) and formatted format (for display) with proper number formatting.
+2. **Formatted Values**: All monetary values are provided in both raw format (for calculations) and formatted format (for display) with proper number formatting. Decimal places are only shown when they exist (e.g., "100" instead of "100.00").
 
 3. **Draw Labels**: Use the provided `draw_label` field for user-friendly display of draw information.
 
@@ -425,19 +426,19 @@ GET /api/teller/detailed-tallysheet?date=2025-05-08&game_type_id=1&per_page=20&p
       {
         "bet_number": "00",
         "amount": 270,
-        "amount_formatted": "270.0",
+        "amount_formatted": "270",
         "game_type_code": "S2"
       },
       {
         "bet_number": "01",
         "amount": 50,
-        "amount_formatted": "50.0",
+        "amount_formatted": "50",
         "game_type_code": "S2"
       },
       {
         "bet_number": "02",
         "amount": 185,
-        "amount_formatted": "185.0",
+        "amount_formatted": "185",
         "game_type_code": "S2"
       }
     ],
@@ -446,19 +447,19 @@ GET /api/teller/detailed-tallysheet?date=2025-05-08&game_type_id=1&per_page=20&p
         {
           "bet_number": "00",
           "amount": 270,
-          "amount_formatted": "270.0",
+          "amount_formatted": "270",
           "game_type_code": "S2"
         },
         {
           "bet_number": "01",
           "amount": 50,
-          "amount_formatted": "50.0",
+          "amount_formatted": "50",
           "game_type_code": "S2"
         },
         {
           "bet_number": "02",
           "amount": 185,
-          "amount_formatted": "185.0",
+          "amount_formatted": "185",
           "game_type_code": "S2"
         }
       ],
@@ -466,13 +467,13 @@ GET /api/teller/detailed-tallysheet?date=2025-05-08&game_type_id=1&per_page=20&p
         {
           "bet_number": "03",
           "amount": 60,
-          "amount_formatted": "60.0",
+          "amount_formatted": "60",
           "game_type_code": "S3"
         },
         {
           "bet_number": "05",
           "amount": 325,
-          "amount_formatted": "325.0",
+          "amount_formatted": "325",
           "game_type_code": "S3"
         }
       ],
@@ -480,13 +481,13 @@ GET /api/teller/detailed-tallysheet?date=2025-05-08&game_type_id=1&per_page=20&p
         {
           "bet_number": "07",
           "amount": 105,
-          "amount_formatted": "105.0",
+          "amount_formatted": "105",
           "game_type_code": "D4"
         },
         {
           "bet_number": "09",
           "amount": 140,
-          "amount_formatted": "140.0",
+          "amount_formatted": "140",
           "game_type_code": "D4"
         }
       ]

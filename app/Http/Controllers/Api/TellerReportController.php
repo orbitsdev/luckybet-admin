@@ -505,10 +505,16 @@ class TellerReportController extends Controller
             
             // Format the grouped bets for the response
             foreach ($betsByNumber as $betNumber => $data) {
+                // Format number - only show decimal places if needed
+                $amount = $data['total_amount'];
+                $amountFormatted = floor($amount) == $amount 
+                    ? number_format($amount, 0, '.', ',') 
+                    : number_format($amount, 2, '.', ',');
+                
                 $formattedBet = [
                     'bet_number' => $betNumber,
                     'amount' => $data['total_amount'],
-                    'amount_formatted' => number_format($data['total_amount'], 1, '.', ','),
+                    'amount_formatted' => $amountFormatted,
                     'game_type_code' => $data['game_type_code']
                 ];
                 
@@ -542,7 +548,9 @@ class TellerReportController extends Controller
                     'name' => $gameType->name,
                 ] : null,
                 'total_amount' => $totalAmount,
-                'total_amount_formatted' => number_format($totalAmount, 2, '.', ','),
+                'total_amount_formatted' => floor($totalAmount) == $totalAmount 
+                    ? number_format($totalAmount, 0, '.', ',') 
+                    : number_format($totalAmount, 2, '.', ','),
                 'bets' => $formattedBets,
                 'bets_by_game_type' => $betsByGameType,
             ];
