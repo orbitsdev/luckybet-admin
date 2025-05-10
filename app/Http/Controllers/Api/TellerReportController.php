@@ -466,10 +466,13 @@ class TellerReportController extends Controller
             // If showAll is true, we'll use a high per_page value to effectively get all results
             if ($showAll) {
                 // Use a very large per_page value to get all results in one page
-                $bets = $query->orderBy('bet_number')->paginate(1000);
+                $paginatedBets = $query->orderBy('bet_number')->paginate(1000);
             } else {
-                $bets = $query->orderBy('bet_number')->paginate($perPage);
+                $paginatedBets = $query->orderBy('bet_number')->paginate($perPage);
             }
+            
+            // Store the bets from the paginator
+            $bets = $paginatedBets->items();
             
             // Format the bets data for the response
             $formattedBets = [];
@@ -542,12 +545,12 @@ class TellerReportController extends Controller
             
             // Add simplified pagination data
             $responseData['pagination'] = [
-                'total' => $bets->total(),
-                'current_page' => $bets->currentPage(),
+                'total' => $paginatedBets->total(),
+                'current_page' => $paginatedBets->currentPage(),
             ];
             
             // Always use the paginated response for consistency
-            return ApiResponse::paginated($bets, 'Detailed tally sheet retrieved successfully', DetailedTallysheetResource::class, $responseData);
+            return ApiResponse::paginated($paginatedBets, 'Detailed tally sheet retrieved successfully', DetailedTallysheetResource::class, $responseData);
             
         } catch (\Exception $e) {
             return ApiResponse::error('Failed to retrieve detailed tally sheet: ' . $e->getMessage(), 500);
