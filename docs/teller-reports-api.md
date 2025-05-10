@@ -421,7 +421,7 @@ GET /api/teller/detailed-tallysheet?date=2025-05-08&game_type_id=1&per_page=20&p
       "name": "Swertres 2"
     },
     "total_amount": 5000,
-    "total_amount_formatted": "5,000.00",
+    "total_amount_formatted": "5,000",
     "bets": [
       {
         "bet_number": "00",
