@@ -426,19 +426,28 @@ GET /api/teller/detailed-tallysheet?date=2025-05-08&game_type_id=1&per_page=20&p
         "bet_number": "00",
         "amount": 270,
         "amount_formatted": "270.0",
-        "game_type_code": "S2"
+        "game_type_code": "S2",
+        "bet_ids": [123, 124, 125],
+        "ticket_ids": [45, 46],
+        "ticket_count": 2
       },
       {
         "bet_number": "01",
         "amount": 50,
         "amount_formatted": "50.0",
-        "game_type_code": "S2"
+        "game_type_code": "S2",
+        "bet_ids": [126],
+        "ticket_ids": [47],
+        "ticket_count": 1
       },
       {
         "bet_number": "02",
         "amount": 185,
         "amount_formatted": "185.0",
-        "game_type_code": "S2"
+        "game_type_code": "S2",
+        "bet_ids": [127, 128],
+        "ticket_ids": [48],
+        "ticket_count": 1
       }
     ],
     "bets_by_game_type": {
@@ -447,19 +456,28 @@ GET /api/teller/detailed-tallysheet?date=2025-05-08&game_type_id=1&per_page=20&p
           "bet_number": "00",
           "amount": 270,
           "amount_formatted": "270.0",
-          "game_type_code": "S2"
+          "game_type_code": "S2",
+          "bet_ids": [123, 124, 125],
+          "ticket_ids": [45, 46],
+          "ticket_count": 2
         },
         {
           "bet_number": "01",
           "amount": 50,
           "amount_formatted": "50.0",
-          "game_type_code": "S2"
+          "game_type_code": "S2",
+          "bet_ids": [126],
+          "ticket_ids": [47],
+          "ticket_count": 1
         },
         {
           "bet_number": "02",
           "amount": 185,
           "amount_formatted": "185.0",
-          "game_type_code": "S2"
+          "game_type_code": "S2",
+          "bet_ids": [127, 128],
+          "ticket_ids": [48],
+          "ticket_count": 1
         }
       ],
       "S3": [
@@ -467,13 +485,19 @@ GET /api/teller/detailed-tallysheet?date=2025-05-08&game_type_id=1&per_page=20&p
           "bet_number": "03",
           "amount": 60,
           "amount_formatted": "60.0",
-          "game_type_code": "S3"
+          "game_type_code": "S3",
+          "bet_ids": [129],
+          "ticket_ids": [49],
+          "ticket_count": 1
         },
         {
           "bet_number": "05",
           "amount": 325,
           "amount_formatted": "325.0",
-          "game_type_code": "S3"
+          "game_type_code": "S3",
+          "bet_ids": [130, 131],
+          "ticket_ids": [50, 51],
+          "ticket_count": 2
         }
       ],
       "D4": [
@@ -481,13 +505,19 @@ GET /api/teller/detailed-tallysheet?date=2025-05-08&game_type_id=1&per_page=20&p
           "bet_number": "07",
           "amount": 105,
           "amount_formatted": "105.0",
-          "game_type_code": "D4"
+          "game_type_code": "D4",
+          "bet_ids": [132],
+          "ticket_ids": [52],
+          "ticket_count": 1
         },
         {
           "bet_number": "09",
           "amount": 140,
           "amount_formatted": "140.0",
-          "game_type_code": "D4"
+          "game_type_code": "D4",
+          "bet_ids": [133, 134],
+          "ticket_ids": [53],
+          "ticket_count": 1
         }
       ]
     }
