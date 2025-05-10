@@ -423,24 +423,77 @@ GET /api/teller/detailed-tallysheet?date=2025-05-08&game_type_id=1&per_page=20&p
     "total_amount_formatted": "5,000.00",
     "bets": [
       {
-        "bet_number": "12",
-        "amount": 1000,
-        "amount_formatted": "1,000.0"
+        "bet_number": "00",
+        "amount": 270,
+        "amount_formatted": "270.0",
+        "game_type_code": "S2"
       },
       {
-        "bet_number": "23",
-        "amount": 1500,
-        "amount_formatted": "1,500.0"
+        "bet_number": "01",
+        "amount": 50,
+        "amount_formatted": "50.0",
+        "game_type_code": "S2"
       },
       {
-        "bet_number": "34",
-        "amount": 2500,
-        "amount_formatted": "2,500.0"
+        "bet_number": "02",
+        "amount": 185,
+        "amount_formatted": "185.0",
+        "game_type_code": "S2"
       }
-    ]
+    ],
+    "bets_by_game_type": {
+      "S2": [
+        {
+          "bet_number": "00",
+          "amount": 270,
+          "amount_formatted": "270.0",
+          "game_type_code": "S2"
+        },
+        {
+          "bet_number": "01",
+          "amount": 50,
+          "amount_formatted": "50.0",
+          "game_type_code": "S2"
+        },
+        {
+          "bet_number": "02",
+          "amount": 185,
+          "amount_formatted": "185.0",
+          "game_type_code": "S2"
+        }
+      ],
+      "S3": [
+        {
+          "bet_number": "03",
+          "amount": 60,
+          "amount_formatted": "60.0",
+          "game_type_code": "S3"
+        },
+        {
+          "bet_number": "05",
+          "amount": 325,
+          "amount_formatted": "325.0",
+          "game_type_code": "S3"
+        }
+      ],
+      "D4": [
+        {
+          "bet_number": "07",
+          "amount": 105,
+          "amount_formatted": "105.0",
+          "game_type_code": "D4"
+        },
+        {
+          "bet_number": "09",
+          "amount": 140,
+          "amount_formatted": "140.0",
+          "game_type_code": "D4"
+        }
+      ]
+    }
   },
   "pagination": {
-    "total": 3,
+    "total": 7,
     "current_page": 1
   }
 }
@@ -448,24 +501,64 @@ GET /api/teller/detailed-tallysheet?date=2025-05-08&game_type_id=1&per_page=20&p
 
 ### Visualization Example
 
+#### Mobile Card Grid Layout
+
+```
++----------------------------------------------------------+
+|              DETAILED TALLYSHEET REPORT                   |
++----------------------------------------------------------+
+| Date: May 8, 2025  [Calendar Icon]  [< Prev] [Next >]    |
++----------------------------------------------------------+
+| Total Amount: 1,135.00                                   |
++----------------------------------------------------------+
+| [S2]  |  [S3]  |  [D4]  |  [ALL]                         |
++----------------------------------------------------------+
+
++---------------+  +---------------+  +---------------+
+|      00       |  |      01       |  |      02       |
+|               |  |               |  |               |
+|    270.0      |  |     50.0      |  |    185.0      |
+|               |  |               |  |               |
+|      S2       |  |      S2       |  |      S2       |
++---------------+  +---------------+  +---------------+
+
++---------------+  +---------------+
+|      03       |  |      05       |
+|               |  |               |
+|     60.0      |  |    325.0      |
+|               |  |               |
+|      S3       |  |      S3       |
++---------------+  +---------------+
+
++---------------+  +---------------+
+|      07       |  |      09       |
+|               |  |               |
+|    105.0      |  |    140.0      |
+|               |  |               |
+|      D4       |  |      D4       |
++---------------+  +---------------+
+```
+
+#### Alternative Table Layout
+
 ```
 +----------------------------------------------------------+
 |              DETAILED TALLYSHEET REPORT                   |
 |                    May 8, 2025                           |
-|                    Game Type: S2                          |
 +----------------------------------------------------------+
 | SUMMARY                                                  |
-| Total Amount: 5,000.00                                   |
+| Total Amount: 1,135.00                                   |
 +----------------------------------------------------------+
-| BET BREAKDOWN                                            |
+| BET BREAKDOWN BY GAME TYPE                               |
 +----------------------------------------------------------+
-| Bet Number: 12                                           |
-| Amount:     1,000.00                                     |
+|         S2         |         S3         |        D4        |
 +----------------------------------------------------------+
-| Bet Number: 23                                           |
-| Amount:     1,500.00                                     |
+| Bet# | Amount      | Bet# | Amount      | Bet# | Amount    |
 +----------------------------------------------------------+
-| Bet Number: 34                                           |
-| Amount:     2,500.00                                     |
+| 00   | 270.0       | 03   | 60.0        | 07   | 105.0     |
+| 01   | 50.0        | 05   | 325.0       | 09   | 140.0     |
+| 02   | 185.0       |      |             |      |           |
 +----------------------------------------------------------+
 ```
+
+The card grid layout is optimized for mobile interfaces, with each bet displayed as a tappable card. The tabs at the top allow filtering by game type. This layout makes efficient use of mobile screen space while maintaining a clean, modern appearance.

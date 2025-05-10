@@ -474,15 +474,22 @@ class TellerReportController extends Controller
             // Format the bets data for the response
             $formattedBets = [];
             $betsByNumber = [];
+            $betsByGameType = [
+                'S2' => [],
+                'S3' => [],
+                'D4' => []
+            ];
             
             // Group bets by number and calculate total amount per number
             foreach ($bets as $bet) {
                 $betNumber = $bet->bet_number;
+                $gameTypeCode = $bet->gameType->code ?? 'Unknown';
                 
                 if (!isset($betsByNumber[$betNumber])) {
                     $betsByNumber[$betNumber] = [
                         'bet_number' => $betNumber,
                         'total_amount' => 0,
+                        'game_type_code' => $gameTypeCode
                     ];
                 }
                 
@@ -491,14 +498,29 @@ class TellerReportController extends Controller
             
             // Format the grouped bets for the response
             foreach ($betsByNumber as $betNumber => $data) {
-                $formattedBets[] = [
+                $formattedBet = [
                     'bet_number' => $betNumber,
                     'amount' => $data['total_amount'],
                     'amount_formatted' => number_format($data['total_amount'], 1),
+                    'game_type_code' => $data['game_type_code']
                 ];
+                
+                $formattedBets[] = $formattedBet;
+                
+                // Also organize by game type for the UI
+                if (isset($betsByGameType[$data['game_type_code']])) {
+                    $betsByGameType[$data['game_type_code']][] = $formattedBet;
+                }
             }
             
-            // Sort the formatted bets by bet number
+            // Sort the formatted bets by bet number within each game type
+            foreach ($betsByGameType as $gameTypeCode => $bets) {
+                usort($betsByGameType[$gameTypeCode], function($a, $b) {
+                    return (int)$a['bet_number'] - (int)$b['bet_number'];
+                });
+            }
+            
+            // Sort the overall bets list by bet number
             usort($formattedBets, function($a, $b) {
                 return (int)$a['bet_number'] - (int)$b['bet_number'];
             });
@@ -515,6 +537,7 @@ class TellerReportController extends Controller
                 'total_amount' => $totalAmount,
                 'total_amount_formatted' => number_format($totalAmount, 2, '.', ','),
                 'bets' => $formattedBets,
+                'bets_by_game_type' => $betsByGameType,
             ];
             
             // Add simplified pagination data
