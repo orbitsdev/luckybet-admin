@@ -20,24 +20,26 @@ Route::middleware('auth:sanctum')->group(function () {
     // User Authentication
     Route::get('/user', [AuthController::class, 'user']);
     Route::post('/logout', [AuthController::class, 'logout']);
-    
+
     // Dropdown Data
     Route::get('/dropdown/game-types', [DropdownController::class, 'gameTypes']);
     Route::get('/dropdown/schedules', [DropdownController::class, 'schedules']);
     Route::get('/dropdown/draws', [DropdownController::class, 'draws']);
     Route::get('/dropdown/available-dates', [DropdownController::class, 'availableDates']);
-    
+
     // Betting
     Route::get('/betting/available-draws', [BettingController::class, 'availableDraws']);
     Route::post('/betting/place', [BettingController::class, 'placeBet']);
     Route::get('/betting/list', [BettingController::class, 'listBets']);
     Route::post('/betting/cancel/{id}', [BettingController::class, 'cancelBet']);
     Route::get('/betting/cancelled', [BettingController::class, 'listCancelledBets']);
-    
+
     // Reports
     Route::get('/reports/tallysheet', [TellerReportController::class, 'tallysheet']);
     Route::get('/reports/sales', [TellerReportController::class, 'sales']);
+    Route::get('/reports/detailed-tallysheet', [TellerReportController::class, 'detailedTallysheet']);
     Route::get('/teller/today-sales', [TellerReportController::class, 'todaySales']);
+    Route::get('/teller/detailed-tallysheet', [TellerReportController::class, 'detailedTallysheet']);
 });
 
 // Dropdown endpoints for frontend dropdowns and calendar

@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Bet;
 use App\Models\Draw;
+use App\Models\GameType;
 use App\Helpers\ApiResponse;
 use App\Http\Resources\TallysheetReportResource;
 use App\Http\Resources\TodaySalesResource;
+use App\Http\Resources\DetailedTallysheetResource;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -408,6 +410,124 @@ class TellerReportController extends Controller
             return ApiResponse::success(new TodaySalesResource($data), 'Today\'s sales summary retrieved successfully');
         } catch (\Exception $e) {
             return ApiResponse::error('Failed to retrieve today\'s sales: ' . $e->getMessage(), 500);
+        }
+    }
+    
+    /**
+     * Detailed Tally Sheet report showing individual bet numbers and amounts
+     * This endpoint supports pagination, date filtering, and game type filtering
+     */
+    public function detailedTallysheet(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'date' => 'required|date',
+                'game_type_id' => 'sometimes|integer|exists:game_types,id',
+                'draw_id' => 'sometimes|integer|exists:draws,id',
+                'per_page' => 'sometimes|integer|min:10|max:100',
+                'page' => 'sometimes|integer|min:1',
+                'all' => 'sometimes|boolean',
+            ]);
+            
+            $user = $request->user();
+            $date = $validated['date'];
+            $gameTypeId = $validated['game_type_id'] ?? null;
+            $drawId = $validated['draw_id'] ?? null;
+            $perPage = $validated['per_page'] ?? 50;
+            $showAll = $request->boolean('all', false);
+            
+            // Format date for display
+            $formattedDate = Carbon::parse($date)->format('F j, Y');
+            
+            // Get the game type information if provided
+            $gameType = null;
+            if ($gameTypeId) {
+                $gameType = GameType::find($gameTypeId);
+            }
+            
+            // Build the query for bets
+            $query = Bet::with(['gameType', 'draw'])
+                ->where('teller_id', $user->id)
+                ->whereDate('bet_date', $date)
+                ->where('is_rejected', false);
+                
+            if ($gameTypeId) {
+                $query->where('game_type_id', $gameTypeId);
+            }
+            
+            if ($drawId) {
+                $query->where('draw_id', $drawId);
+            }
+            
+            // Get total amount for the filtered bets
+            $totalAmount = $query->sum('amount');
+            
+            // Always use pagination for consistent response structure
+            // If showAll is true, we'll use a high per_page value to effectively get all results
+            if ($showAll) {
+                // Use a very large per_page value to get all results in one page
+                $bets = $query->orderBy('bet_number')->paginate(1000);
+            } else {
+                $bets = $query->orderBy('bet_number')->paginate($perPage);
+            }
+            
+            // Format the bets data for the response
+            $formattedBets = [];
+            $betsByNumber = [];
+            
+            // Group bets by number and calculate total amount per number
+            foreach ($bets as $bet) {
+                $betNumber = $bet->bet_number;
+                
+                if (!isset($betsByNumber[$betNumber])) {
+                    $betsByNumber[$betNumber] = [
+                        'bet_number' => $betNumber,
+                        'total_amount' => 0,
+                    ];
+                }
+                
+                $betsByNumber[$betNumber]['total_amount'] += $bet->amount;
+            }
+            
+            // Format the grouped bets for the response
+            foreach ($betsByNumber as $betNumber => $data) {
+                $formattedBets[] = [
+                    'bet_number' => $betNumber,
+                    'amount' => $data['total_amount'],
+                    'amount_formatted' => number_format($data['total_amount'], 1),
+                ];
+            }
+            
+            // Sort the formatted bets by bet number
+            usort($formattedBets, function($a, $b) {
+                return (int)$a['bet_number'] - (int)$b['bet_number'];
+            });
+            
+            // Prepare the response data
+            $responseData = [
+                'date' => $date,
+                'date_formatted' => $formattedDate,
+                'game_type' => $gameType ? [
+                    'id' => $gameType->id,
+                    'code' => $gameType->code,
+                    'name' => $gameType->name,
+                ] : null,
+                'total_amount' => $totalAmount,
+                'total_amount_formatted' => number_format($totalAmount, 2, '.', ','),
+                'bets' => $formattedBets,
+            ];
+            
+            // Add simplified pagination data
+            $responseData['pagination'] = [
+                'total' => $bets->total(),
+                'current_page' => $bets->currentPage(),
+            ];
+            
+            // Always use the paginated response for consistency
+            return ApiResponse::paginated($bets, 'Detailed tally sheet retrieved successfully', DetailedTallysheetResource::class, $responseData);
+            
+        } catch (\Exception $e) {
+            return ApiResponse::error('Failed to retrieve detailed tally sheet: ' . $e->getMessage(), 500);
         }
     }
 }

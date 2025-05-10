@@ -371,3 +371,101 @@ Common error codes:
      ]
    }
    ```
+
+12. **Pagination**: For endpoints that return large datasets, pagination is implemented with a simplified structure. The pagination data only includes the essential fields needed for mobile applications:
+   - `total`: Total number of records
+   - `current_page`: Current page number
+
+   This simplified approach makes it easier to implement pagination in mobile applications while reducing response size.
+
+## Detailed Tallysheet Report
+
+The Detailed Tallysheet Report provides a breakdown of individual bet numbers and their total amounts for a specific date, with optional filtering by game type and draw.
+
+### Endpoint
+
+```
+GET /api/teller/detailed-tallysheet
+```
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| date | string (YYYY-MM-DD) | Yes | The date to generate the report for |
+| game_type_id | integer | No | Filter by specific game type ID |
+| draw_id | integer | No | Filter by specific draw ID |
+| per_page | integer | No | Number of items per page (default: 50, min: 10, max: 100) |
+| page | integer | No | Page number (default: 1) |
+| all | boolean | No | If true, returns all results without pagination |
+
+### Example Request
+
+```
+GET /api/teller/detailed-tallysheet?date=2025-05-08&game_type_id=1&per_page=20&page=1
+```
+
+### Example Response
+
+```json
+{
+  "success": true,
+  "message": "Detailed tally sheet retrieved successfully",
+  "data": {
+    "date": "2025-05-08",
+    "date_formatted": "May 8, 2025",
+    "game_type": {
+      "id": 1,
+      "code": "S2",
+      "name": "Swertres 2"
+    },
+    "total_amount": 5000,
+    "total_amount_formatted": "5,000.00",
+    "bets": [
+      {
+        "bet_number": "12",
+        "amount": 1000,
+        "amount_formatted": "1,000.0"
+      },
+      {
+        "bet_number": "23",
+        "amount": 1500,
+        "amount_formatted": "1,500.0"
+      },
+      {
+        "bet_number": "34",
+        "amount": 2500,
+        "amount_formatted": "2,500.0"
+      }
+    ]
+  },
+  "pagination": {
+    "total": 3,
+    "current_page": 1
+  }
+}
+```
+
+### Visualization Example
+
+```
++----------------------------------------------------------+
+|              DETAILED TALLYSHEET REPORT                   |
+|                    May 8, 2025                           |
+|                    Game Type: S2                          |
++----------------------------------------------------------+
+| SUMMARY                                                  |
+| Total Amount: 5,000.00                                   |
++----------------------------------------------------------+
+| BET BREAKDOWN                                            |
++----------------------------------------------------------+
+| Bet Number: 12                                           |
+| Amount:     1,000.00                                     |
++----------------------------------------------------------+
+| Bet Number: 23                                           |
+| Amount:     1,500.00                                     |
++----------------------------------------------------------+
+| Bet Number: 34                                           |
+| Amount:     2,500.00                                     |
++----------------------------------------------------------+
+```
