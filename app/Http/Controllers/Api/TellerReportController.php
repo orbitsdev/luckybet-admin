@@ -477,11 +477,15 @@ class TellerReportController extends Controller
             // Format the bets data for the response
             $formattedBets = [];
             $betsByNumber = [];
-            $betsByGameType = [
-                'S2' => [],
-                'S3' => [],
-                'D4' => []
-            ];
+            
+            // Get all game types from the database
+            $gameTypes = GameType::all();
+            $betsByGameType = [];
+            
+            // Initialize arrays for each game type
+            foreach ($gameTypes as $gt) {
+                $betsByGameType[$gt->code] = [];
+            }
             
             // Group bets by number and calculate total amount per number
             foreach ($bets as $bet) {
@@ -492,17 +496,11 @@ class TellerReportController extends Controller
                     $betsByNumber[$betNumber] = [
                         'bet_number' => $betNumber,
                         'total_amount' => 0,
-                        'game_type_code' => $gameTypeCode,
-                        'bet_ids' => [],
-                        'ticket_ids' => []
+                        'game_type_code' => $gameTypeCode
                     ];
                 }
                 
                 $betsByNumber[$betNumber]['total_amount'] += $bet->amount;
-                $betsByNumber[$betNumber]['bet_ids'][] = $bet->id;
-                if (!in_array($bet->ticket_id, $betsByNumber[$betNumber]['ticket_ids'])) {
-                    $betsByNumber[$betNumber]['ticket_ids'][] = $bet->ticket_id;
-                }
             }
             
             // Format the grouped bets for the response
@@ -511,10 +509,7 @@ class TellerReportController extends Controller
                     'bet_number' => $betNumber,
                     'amount' => $data['total_amount'],
                     'amount_formatted' => number_format($data['total_amount'], 1, '.', ','),
-                    'game_type_code' => $data['game_type_code'],
-                    'bet_ids' => $data['bet_ids'],
-                    'ticket_ids' => $data['ticket_ids'],
-                    'ticket_count' => count($data['ticket_ids'])
+                    'game_type_code' => $data['game_type_code']
                 ];
                 
                 $formattedBets[] = $formattedBet;
