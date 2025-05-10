@@ -492,11 +492,17 @@ class TellerReportController extends Controller
                     $betsByNumber[$betNumber] = [
                         'bet_number' => $betNumber,
                         'total_amount' => 0,
-                        'game_type_code' => $gameTypeCode
+                        'game_type_code' => $gameTypeCode,
+                        'bet_ids' => [],
+                        'ticket_ids' => []
                     ];
                 }
                 
                 $betsByNumber[$betNumber]['total_amount'] += $bet->amount;
+                $betsByNumber[$betNumber]['bet_ids'][] = $bet->id;
+                if (!in_array($bet->ticket_id, $betsByNumber[$betNumber]['ticket_ids'])) {
+                    $betsByNumber[$betNumber]['ticket_ids'][] = $bet->ticket_id;
+                }
             }
             
             // Format the grouped bets for the response
@@ -504,8 +510,11 @@ class TellerReportController extends Controller
                 $formattedBet = [
                     'bet_number' => $betNumber,
                     'amount' => $data['total_amount'],
-                    'amount_formatted' => number_format($data['total_amount'], 1),
-                    'game_type_code' => $data['game_type_code']
+                    'amount_formatted' => number_format($data['total_amount'], 1, '.', ','),
+                    'game_type_code' => $data['game_type_code'],
+                    'bet_ids' => $data['bet_ids'],
+                    'ticket_ids' => $data['ticket_ids'],
+                    'ticket_count' => count($data['ticket_ids'])
                 ];
                 
                 $formattedBets[] = $formattedBet;
