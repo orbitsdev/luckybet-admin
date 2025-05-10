@@ -549,8 +549,8 @@ class TellerReportController extends Controller
                 'current_page' => $paginatedBets->currentPage(),
             ];
             
-            // Always use the paginated response for consistency
-            return ApiResponse::paginated($paginatedBets, 'Detailed tally sheet retrieved successfully', DetailedTallysheetResource::class, $responseData);
+            // Use the new paginatedWithData method for better handling of additional data
+            return ApiResponse::paginatedWithData($paginatedBets, 'Detailed tally sheet retrieved successfully', DetailedTallysheetResource::class, $responseData);
             
         } catch (\Exception $e) {
             return ApiResponse::error('Failed to retrieve detailed tally sheet: ' . $e->getMessage(), 500);
