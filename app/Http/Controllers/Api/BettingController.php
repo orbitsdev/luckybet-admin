@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\BetResource;
 use App\Http\Resources\DrawResource;
+use Carbon\Carbon;
 
 class BettingController extends Controller
 {
@@ -170,6 +171,17 @@ class BettingController extends Controller
     public function listCancelledBets(Request $request)
     {
         $user = $request->user();
+        
+        $validated = $request->validate([
+            'page' => 'sometimes|integer|min:1',
+            'per_page' => 'sometimes|integer|min:1|max:100',
+            'date' => 'sometimes|date',
+            'draw_id' => 'sometimes|integer|exists:draws,id',
+            'search' => 'sometimes|string'
+        ]);
+
+        $perPage = $validated['per_page'] ?? 20;
+
         $query = Bet::with(['draw', 'customer', 'location', 'gameType'])
             ->where('teller_id', $user->id)
             ->where('is_rejected', true)
@@ -179,10 +191,19 @@ class BettingController extends Controller
                         ->orWhere('bet_number', 'like', '%' . $request->search . '%');
                 });
             })
+            ->when($request->filled('date'), function($q) use ($request) {
+                $date = Carbon::parse($request->date)->startOfDay();
+                $q->whereHas('draw', function($query) use ($date) {
+                    $query->whereDate('draw_date', $date);
+                });
+            })
+            ->when($request->filled('draw_id'), function($q) use ($request) {
+                $q->where('draw_id', $request->draw_id);
+            })
             ->latest();
 
-        $bets = $query->get();
-        return ApiResponse::success(BetResource::collection($bets), 'Cancelled bets retrieved');
+        $bets = $query->paginate($perPage);
+        return ApiResponse::paginated($bets, 'Cancelled bets retrieved', BetResource::class);
     }
 
 
