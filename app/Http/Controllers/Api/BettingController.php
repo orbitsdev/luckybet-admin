@@ -83,46 +83,46 @@ class BettingController extends Controller
     }
 
  
-  public function listBets(Request $request)
-  {
-      $user = $request->user();
-  
-      $validated = $request->validate([
-          'page' => 'sometimes|integer|min:1',
-          'per_page' => 'sometimes|integer|min:1|max:100',
-          'all' => 'sometimes|boolean',
-          'draw_id' => 'sometimes|integer|exists:draws,id',
-          'date' => 'sometimes|date',
-          'is_rejected' => 'sometimes|boolean',
-          'is_claimed' => 'sometimes|boolean',
-      ]);
-      $perPage = $validated['per_page'] ?? 20;
-  
-      $query = Bet::with(['draw', 'customer', 'location', 'gameType'])
-          ->where('teller_id', $user->id)
-         
-          ->when($request->filled('search'), function ($q) use ($request) {
-              $q->where(function ($sub) use ($request) {
-                  $sub->where('ticket_id', 'like', '%' . $request->search . '%')
-                      ->orWhere('bet_number', 'like', '%' . $request->search . '%');
-              });
-          })
-          ->when($request->filled('status'), fn($q) => $q->where('status', $request->status))
-          ->when($request->filled('draw_id'), fn($q) => $q->where('draw_id', $request->draw_id))
-          ->when($request->filled('date'), fn($q) => $q->whereDate('bet_date', $request->date))
-          ->when($request->filled('is_rejected'), fn($q) => $q->where('is_rejected', $request->boolean('is_rejected')))
-          ->when($request->filled('is_claimed'), fn($q) => $q->where('is_claimed', $request->boolean('is_claimed')))
-          ->latest();
-  
-      if ($request->boolean('all', false)) {
-         
-          $bets = $query->limit(1000)->get();
-          return ApiResponse::success(BetResource::collection($bets), 'All bets retrieved');
-      } else {
-          $bets = $query->paginate($perPage);
-          return ApiResponse::paginated($bets, 'Bets retrieved', BetResource::class);
-      }
-  }
+    public function listBets(Request $request)
+    {
+        $user = $request->user();
+    
+        $validated = $request->validate([
+            'page' => 'sometimes|integer|min:1',
+            'per_page' => 'sometimes|integer|min:1|max:100',
+            'all' => 'sometimes|boolean',
+            'draw_id' => 'sometimes|integer|exists:draws,id',
+            'date' => 'sometimes|date',
+            'is_rejected' => 'sometimes|boolean',
+            'is_claimed' => 'sometimes|boolean',
+        ]);
+        $perPage = $validated['per_page'] ?? 20;
+    
+        $query = Bet::with(['draw', 'customer', 'location', 'gameType'])
+            ->where('teller_id', $user->id)
+           
+            ->when($request->filled('search'), function ($q) use ($request) {
+                $q->where(function ($sub) use ($request) {
+                    $sub->where('ticket_id', 'like', '%' . $request->search . '%')
+                        ->orWhere('bet_number', 'like', '%' . $request->search . '%');
+                });
+            })
+           
+            ->when($request->filled('draw_id'), fn($q) => $q->where('draw_id', $request->draw_id))
+            ->when($request->filled('date'), fn($q) => $q->whereDate('bet_date', $request->date))
+            ->when($request->filled('is_rejected'), fn($q) => $q->where('is_rejected', $request->boolean('is_rejected')))
+            ->when($request->filled('is_claimed'), fn($q) => $q->where('is_claimed', $request->boolean('is_claimed')))
+            ->latest();
+    
+        if ($request->boolean('all', false)) {
+           
+            $bets = $query->limit(1000)->get();
+            return ApiResponse::success(BetResource::collection($bets), 'All bets retrieved');
+        } else {
+            $bets = $query->paginate($perPage);
+            return ApiResponse::paginated($bets, 'Bets retrieved', BetResource::class);
+        }
+    }
 
  
     public function cancelBet(Request $request, $id)
