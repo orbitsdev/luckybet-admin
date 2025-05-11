@@ -17,9 +17,11 @@ class DrawResource extends JsonResource
         try {
             $drawDateFormatted = $this->draw_date ? \Carbon\Carbon::parse($this->draw_date)->format('M d, Y') : null;
             $drawTimeFormatted = $this->draw_time ? \Carbon\Carbon::parse($this->draw_time)->format('g:i A') : null;
+            $drawTimeSimple = $this->draw_time ? \Carbon\Carbon::parse($this->draw_time)->format('gA') : null;
         } catch (\Exception $e) {
             $drawDateFormatted = null;
             $drawTimeFormatted = null;
+            $drawTimeSimple = null;
         }
         
         return [
@@ -28,6 +30,7 @@ class DrawResource extends JsonResource
             'draw_date_formatted' => $drawDateFormatted,
             'draw_time' => $this->draw_time,
             'draw_time_formatted' => $drawTimeFormatted,
+            'draw_time_simple' => $drawTimeSimple,
             'is_open' => $this->is_open,
             'is_active' => $this->is_active,
         ];
