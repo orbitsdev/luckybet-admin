@@ -13,6 +13,7 @@ use App\Http\Resources\TodaySalesResource;
 use App\Http\Resources\DetailedTallysheetResource;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class TellerReportController extends Controller
 {
@@ -412,121 +413,111 @@ class TellerReportController extends Controller
             return ApiResponse::error('Failed to retrieve today\'s sales: ' . $e->getMessage(), 500);
         }
     }
-    
+
     /**
      * Detailed Tally Sheet report showing individual bet numbers and amounts
      * This endpoint supports pagination, date filtering, and game type filtering
      */
     public function detailedTallysheet(Request $request)
-{
-    try {
-        $validated = $request->validate([
-            'date' => 'required|date',
-            'game_type_id' => 'sometimes|integer|exists:game_types,id',
-            'draw_id' => 'sometimes|integer|exists:draws,id',
-            'per_page' => 'sometimes|integer|min:10|max:100',
-            'page' => 'sometimes|integer|min:1',
-            'all' => 'sometimes|boolean',
-        ]);
+    {
+        try {
+            $validated = $request->validate([
+                'date' => 'required|date',
+                'game_type_id' => 'sometimes|integer|exists:game_types,id',
+                'draw_id' => 'sometimes|integer|exists:draws,id',
+                'per_page' => 'sometimes|integer|min:10|max:100',
+                'page' => 'sometimes|integer|min:1',
+                'all' => 'sometimes|boolean',
+            ]);
 
-        $user = $request->user();
-        $date = $validated['date'];
-        $gameTypeId = $validated['game_type_id'] ?? null;
-        $drawId = $validated['draw_id'] ?? null;
-        $perPage = $validated['per_page'] ?? 50;
-        $showAll = $request->boolean('all', false);
+            $user = $request->user();
+            $date = $validated['date'];
+            $gameTypeId = $validated['game_type_id'] ?? null;
+            $drawId = $validated['draw_id'] ?? null;
+            $perPage = $validated['per_page'] ?? 50;
+            $showAll = $request->boolean('all', false);
 
-        $formattedDate = Carbon::parse($date)->format('F j, Y');
+            $formattedDate = Carbon::parse($date)->format('F j, Y');
 
-        $gameType = $gameTypeId ? GameType::find($gameTypeId) : null;
+            $gameType = $gameTypeId ? GameType::find($gameTypeId) : null;
 
-        $query = Bet::with(['gameType', 'draw'])
-            ->where('teller_id', $user->id)
-            ->whereDate('bet_date', $date)
-            ->where('is_rejected', false);
+            // ✅ GROUPED query
+            $query = Bet::select('bet_number', 'game_type_id', 'draw_id', DB::raw('SUM(amount) as total_amount'))
+                ->where('teller_id', $user->id)
+                ->whereDate('bet_date', $date)
+                ->where('is_rejected', false)
+                ->when($gameTypeId, fn($q) => $q->where('game_type_id', $gameTypeId))
+                ->when($drawId, fn($q) => $q->where('draw_id', $drawId))
+                ->groupBy('bet_number', 'game_type_id', 'draw_id')
+                ->orderBy('bet_number');
 
-        if ($gameTypeId) {
-            $query->where('game_type_id', $gameTypeId);
-        }
+            $totalAmount = $query->sum('total_amount');
 
-        if ($drawId) {
-            $query->where('draw_id', $drawId);
-        }
+            $results = $showAll
+                ? $query->get()
+                : $query->paginate($perPage);
 
-        $totalAmount = $query->sum('amount');
+            $bets = $showAll ? $results : $results->items();
 
-        $paginatedBets = $showAll
-            ? $query->orderBy('bet_number')->paginate(1000)
-            : $query->orderBy('bet_number')->paginate($perPage);
+            $formattedBets = [];
+            $betsByGameType = [];
 
-        $bets = $paginatedBets->items();
+            $gameTypes = GameType::pluck('code', 'id'); // id => code
+            foreach ($gameTypes as $code) {
+                $betsByGameType[$code] = [];
+            }
 
-        $formattedBets = [];
-        $betsByNumber = [];
-        $gameTypes = GameType::all();
-        $betsByGameType = [];
+            foreach ($bets as $bet) {
+                $gameTypeCode = $gameTypes[$bet->game_type_id] ?? 'Unknown';
+                $draw = Draw::find($bet->draw_id);
 
-        foreach ($gameTypes as $gt) {
-            $betsByGameType[$gt->code] = [];
-        }
+                $formattedBet = [
+                    'bet_number' => $bet->bet_number,
+                    'amount' => $bet->total_amount,
+                    'amount_formatted' => floor($bet->total_amount) == $bet->total_amount
+                        ? number_format($bet->total_amount, 0, '.', ',')
+                        : number_format($bet->total_amount, 2, '.', ','),
+                    'game_type_code' => $gameTypeCode,
+                    'draw_time' => $draw?->draw_time,
+                    'draw_time_formatted' => $draw?->draw_time ? Carbon::parse($draw->draw_time)->format('g:i A') : null,
+                    'draw_time_simple' => $draw?->draw_time ? Carbon::parse($draw->draw_time)->format('gA') : null,
+                ];
 
-        foreach ($bets as $bet) {
-            $betNumber = $bet->bet_number;
-            $gameTypeCode = $bet->gameType->code ?? 'Unknown';
-            $drawTime = $bet->draw?->draw_time;
-            $drawTimeFormatted = $drawTime ? Carbon::parse($drawTime)->format('h:i A') : null;
+                $formattedBets[] = $formattedBet;
+                $betsByGameType[$gameTypeCode][] = $formattedBet;
+            }
 
-            $formattedBet = [
-                'bet_number' => $betNumber,
-                'amount' => $bet->amount,
-                'amount_formatted' => floor($bet->amount) == $bet->amount
-                    ? number_format($bet->amount, 0, '.', ',')
-                    : number_format($bet->amount, 2, '.', ','),
-                'game_type_code' => $gameTypeCode,
-                'draw_time' => $drawTime,
-                'draw_time_formatted' => $drawTimeFormatted,
+            $responseData = [
+                'date' => $date,
+                'date_formatted' => $formattedDate,
+                'game_type' => $gameType ? [
+                    'id' => $gameType->id,
+                    'code' => $gameType->code,
+                    'name' => $gameType->name,
+                ] : null,
+                'total_amount' => $totalAmount,
+                'total_amount_formatted' => floor($totalAmount) == $totalAmount
+                    ? number_format($totalAmount, 0, '.', ',')
+                    : number_format($totalAmount, 2, '.', ','),
+                'bets' => $formattedBets,
+                'bets_by_game_type' => $betsByGameType,
             ];
 
-            $formattedBets[] = $formattedBet;
-
-            if (!isset($betsByGameType[$gameTypeCode])) {
-                $betsByGameType[$gameTypeCode] = [];
+            if (!$showAll) {
+                $responseData['pagination'] = [
+                    'total' => $results->total(),
+                    'current_page' => $results->currentPage(),
+                ];
             }
-            $betsByGameType[$gameTypeCode][] = $formattedBet;
+
+            return ApiResponse::paginatedWithData($showAll ? new LengthAwarePaginator($bets, count($bets), $perPage) : $results,
+                'Detailed tally sheet retrieved successfully',
+                DetailedTallysheetResource::class,
+                $responseData);
+
+        } catch (\Exception $e) {
+            return ApiResponse::error('Failed to retrieve detailed tally sheet: ' . $e->getMessage(), 500);
         }
-
-        foreach ($betsByGameType as $gameTypeCode => $betGroup) {
-            usort($betsByGameType[$gameTypeCode], fn($a, $b) => (int)$a['bet_number'] <=> (int)$b['bet_number']);
-        }
-
-        usort($formattedBets, fn($a, $b) => (int)$a['bet_number'] <=> (int)$b['bet_number']);
-
-        $responseData = [
-            'date' => $date,
-            'date_formatted' => $formattedDate,
-            'game_type' => $gameType ? [
-                'id' => $gameType->id,
-                'code' => $gameType->code,
-                'name' => $gameType->name,
-            ] : null,
-            'total_amount' => $totalAmount,
-            'total_amount_formatted' => floor($totalAmount) == $totalAmount
-                ? number_format($totalAmount, 0, '.', ',')
-                : number_format($totalAmount, 2, '.', ','),
-            'bets' => $formattedBets,
-            'bets_by_game_type' => $betsByGameType,
-        ];
-
-        $responseData['pagination'] = [
-            'total' => $paginatedBets->total(),
-            'current_page' => $paginatedBets->currentPage(),
-        ];
-
-        return ApiResponse::paginatedWithData($paginatedBets, 'Detailed tally sheet retrieved successfully', DetailedTallysheetResource::class, $responseData);
-
-    } catch (\Exception $e) {
-        return ApiResponse::error('Failed to retrieve detailed tally sheet: ' . $e->getMessage(), 500);
     }
-}
 
 }
