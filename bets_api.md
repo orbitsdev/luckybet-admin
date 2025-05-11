@@ -1,12 +1,12 @@
-# Cancelled Bets API Documentation
+# Bets API Documentation
 
 ## Endpoint
 ```
-GET /api/betting/cancelled
+GET /api/betting
 ```
 
 ## Description
-Retrieves a paginated list of cancelled bets for the authenticated teller. The endpoint supports various filtering options and defaults to showing today's cancelled bets if no date is specified.
+Retrieves a paginated list of bets for the authenticated teller. The endpoint supports various filtering options and can return all bets or paginated results.
 
 ## Authentication
 - Requires Bearer token authentication
@@ -18,17 +18,20 @@ Retrieves a paginated list of cancelled bets for the authenticated teller. The e
 |-----------|------|----------|-------------|
 | page | integer | No | Page number for pagination (default: 1) |
 | per_page | integer | No | Number of items per page (default: 20, max: 100) |
-| date | date | No | Filter bets by draw date (format: YYYY-MM-DD). If not provided, defaults to today's date |
+| all | boolean | No | If true, returns all results without pagination (default: false) |
 | draw_id | integer | No | Filter bets by specific draw ID |
-| search | string | No | Search bets by ticket ID or bet number |
+| date | date | No | Filter bets by bet date (format: YYYY-MM-DD) |
+| is_rejected | string | No | Filter by rejection status (true/false/0/1) |
+| is_claimed | string | No | Filter by claim status (true/false/0/1) |
 | game_type_id | integer | No | Filter bets by specific game type ID |
+| search | string | No | Search bets by ticket ID or bet number |
 
 ## Response Format
 
 ```json
 {
     "status": true,
-    "message": "Cancelled bets retrieved",
+    "message": "Bets retrieved",
     "data": [
         {
             "id": 7,
@@ -36,7 +39,7 @@ Retrieves a paginated list of cancelled bets for the authenticated teller. The e
             "bet_number": "22",
             "amount": "10",
             "is_claimed": false,
-            "is_rejected": true,
+            "is_rejected": false,
             "is_combination": false,
             "bet_date": "2025-05-10T16:00:00.000000Z",
             "bet_date_formatted": "May 11, 2025 12:00 AM",
@@ -76,42 +79,56 @@ Retrieves a paginated list of cancelled bets for the authenticated teller. The e
 }
 ```
 
-## Default Behavior
-- If no date is provided, the API returns cancelled bets for the current day
-- Results are ordered by latest first
-- Only shows bets that belong to the authenticated teller
-- Only includes bets where `is_rejected` is true
-
 ## Example Requests
 
-1. Get today's cancelled bets:
+1. Get all bets (paginated):
 ```
-GET /api/betting/cancelled
-```
-
-2. Get cancelled bets for a specific date:
-```
-GET /api/betting/cancelled?date=2025-05-10
+GET /api/betting
 ```
 
-3. Get cancelled bets for a specific draw:
+2. Get all bets without pagination:
 ```
-GET /api/betting/cancelled?draw_id=11
-```
-
-4. Search cancelled bets:
-```
-GET /api/betting/cancelled?search=YWF0
+GET /api/betting?all=true
 ```
 
-5. Get cancelled bets with custom pagination:
+3. Get bets for a specific date:
 ```
-GET /api/betting/cancelled?page=1&per_page=50
+GET /api/betting?date=2025-05-10
 ```
 
-6. Get cancelled bets for a specific game type:
+4. Get bets for a specific draw:
 ```
-GET /api/betting/cancelled?game_type_id=1
+GET /api/betting?draw_id=11
+```
+
+5. Get bets for a specific game type:
+```
+GET /api/betting?game_type_id=1
+```
+
+6. Get rejected bets:
+```
+GET /api/betting?is_rejected=true
+```
+
+7. Get claimed bets:
+```
+GET /api/betting?is_claimed=true
+```
+
+8. Search bets:
+```
+GET /api/betting?search=YWF0
+```
+
+9. Get bets with custom pagination:
+```
+GET /api/betting?page=1&per_page=50
+```
+
+10. Combine multiple filters:
+```
+GET /api/betting?date=2025-05-10&game_type_id=1&is_rejected=false
 ```
 
 ## Error Responses
@@ -133,6 +150,8 @@ GET /api/betting/cancelled?game_type_id=1
     "data": {
         "date": ["The date field must be a valid date"],
         "per_page": ["The per page field must be between 1 and 100"],
+        "is_rejected": ["The is rejected field must be true, false, 0, or 1"],
+        "is_claimed": ["The is claimed field must be true, false, 0, or 1"],
         "game_type_id": ["The selected game type id is invalid"]
     }
 }
@@ -142,5 +161,6 @@ GET /api/betting/cancelled?game_type_id=1
 - All dates are handled in the application's timezone
 - The API uses proper timezone conversion to ensure accurate date filtering
 - Results are always filtered by the authenticated teller's ID
-- The endpoint supports both date-based and draw-specific filtering
-- Game type filtering can be combined with other filters 
+- Multiple filters can be combined (e.g., date + game type + is_rejected)
+- When using `all=true`, results are limited to 1000 records
+- The endpoint supports both paginated and non-paginated responses 
