@@ -451,7 +451,13 @@ class TellerReportController extends Controller
                 ->groupBy('bet_number', 'game_type_id', 'draw_id')
                 ->orderBy('bet_number');
 
-            $totalAmount = $query->sum('total_amount');
+            // Calculate total amount using the same query structure
+            $totalAmount = Bet::where('teller_id', $user->id)
+                ->whereDate('bet_date', $date)
+                ->where('is_rejected', false)
+                ->when($gameTypeId, fn($q) => $q->where('game_type_id', $gameTypeId))
+                ->when($drawId, fn($q) => $q->where('draw_id', $drawId))
+                ->sum('amount');
 
             $results = $showAll
                 ? $query->get()
