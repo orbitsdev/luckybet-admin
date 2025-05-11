@@ -96,6 +96,7 @@ class BettingController extends Controller
             'date' => 'sometimes|date',
             'is_rejected' => 'sometimes|string|in:true,false,0,1',
             'is_claimed' => 'sometimes|string|in:true,false,0,1',
+            'game_type_id' => 'sometimes|integer|exists:game_types,id',
         ]);
         $perPage = $validated['per_page'] ?? 20;
     
@@ -111,6 +112,7 @@ class BettingController extends Controller
            
             ->when($request->filled('draw_id'), fn($q) => $q->where('draw_id', $request->draw_id))
             ->when($request->filled('date'), fn($q) => $q->whereDate('bet_date', $request->date))
+            ->when($request->filled('game_type_id'), fn($q) => $q->where('game_type_id', $request->game_type_id))
             ->when($request->filled('is_rejected'), function($q) use ($request) {
                 $value = filter_var($request->is_rejected, FILTER_VALIDATE_BOOLEAN);
                 $q->where('is_rejected', $value);
@@ -177,7 +179,8 @@ class BettingController extends Controller
             'per_page' => 'sometimes|integer|min:1|max:100',
             'date' => 'sometimes|date',
             'draw_id' => 'sometimes|integer|exists:draws,id',
-            'search' => 'sometimes|string'
+            'search' => 'sometimes|string',
+            'game_type_id' => 'sometimes|integer|exists:game_types,id',
         ]);
 
         $perPage = $validated['per_page'] ?? 20;
@@ -199,6 +202,9 @@ class BettingController extends Controller
             })
             ->when($request->filled('draw_id'), function($q) use ($request) {
                 $q->where('draw_id', $request->draw_id);
+            })
+            ->when($request->filled('game_type_id'), function($q) use ($request) {
+                $q->where('game_type_id', $request->game_type_id);
             })
             ->latest();
 
