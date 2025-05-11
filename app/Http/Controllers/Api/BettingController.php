@@ -93,8 +93,8 @@ class BettingController extends Controller
             'all' => 'sometimes|boolean',
             'draw_id' => 'sometimes|integer|exists:draws,id',
             'date' => 'sometimes|date',
-            'is_rejected' => 'sometimes|boolean',
-            'is_claimed' => 'sometimes|boolean',
+            'is_rejected' => 'sometimes|string|in:true,false,0,1',
+            'is_claimed' => 'sometimes|string|in:true,false,0,1',
         ]);
         $perPage = $validated['per_page'] ?? 20;
     
@@ -110,12 +110,17 @@ class BettingController extends Controller
            
             ->when($request->filled('draw_id'), fn($q) => $q->where('draw_id', $request->draw_id))
             ->when($request->filled('date'), fn($q) => $q->whereDate('bet_date', $request->date))
-            ->when($request->filled('is_rejected'), fn($q) => $q->where('is_rejected', $request->boolean('is_rejected')))
-            ->when($request->filled('is_claimed'), fn($q) => $q->where('is_claimed', $request->boolean('is_claimed')))
+            ->when($request->filled('is_rejected'), function($q) use ($request) {
+                $value = filter_var($request->is_rejected, FILTER_VALIDATE_BOOLEAN);
+                $q->where('is_rejected', $value);
+            })
+            ->when($request->filled('is_claimed'), function($q) use ($request) {
+                $value = filter_var($request->is_claimed, FILTER_VALIDATE_BOOLEAN);
+                $q->where('is_claimed', $value);
+            })
             ->latest();
     
         if ($request->boolean('all', false)) {
-           
             $bets = $query->limit(1000)->get();
             return ApiResponse::success(BetResource::collection($bets), 'All bets retrieved');
         } else {
