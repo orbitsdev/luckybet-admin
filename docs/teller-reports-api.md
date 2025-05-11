@@ -385,6 +385,8 @@ The Detailed Tallysheet Report provides a breakdown of individual bet numbers an
 
 ### Endpoint
 
+
+
 ```
 GET /api/teller/detailed-tallysheet
 ```
@@ -400,6 +402,7 @@ GET /api/teller/detailed-tallysheet
 | page | integer | No | Page number (default: 1) |
 | all | boolean | No | If true, returns all results without pagination |
 
+
 ### Example Request
 
 ```
@@ -408,96 +411,68 @@ GET /api/teller/detailed-tallysheet?date=2025-05-08&game_type_id=1&per_page=20&p
 
 ### Example Response
 
+
+
 ```json
 {
   "success": true,
   "message": "Detailed tally sheet retrieved successfully",
-  "data": {
-    "date": "2025-05-08",
-    "date_formatted": "May 8, 2025",
-    "game_type": {
-      "id": 1,
-      "code": "S2",
-      "name": "Swertres 2"
+  "pagination": {
+    "total": 2,
+    "current_page": 1
+  },
+  "date": "2025-05-08",
+  "date_formatted": "May 8, 2025",
+  "game_type": {
+    "id": 1,
+    "code": "S2",
+    "name": "Swertres 2"
+  },
+  "total_amount": 150,
+  "total_amount_formatted": "150",
+  "bets": [
+    {
+      "bet_number": "1234",
+      "amount": 100,
+      "amount_formatted": "100",
+      "game_type_code": "S2",
+      "draw_time": "14:00:00",
+      "draw_time_formatted": "02:00 PM"
     },
-    "total_amount": 5000,
-    "total_amount_formatted": "5,000",
-    "bets": [
+    {
+      "bet_number": "5678",
+      "amount": 50,
+      "amount_formatted": "50",
+      "game_type_code": "S3",
+      "draw_time": "17:00:00",
+      "draw_time_formatted": "05:00 PM"
+    }
+  ],
+  "bets_by_game_type": {
+    "S2": [
       {
-        "bet_number": "00",
-        "amount": 270,
-        "amount_formatted": "270",
-        "game_type_code": "S2"
-      },
-      {
-        "bet_number": "01",
-        "amount": 50,
-        "amount_formatted": "50",
-        "game_type_code": "S2"
-      },
-      {
-        "bet_number": "02",
-        "amount": 185,
-        "amount_formatted": "185",
-        "game_type_code": "S2"
+        "bet_number": "1234",
+        "amount": 100,
+        "amount_formatted": "100",
+        "game_type_code": "S2",
+        "draw_time": "14:00:00",
+        "draw_time_formatted": "02:00 PM"
       }
     ],
-    "bets_by_game_type": {
-      "S2": [
-        {
-          "bet_number": "00",
-          "amount": 270,
-          "amount_formatted": "270",
-          "game_type_code": "S2"
-        },
-        {
-          "bet_number": "01",
-          "amount": 50,
-          "amount_formatted": "50",
-          "game_type_code": "S2"
-        },
-        {
-          "bet_number": "02",
-          "amount": 185,
-          "amount_formatted": "185",
-          "game_type_code": "S2"
-        }
-      ],
-      "S3": [
-        {
-          "bet_number": "03",
-          "amount": 60,
-          "amount_formatted": "60",
-          "game_type_code": "S3"
-        },
-        {
-          "bet_number": "05",
-          "amount": 325,
-          "amount_formatted": "325",
-          "game_type_code": "S3"
-        }
-      ],
-      "D4": [
-        {
-          "bet_number": "07",
-          "amount": 105,
-          "amount_formatted": "105",
-          "game_type_code": "D4"
-        },
-        {
-          "bet_number": "09",
-          "amount": 140,
-          "amount_formatted": "140",
-          "game_type_code": "D4"
-        }
-      ]
-    }
-  },
-  "pagination": {
-    "total": 7,
-    "current_page": 1
+    "S3": [
+      {
+        "bet_number": "5678",
+        "amount": 50,
+        "amount_formatted": "50",
+        "game_type_code": "S3",
+        "draw_time": "17:00:00",
+        "draw_time_formatted": "05:00 PM"
+      }
+    ],
+    "D4": []
   }
 }
+
 ```
 
 ### Visualization Example
