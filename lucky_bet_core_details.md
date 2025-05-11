@@ -139,11 +139,13 @@ graph TD
    - User (Teller) creates a Bet
    - Bet is associated with a Draw and GameType
    - Bet is linked to a Location
+   - Draw time is referenced from Schedule (e.g., 2:00 PM, 3:00 PM)
 
 2. **Draw Process**:
    - Draw is created with specific date and time (referencing Schedule)
    - Multiple Bets can be associated with a Draw
    - Result is recorded after the draw
+   - Each draw time (2:00 PM, 3:00 PM, etc.) has its own set of bets
 
 3. **Result Process**:
    - Coordinator records the Result
@@ -164,6 +166,7 @@ graph TD
    - Multiple game types
    - Combination bets support
    - Location-based betting
+   - Multiple draw times per day (2:00 PM, 3:00 PM, etc.)
 
 3. **Result Management**:
    - Multiple game type results
@@ -175,6 +178,84 @@ graph TD
    - Teller-based commission management
 
 5. **Schedule Management**:
-   - Configurable draw times
+   - Configurable draw times (2:00 PM, 3:00 PM, etc.)
    - Active/inactive schedule control
-   - Consistent time format across system 
+   - Consistent time format across system
+
+## Example Visualizations
+
+### Mobile Card Grid Layout with Draw Times
+
+```
++----------------------------------------------------------+
+|              DETAILED TALLYSHEET REPORT                   |
++----------------------------------------------------------+
+| Date: May 8, 2025  [Calendar Icon]  [< Prev] [Next >]    |
++----------------------------------------------------------+
+| Draw Time: 2:00 PM  [Time Selector]                      |
++----------------------------------------------------------+
+| Total Amount: 1,135.00                                   |
++----------------------------------------------------------+
+| [S2]  |  [S3]  |  [D4]  |  [ALL]                         |
++----------------------------------------------------------+
+
++---------------+  +---------------+  +---------------+
+|      00       |  |      01       |  |      02       |
+|               |  |               |  |               |
+|    270.0      |  |     50.0      |  |    185.0      |
+|               |  |               |  |               |
+|      S2       |  |      S2       |  |      S2       |
+|    2:00 PM    |  |    2:00 PM    |  |    2:00 PM    |
++---------------+  +---------------+  +---------------+
+
++---------------+  +---------------+
+|      03       |  |      05       |
+|               |  |               |
+|     60.0      |  |    325.0      |
+|               |  |               |
+|      S3       |  |      S3       |
+|    2:00 PM    |  |    2:00 PM    |
++---------------+  +---------------+
+
++---------------+  +---------------+
+|      07       |  |      09       |
+|               |  |               |
+|    105.0      |  |    140.0      |
+|               |  |               |
+|      D4       |  |      D4       |
+|    2:00 PM    |  |    2:00 PM    |
++---------------+  +---------------+
+```
+
+### Table Layout with Draw Times
+
+```
++----------------------------------------------------------+
+|              DETAILED TALLYSHEET REPORT                   |
+|                    May 8, 2025                           |
+|                    Draw Time: 2:00 PM                    |
++----------------------------------------------------------+
+| SUMMARY                                                  |
+| Total Amount: 1,135.00                                   |
++----------------------------------------------------------+
+| BET BREAKDOWN BY GAME TYPE                               |
++----------------------------------------------------------+
+|         S2         |         S3         |        D4        |
++----------------------------------------------------------+
+| Bet# | Amount      | Bet# | Amount      | Bet# | Amount    |
+| Time |             | Time |             | Time |           |
++----------------------------------------------------------+
+| 00   | 270.0       | 03   | 60.0        | 07   | 105.0     |
+| 2PM  |             | 2PM  |             | 2PM  |           |
+| 01   | 50.0        | 05   | 325.0       | 09   | 140.0     |
+| 2PM  |             | 2PM  |             | 2PM  |           |
+| 02   | 185.0       |      |             |      |           |
+| 2PM  |             |      |             |      |           |
++----------------------------------------------------------+
+```
+
+The visualizations now show how draw times (2:00 PM, 3:00 PM, etc.) are integrated into both the card grid and table layouts. Users can:
+- Select specific draw times
+- View bets organized by draw time
+- See clear time indicators for each bet
+- Filter and group bets by both game type and draw time 
