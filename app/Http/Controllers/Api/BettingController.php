@@ -170,6 +170,7 @@ class BettingController extends Controller
             return ApiResponse::error('Failed to cancel bet: ' . $e->getMessage(), 500);
         }
     }
+    
     public function listCancelledBets(Request $request)
     {
         $user = $request->user();
@@ -212,5 +213,42 @@ class BettingController extends Controller
         return ApiResponse::paginated($bets, 'Cancelled bets retrieved', BetResource::class);
     }
 
+    public function cancelBetByTicketId(Request $request, $ticket_id)
+    {
+        try {
+            DB::beginTransaction();
+
+            // Find the bet by ticket_id and ensure it belongs to the current user
+            $bet = Bet::where('ticket_id', $ticket_id)
+                ->where('teller_id', $request->user()->id)
+                ->where('is_claimed', false)
+                ->where('is_rejected', false)
+                ->lockForUpdate()
+                ->first();
+
+            if (!$bet) {
+                return ApiResponse::error('Bet not found or already cancelled', 404);
+            }
+
+            // Check if the draw is still open
+            $draw = Draw::find($bet->draw_id);
+            if ($draw && !$draw->is_open) {
+                return ApiResponse::error('Cannot cancel bet as the draw is closed', 422);
+            }
+
+            // Update the bet to mark it as rejected
+            $bet->is_rejected = true;
+            $bet->save();
+
+            DB::commit();
+
+            // Return a simplified response according to the mobile API spec
+            return ApiResponse::success(null, 'Bet cancelled successfully');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return ApiResponse::error('Failed to cancel bet: ' . $e->getMessage(), 500);
+        }
+    }
 
 }

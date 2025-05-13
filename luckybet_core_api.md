@@ -650,6 +650,55 @@ Authorization: Bearer <token>
 }
 ```
 
+### Cancel Bet by Ticket ID
+
+Cancel an active bet using the ticket ID (for manual input or QR scan).
+
+**Endpoint:** `POST /api/betting/cancel-by-ticket/{ticket_id}`
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Response:**
+```json
+{
+  "status": true,
+  "message": "Bet cancelled successfully",
+  "data": null
+}
+```
+
+**Error Responses:**
+
+When bet not found or already cancelled:
+```json
+{
+  "status": false,
+  "message": "Bet not found or already cancelled",
+  "data": null
+}
+```
+
+When draw is closed:
+```json
+{
+  "status": false,
+  "message": "Cannot cancel bet as the draw is closed",
+  "data": null
+}
+```
+
+When server error occurs:
+```json
+{
+  "status": false,
+  "message": "Failed to cancel bet: [error message]",
+  "data": null
+}
+```
+
 ## Reports
 
 All report endpoints require authentication.
