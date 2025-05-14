@@ -34,7 +34,7 @@ class Bet extends Model
         'is_combination', // true/false
         'd4_sub_selection', // enum: 's2' or 's3' for D4 game type
     ];
-    
+
     protected $casts = [
         'bet_date' => 'date',
         'claimed_at' => 'datetime',
@@ -42,7 +42,7 @@ class Bet extends Model
         'is_claimed' => 'boolean',
         'is_rejected' => 'boolean',
     ];
-    
+
     /**
      * Append additional attributes to the model.
      *
@@ -55,7 +55,7 @@ class Bet extends Model
     {
         return $this->belongsTo(Draw::class);
     }
-    
+
     public function gameType()
     {
         return $this->belongsTo(GameType::class);
@@ -85,58 +85,70 @@ class Bet extends Model
     {
         return $this->hasOne(Commission::class, 'bet_id');
     }
-    
+
     /**
      * Determine if the bet is a winner by comparing with results.
-     *
+     * 
+     * @param bool $ignoreClaimStatus If true, will check if bet is a winner regardless of claim status
      * @return bool
      */
-    public function getIsWinnerAttribute()
+    public function getIsWinnerAttribute($ignoreClaimStatus = false)
     {
-        // Only claimed bets can be winners
-        if (!$this->is_claimed) {
+        // Only claimed bets can be winners, unless we explicitly ignore claim status
+        if (!$ignoreClaimStatus && !$this->is_claimed) {
             return false;
         }
-        
-        // Get the result for this draw
-        $result = \App\Models\Result::where('draw_id', $this->draw_id)->first();
+
+        // Get the result from the eager loaded relationship if available
+        // Otherwise, load it manually
+        $result = $this->draw->result ?? \App\Models\Result::where('draw_id', $this->draw_id)->first();
         if (!$result) {
             return false;
         }
-        
+
         // Get the game type
         $gameType = $this->gameType;
         if (!$gameType) {
             return false;
         }
-        
+
         // Check if bet is a winner based on game type
         switch ($gameType->code) {
             case 'S2':
                 return $this->bet_number === $result->s2_winning_number;
-                
+
             case 'S3':
                 return $this->bet_number === $result->s3_winning_number;
-                
+
             case 'D4':
-                // For D4, check the main winning number
+
                 $isWinner = $this->bet_number === $result->d4_winning_number;
-                
-                // If not a direct match but has sub-selection, check that too
+
                 if (!$isWinner && $this->d4_sub_selection) {
                     if ($this->d4_sub_selection === 's2' && $result->s2_winning_number) {
-                        // Check if the last 2 digits of bet number match S2 winning number
+
                         $isWinner = substr($this->bet_number, -2) === $result->s2_winning_number;
                     } else if ($this->d4_sub_selection === 's3' && $result->s3_winning_number) {
-                        // Check if the last 3 digits of bet number match S3 winning number
+
                         $isWinner = substr($this->bet_number, -3) === $result->s3_winning_number;
                     }
                 }
-                
+
                 return $isWinner;
-                
+
             default:
                 return false;
         }
+    }
+    
+    /**
+     * Check if a bet is a hit (winner) regardless of claim status
+     * This is used by the hit list to find all winning bets
+     * 
+     * @return bool
+     */
+    public function isHit()
+    {
+        return $this->getIsWinnerAttribute(true);
     }
 }
