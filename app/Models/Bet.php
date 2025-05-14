@@ -32,10 +32,12 @@ class Bet extends Model
         'is_claimed',     // boolean, default false
         'is_rejected',    // boolean, default false
         'is_combination', // true/false
+        'd4_sub_selection', // enum: 's2' or 's3' for D4 game type
     ];
     
     protected $casts = [
         'bet_date' => 'date',
+        'claimed_at' => 'datetime',
         'is_combination' => 'boolean',
         'is_claimed' => 'boolean',
         'is_rejected' => 'boolean',

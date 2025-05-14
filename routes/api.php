@@ -34,6 +34,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/betting/cancel/{id}', [BettingController::class, 'cancelBet']);
     Route::get('/betting/cancelled', [BettingController::class, 'listCancelledBets']);
     Route::post('/betting/cancel-by-ticket/{ticket_id}', [BettingController::class, 'cancelBetByTicketId']);
+    Route::post('/betting/cancel-ticket/{ticket_id}', [BettingController::class, 'cancelByTicketId']);
+    Route::post('/betting/claim-ticket/{ticket_id}', [BettingController::class, 'claimByTicketId']);
+    Route::get('/betting/claimed', [BettingController::class, 'listClaimedBets']);
 
     // Reports
     Route::get('/reports/tallysheet', [TellerReportController::class, 'tallysheet']);

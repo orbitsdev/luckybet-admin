@@ -15,7 +15,7 @@ use Carbon\Carbon;
 
 class BettingController extends Controller
 {
-    
+
     public function availableDraws()
     {
         $draws = Draw::where('draw_date', today())
@@ -26,7 +26,7 @@ class BettingController extends Controller
         return ApiResponse::success(DrawResource::collection($draws));
     }
 
-   
+
     public function placeBet(Request $request)
     {
         $data = $request->validate([
@@ -45,7 +45,7 @@ class BettingController extends Controller
         }
 
         try {
-          
+
             $draw = Draw::findOrFail($data['draw_id']);
             if (!$draw->is_open) {
                 return ApiResponse::error('This draw is no longer accepting bets', 422);
@@ -70,10 +70,10 @@ class BettingController extends Controller
 
         DB::commit();
 
-       
+
             $bet->load(['gameType']);
 
-          
+
             return ApiResponse::success(new BetResource($bet), 'Bet placed successfully');
 
         } catch (\Exception $e) {
@@ -83,11 +83,11 @@ class BettingController extends Controller
         }
     }
 
- 
+
     public function listBets(Request $request)
     {
         $user = $request->user();
-    
+
         $validated = $request->validate([
             'page' => 'sometimes|integer|min:1',
             'per_page' => 'sometimes|integer|min:1|max:100',
@@ -99,17 +99,17 @@ class BettingController extends Controller
             'game_type_id' => 'sometimes|integer|exists:game_types,id',
         ]);
         $perPage = $validated['per_page'] ?? 20;
-    
+
         $query = Bet::with(['draw', 'customer', 'location', 'gameType'])
             ->where('teller_id', $user->id)
-           
+
             ->when($request->filled('search'), function ($q) use ($request) {
                 $q->where(function ($sub) use ($request) {
                     $sub->where('ticket_id', 'like', '%' . $request->search . '%')
                         ->orWhere('bet_number', 'like', '%' . $request->search . '%');
                 });
             })
-           
+
             ->when($request->filled('draw_id'), fn($q) => $q->where('draw_id', $request->draw_id))
             ->when($request->filled('date'), fn($q) => $q->whereDate('bet_date', $request->date))
             ->when($request->filled('game_type_id'), fn($q) => $q->where('game_type_id', $request->game_type_id))
@@ -122,7 +122,7 @@ class BettingController extends Controller
                 $q->where('is_claimed', $value);
             })
             ->latest();
-    
+
         if ($request->boolean('all', false)) {
             $bets = $query->limit(1000)->get();
             return ApiResponse::success(BetResource::collection($bets), 'All bets retrieved');
@@ -132,7 +132,7 @@ class BettingController extends Controller
         }
     }
 
- 
+
     public function cancelBet(Request $request, $id)
     {
         try {
@@ -170,11 +170,11 @@ class BettingController extends Controller
             return ApiResponse::error('Failed to cancel bet: ' . $e->getMessage(), 500);
         }
     }
-    
+
     public function listCancelledBets(Request $request)
     {
         $user = $request->user();
-        
+
         $validated = $request->validate([
             'page' => 'sometimes|integer|min:1',
             'per_page' => 'sometimes|integer|min:1|max:100',
@@ -213,6 +213,9 @@ class BettingController extends Controller
         return ApiResponse::paginated($bets, 'Cancelled bets retrieved', BetResource::class);
     }
 
+
+
+
     public function cancelBetByTicketId(Request $request, $ticket_id)
     {
         try {
@@ -236,18 +239,140 @@ class BettingController extends Controller
                 return ApiResponse::error('Cannot cancel bet as the draw is closed', 422);
             }
 
-            // Update the bet to mark it as rejected
             $bet->is_rejected = true;
             $bet->save();
 
             DB::commit();
 
-            // Return a simplified response according to the mobile API spec
             return ApiResponse::success(null, 'Bet cancelled successfully');
 
         } catch (\Exception $e) {
             DB::rollBack();
             return ApiResponse::error('Failed to cancel bet: ' . $e->getMessage(), 500);
+        }
+    }
+
+
+    public function claimByTicketId(Request $request, $ticket_id)
+    {
+        try {
+            DB::beginTransaction();
+
+            // Find the bet by ticket_id and ensure it belongs to the current user
+            $bet = Bet::where('ticket_id', $ticket_id)
+                ->where('teller_id', $request->user()->id)
+                ->where('is_claimed', false)
+                ->where('is_rejected', false)
+                ->lockForUpdate()
+                ->first();
+
+            if (!$bet) {
+                return ApiResponse::error('Bet not found or already claimed/cancelled', 404);
+            }
+
+            // Check if the draw is closed (can only claim after draw is closed)
+            $draw = Draw::find($bet->draw_id);
+            if ($draw && $draw->is_open) {
+                return ApiResponse::error('Cannot claim bet as the draw is still open', 422);
+            }
+
+            // Mark the bet as claimed
+            $bet->is_claimed = true;
+            $bet->claimed_at = now();
+            $bet->save();
+
+            DB::commit();
+
+            return ApiResponse::success(null, 'Bet claimed successfully');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return ApiResponse::error('Failed to claim bet: ' . $e->getMessage(), 500);
+        }
+    }
+    
+    public function cancelByTicketId(Request $request, $ticket_id)
+    {
+        try {
+            DB::beginTransaction();
+
+            $bet = Bet::where('ticket_id', $ticket_id)
+                ->where('teller_id', $request->user()->id)
+                ->where('is_claimed', false)
+                ->where('is_rejected', false)
+                ->lockForUpdate()
+                ->first();
+
+            if (!$bet) {
+                return ApiResponse::error('Bet not found or already cancelled', 404);
+            }
+
+            $draw = Draw::find($bet->draw_id);
+            if ($draw && !$draw->is_open) {
+                return ApiResponse::error('Cannot cancel bet as the draw is closed', 422);
+            }
+
+            $bet->is_rejected = true;
+            $bet->save();
+
+            DB::commit();
+
+            return ApiResponse::success(null, 'Bet cancelled successfully');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return ApiResponse::error('Failed to cancel bet: ' . $e->getMessage(), 500);
+        }
+    }
+
+    //list claimed bets
+    public function listClaimedBets(Request $request)
+    {
+        $user = $request->user();
+
+        $validated = $request->validate([
+            'page' => 'sometimes|integer|min:1',
+            'per_page' => 'sometimes|integer|min:1|max:100',
+            'all' => 'sometimes|boolean',
+            'date' => 'sometimes|date',
+            'draw_id' => 'sometimes|integer|exists:draws,id',
+            'search' => 'sometimes|string',
+            'game_type_id' => 'sometimes|integer|exists:game_types,id',
+        ]);
+
+        $perPage = $validated['per_page'] ?? 20;
+        
+        // Set today as default date if not provided
+        $date = $request->filled('date') ? $request->date : today()->toDateString();
+
+        $query = Bet::with(['draw', 'customer', 'location', 'gameType'])
+            ->where('teller_id', $user->id)
+            ->where('is_claimed', true)
+            ->whereDate('bet_date', $date) // Default to today if no date specified
+            ->when($request->filled('search'), function ($q) use ($request) {
+                $q->where(function ($sub) use ($request) {
+                    $sub->where('ticket_id', 'like', '%' . $request->search . '%')
+                        ->orWhere('bet_number', 'like', '%' . $request->search . '%');
+                });
+            })
+            ->when($request->filled('date'), function($q) use ($request) {
+                // If date is explicitly provided, override the default
+                $q->whereDate('bet_date', $request->date);
+            })
+            ->when($request->filled('draw_id'), function($q) use ($request) {
+                $q->where('draw_id', $request->draw_id);
+            })
+            ->when($request->filled('game_type_id'), function($q) use ($request) {
+                $q->where('game_type_id', $request->game_type_id);
+            })
+            ->latest();
+
+        if ($request->boolean('all', false)) {
+            $bets = $query->limit(1000)->get();
+            return ApiResponse::success(BetResource::collection($bets), 'All claimed bets retrieved');
+        } else {
+            $bets = $query->paginate($perPage);
+            return ApiResponse::paginated($bets, 'Claimed bets retrieved', BetResource::class);
         }
     }
 
