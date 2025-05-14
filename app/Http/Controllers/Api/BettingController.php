@@ -335,11 +335,35 @@ class BettingController extends Controller
             })
             ->latest();
 
+        // Get the results
         if ($request->boolean('all', false)) {
             $bets = $query->limit(1000)->get();
+            
+            // Filter by is_winner if requested
+            if ($request->filled('is_winner')) {
+                $isWinner = in_array($request->is_winner, ['true', '1']);
+                $bets = $bets->filter(function($bet) use ($isWinner) {
+                    return $bet->is_winner === $isWinner;
+                });
+            }
+            
             return ApiResponse::success(BetResource::collection($bets), 'All claimed bets retrieved');
         } else {
             $bets = $query->paginate($perPage);
+            
+            // Filter by is_winner if requested
+            if ($request->filled('is_winner')) {
+                $isWinner = in_array($request->is_winner, ['true', '1']);
+                
+                // For paginated results, we need to filter the items collection
+                $filteredItems = $bets->getCollection()->filter(function($bet) use ($isWinner) {
+                    return $bet->is_winner === $isWinner;
+                });
+                
+                // Replace the items in the paginator with our filtered collection
+                $bets->setCollection($filteredItems);
+            }
+            
             return ApiResponse::paginated($bets, 'Claimed bets retrieved', BetResource::class);
         }
     }
