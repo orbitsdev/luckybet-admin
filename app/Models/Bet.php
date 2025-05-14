@@ -42,6 +42,13 @@ class Bet extends Model
         'is_claimed' => 'boolean',
         'is_rejected' => 'boolean',
     ];
+    
+    /**
+     * Append additional attributes to the model.
+     *
+     * @var array
+     */
+    protected $appends = ['is_winner'];
 
 
     public function draw()
@@ -77,5 +84,59 @@ class Bet extends Model
     public function commission()
     {
         return $this->hasOne(Commission::class, 'bet_id');
+    }
+    
+    /**
+     * Determine if the bet is a winner by comparing with results.
+     *
+     * @return bool
+     */
+    public function getIsWinnerAttribute()
+    {
+        // Only claimed bets can be winners
+        if (!$this->is_claimed) {
+            return false;
+        }
+        
+        // Get the result for this draw
+        $result = \App\Models\Result::where('draw_id', $this->draw_id)->first();
+        if (!$result) {
+            return false;
+        }
+        
+        // Get the game type
+        $gameType = $this->gameType;
+        if (!$gameType) {
+            return false;
+        }
+        
+        // Check if bet is a winner based on game type
+        switch ($gameType->code) {
+            case 'S2':
+                return $this->bet_number === $result->s2_winning_number;
+                
+            case 'S3':
+                return $this->bet_number === $result->s3_winning_number;
+                
+            case 'D4':
+                // For D4, check the main winning number
+                $isWinner = $this->bet_number === $result->d4_winning_number;
+                
+                // If not a direct match but has sub-selection, check that too
+                if (!$isWinner && $this->d4_sub_selection) {
+                    if ($this->d4_sub_selection === 's2' && $result->s2_winning_number) {
+                        // Check if the last 2 digits of bet number match S2 winning number
+                        $isWinner = substr($this->bet_number, -2) === $result->s2_winning_number;
+                    } else if ($this->d4_sub_selection === 's3' && $result->s3_winning_number) {
+                        // Check if the last 3 digits of bet number match S3 winning number
+                        $isWinner = substr($this->bet_number, -3) === $result->s3_winning_number;
+                    }
+                }
+                
+                return $isWinner;
+                
+            default:
+                return false;
+        }
     }
 }

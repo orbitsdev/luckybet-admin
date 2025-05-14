@@ -25,6 +25,7 @@ Retrieves a paginated list of claimed bets for the authenticated teller. The end
 | draw_id | integer | No | Filter bets by specific draw ID |
 | search | string | No | Search bets by ticket ID or bet number |
 | game_type_id | integer | No | Filter bets by specific game type ID |
+| is_winner | boolean | No | Filter bets by winner status (true/false) |
 
 ### Response Format
 
@@ -249,6 +250,7 @@ The API now includes additional fields in the Bet resource to support the multi-
 1. `claimed_at` - Timestamp when the bet was claimed (only included for claimed bets)
 2. `claimed_at_formatted` - Human-readable formatted version of the claim timestamp
 3. `d4_sub_selection` - For D4 game type bets, indicates the sub-selection ('s2' or 's3')
+4. `is_winner` - Boolean indicating if the bet is a winning bet (based on draw results)
 
 ### Updated Example Response
 
@@ -270,6 +272,7 @@ The API now includes additional fields in the Bet resource to support the multi-
             "bet_date_formatted": "May 14, 2025 12:00 AM",
             "claimed_at": "2025-05-14T09:30:15.000000Z",
             "claimed_at_formatted": "May 14, 2025 09:30 AM",
+            "is_winner": true,
             "created_at": "2025-05-14T08:12:15.000000Z",
             "game_type": {
                 "id": 3,
@@ -310,5 +313,6 @@ The API now includes additional fields in the Bet resource to support the multi-
 
 - The `d4_sub_selection` field is only included in the response when it has a value (for D4 game type bets)
 - The `claimed_at` and `claimed_at_formatted` fields are only included for bets that have been claimed
+- The `is_winner` field is calculated dynamically based on the draw results and is only included for claimed bets
 - All monetary values use smart formatting (no decimal places for whole numbers)
 - Date fields are provided in both raw format (for processing) and formatted (for display)

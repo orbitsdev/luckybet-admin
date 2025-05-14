@@ -29,6 +29,7 @@ class BetResource extends JsonResource
             'is_claimed' => $this->is_claimed,
             'is_rejected' => $this->is_rejected,
             'is_combination' => $this->is_combination,
+            'is_winner' => $this->is_winner,
             'd4_sub_selection' => $this->when($this->d4_sub_selection, $this->d4_sub_selection),
             'bet_date' => $this->bet_date,
             'bet_date_formatted' => $this->bet_date ? $this->bet_date->format('M d, Y h:i A') : null,

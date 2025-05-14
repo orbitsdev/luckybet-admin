@@ -191,7 +191,7 @@ class BettingController extends Controller
             ->where('is_rejected', true)
             ->when($request->filled('search'), function ($q) use ($request) {
                 $q->where(function ($sub) use ($request) {
-                    $sub->where('ticket_id', 'like', '%' . $request->search . '%')
+                $sub->where('ticket_id', 'like', '%' . $request->search . '%')
                         ->orWhere('bet_number', 'like', '%' . $request->search . '%');
                 });
             })
@@ -290,40 +290,7 @@ class BettingController extends Controller
             return ApiResponse::error('Failed to claim bet: ' . $e->getMessage(), 500);
         }
     }
-    
-    public function cancelByTicketId(Request $request, $ticket_id)
-    {
-        try {
-            DB::beginTransaction();
 
-            $bet = Bet::where('ticket_id', $ticket_id)
-                ->where('teller_id', $request->user()->id)
-                ->where('is_claimed', false)
-                ->where('is_rejected', false)
-                ->lockForUpdate()
-                ->first();
-
-            if (!$bet) {
-                return ApiResponse::error('Bet not found or already cancelled', 404);
-            }
-
-            $draw = Draw::find($bet->draw_id);
-            if ($draw && !$draw->is_open) {
-                return ApiResponse::error('Cannot cancel bet as the draw is closed', 422);
-            }
-
-            $bet->is_rejected = true;
-            $bet->save();
-
-            DB::commit();
-
-            return ApiResponse::success(null, 'Bet cancelled successfully');
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return ApiResponse::error('Failed to cancel bet: ' . $e->getMessage(), 500);
-        }
-    }
 
     //list claimed bets
     public function listClaimedBets(Request $request)
@@ -338,10 +305,11 @@ class BettingController extends Controller
             'draw_id' => 'sometimes|integer|exists:draws,id',
             'search' => 'sometimes|string',
             'game_type_id' => 'sometimes|integer|exists:game_types,id',
+            'is_winner' => 'sometimes|string|in:true,false,0,1',
         ]);
 
         $perPage = $validated['per_page'] ?? 20;
-        
+
         // Set today as default date if not provided
         $date = $request->filled('date') ? $request->date : today()->toDateString();
 
