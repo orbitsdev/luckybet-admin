@@ -71,7 +71,7 @@ class BettingController extends Controller
         DB::commit();
 
 
-            $bet->load(['gameType']);
+            $bet->load(['draw', 'customer', 'location', 'gameType']);
 
 
             return ApiResponse::success(new BetResource($bet), 'Bet placed successfully');
