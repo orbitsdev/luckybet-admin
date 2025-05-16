@@ -102,9 +102,11 @@ All fields are present in every bet API response. Use these for display, reporti
 
 ## Frontend Integration Notes
 - **Always display `winning_amount` to the user** for transparency.
+- The `winning_amount` field in the API is always a number: it will be an integer (e.g. `1000`) if the payout is a whole number, or a float (e.g. `1000.25`) if there are decimal cents. This makes it easy for the frontend to display the exact value, without unnecessary `.00` for whole numbers.
 - The `winning_amount` is now guaranteed to be the correct, locked payout for each bet. It will not change, even if admin updates payout rules later.
 - If `winning_amount` is `null`, show a warning or prompt to contact admin (this should only happen for legacy bets).
 - Use `is_low_win` to visually indicate reduced payout bets.
+- **Frontend tip:** For display, you can format `winning_amount` as currency (e.g., `₱{winning_amount}` or `₱{winning_amount.toStringAsFixed(2)}` in Flutter), but always use the raw value for calculations and logic.
 
 ---
 

@@ -22,7 +22,12 @@ class BetResource extends JsonResource
             'id' => $this->id,
             'ticket_id' => $this->ticket_id,
             'bet_number' => $this->bet_number,
-            'winning_amount' => $this->winning_amount, // null if not set
+            'winning_amount' => is_null($this->winning_amount)
+    ? null
+    : (floor((float)
+        $this->winning_amount) == (float)$this->winning_amount
+        ? (int)$this->winning_amount
+        : (float)$this->winning_amount),
             'is_low_win' => $this->is_low_win,
             'amount' => floor((float)$this->amount) == (float)$this->amount 
                 ? number_format((float)$this->amount, 0, '.', '') 
