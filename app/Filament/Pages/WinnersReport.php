@@ -25,7 +25,6 @@ class WinnersReport extends Page
     protected static string $view = 'filament.pages.winners-report';
 
     public $selectedDate;
-    public $dateOptions = [];
 
     #[Url]
     public $search = '';
@@ -35,21 +34,8 @@ class WinnersReport extends Page
 
     public function mount(): void
     {
-        // Get all unique result dates
-        $this->dateOptions = Result::select('draw_date')
-            ->distinct()
-            ->orderByDesc('draw_date')
-            ->get()
-            ->map(function($result) {
-                $date = $result->draw_date ? $result->draw_date->format('Y-m-d') : '';
-                return [
-                    'date' => $date,
-                    'label' => $date ? Carbon::parse($date)->format('F j, Y') : 'Unknown Date',
-                ];
-            })->values()->toArray();
-
-        // Set default to the most recent date
-        $this->selectedDate = $this->dateOptions[0]['date'] ?? Carbon::today()->format('Y-m-d');
+        // Set default to today's date
+        $this->selectedDate = Carbon::today()->format('Y-m-d');
     }
 
     public function updatedSelectedDate(): void
@@ -67,8 +53,11 @@ class WinnersReport extends Page
     #[Computed]
     public function winners()
     {
+        // Default to today's date if no date is selected
+        $date = $this->selectedDate ?? Carbon::today()->format('Y-m-d');
+        
         // Get all results for the selected date
-        $results = Result::where('draw_date', $this->selectedDate)->get();
+        $results = Result::where('draw_date', $date)->get();
 
         // Initialize winners array
         $winners = [];

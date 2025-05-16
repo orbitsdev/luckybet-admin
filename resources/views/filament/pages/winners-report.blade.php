@@ -37,11 +37,13 @@
 
             <div class="flex items-center space-x-2">
                 <label for="selectedDate" class="text-sm font-medium">Select Date:</label>
-                <select wire:model.live="selectedDate" id="selectedDate" class="border rounded px-2 py-1 text-sm">
-                    @foreach ($dateOptions as $option)
-                        <option value="{{ $option['date'] }}">{{ $option['label'] }}</option>
-                    @endforeach
-                </select>
+                <input 
+                    type="date" 
+                    wire:model.live="selectedDate" 
+                    id="selectedDate" 
+                    class="border rounded px-2 py-1 text-sm focus:ring-amber-500 focus:border-amber-500"
+                    value="{{ $selectedDate }}"
+                />
             </div>
 
             <!-- Search Box -->
