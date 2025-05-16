@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Api;
 
+use Carbon\Carbon;
+
 use App\Models\Bet;
 use App\Models\Draw;
 use Illuminate\Support\Str;
@@ -102,8 +104,12 @@ class BettingController extends Controller
         ]);
         $perPage = $validated['per_page'] ?? 20;
 
+        // Default to today's date if no date provided
+        $date = $request->filled('date') ? $request->date : Carbon::today()->format('Y-m-d');
+        
         $query = Bet::with(['draw', 'customer', 'location', 'gameType'])
             ->where('teller_id', $user->id)
+            ->whereDate('bet_date', $date)
 
             ->when($request->filled('search'), function ($q) use ($request) {
                 $q->where(function ($sub) use ($request) {
@@ -113,7 +119,6 @@ class BettingController extends Controller
             })
 
             ->when($request->filled('draw_id'), fn($q) => $q->where('draw_id', $request->draw_id))
-            ->when($request->filled('date'), fn($q) => $q->whereDate('bet_date', $request->date))
             ->when($request->filled('game_type_id'), fn($q) => $q->where('game_type_id', $request->game_type_id))
             ->when($request->filled('is_rejected'), function($q) use ($request) {
                 $value = filter_var($request->is_rejected, FILTER_VALIDATE_BOOLEAN);
