@@ -17,7 +17,7 @@ GET /api/teller/reports/detailed-tallysheet
 
 | Parameter    | Type    | Required | Description                                                |
 |--------------|---------|----------|------------------------------------------------------------|
-| date         | string  | Yes      | Date in YYYY-MM-DD format                                  |
+| date         | string  | No       | Date in YYYY-MM-DD format (defaults to today if not provided) |
 | game_type_id | integer | No       | Filter by game type ID                                     |
 | draw_id      | integer | No       | Filter by draw ID                                          |
 | per_page     | integer | No       | Number of results per page (default: 50, min: 10, max: 100)|

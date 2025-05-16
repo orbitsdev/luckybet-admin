@@ -422,7 +422,7 @@ class TellerReportController extends Controller
     {
         try {
             $validated = $request->validate([
-                'date' => 'required|date',
+                'date' => 'sometimes|date',
                 'game_type_id' => 'sometimes|integer|exists:game_types,id',
                 'draw_id' => 'sometimes|integer|exists:draws,id',
                 'per_page' => 'sometimes|integer|min:10|max:100',
@@ -431,7 +431,7 @@ class TellerReportController extends Controller
             ]);
 
             $user = $request->user();
-            $date = $validated['date'];
+            $date = $validated['date'] ?? Carbon::today()->format('Y-m-d');
             $gameTypeId = $validated['game_type_id'] ?? null;
             $drawId = $validated['draw_id'] ?? null;
             $perPage = $validated['per_page'] ?? 50;
