@@ -442,13 +442,13 @@ class TellerReportController extends Controller
             $gameType = $gameTypeId ? GameType::find($gameTypeId) : null;
 
             // ✅ GROUPED query
-            $query = Bet::select('bet_number', 'game_type_id', 'draw_id', DB::raw('SUM(amount) as total_amount'))
+            $query = Bet::select('bet_number', 'game_type_id', 'draw_id', 'd4_sub_selection', DB::raw('SUM(amount) as total_amount'))
                 ->where('teller_id', $user->id)
                 ->whereDate('bet_date', $date)
                 ->where('is_rejected', false)
                 ->when($gameTypeId, fn($q) => $q->where('game_type_id', $gameTypeId))
                 ->when($drawId, fn($q) => $q->where('draw_id', $drawId))
-                ->groupBy('bet_number', 'game_type_id', 'draw_id')
+                ->groupBy('bet_number', 'game_type_id', 'draw_id', 'd4_sub_selection')
                 ->orderBy('bet_number');
 
             // Calculate total amount using the same query structure
@@ -472,6 +472,10 @@ class TellerReportController extends Controller
             foreach ($gameTypes as $code) {
                 $betsByGameType[$code] = [];
             }
+            
+            // Add special categories for D4-S2 and D4-S3
+            $betsByGameType['D4-S2'] = [];
+            $betsByGameType['D4-S3'] = [];
 
             foreach ($bets as $bet) {
                 $gameTypeCode = $gameTypes[$bet->game_type_id] ?? 'Unknown';
@@ -487,10 +491,21 @@ class TellerReportController extends Controller
                     'draw_time' => $draw?->draw_time,
                     'draw_time_formatted' => $draw?->draw_time ? Carbon::parse($draw->draw_time)->format('g:i A') : null,
                     'draw_time_simple' => $draw?->draw_time ? Carbon::parse($draw->draw_time)->format('gA') : null,
+                    'd4_sub_selection' => $bet->d4_sub_selection,
+                    'display_type' => $gameTypeCode === 'D4' && $bet->d4_sub_selection 
+                        ? $gameTypeCode . '-' . $bet->d4_sub_selection 
+                        : $gameTypeCode
                 ];
 
                 $formattedBets[] = $formattedBet;
+                
+                // Add to regular game type category
                 $betsByGameType[$gameTypeCode][] = $formattedBet;
+                
+                // If it's a D4 with sub-selection, also add to the specific D4-S2 or D4-S3 category
+                if ($gameTypeCode === 'D4' && $bet->d4_sub_selection) {
+                    $betsByGameType["D4-{$bet->d4_sub_selection}"][] = $formattedBet;
+                }
             }
 
             $responseData = [
