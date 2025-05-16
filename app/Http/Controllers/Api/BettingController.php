@@ -192,19 +192,18 @@ class BettingController extends Controller
 
         $perPage = $validated['per_page'] ?? 20;
 
+        $date = $request->filled('date') ? $request->date : Carbon::today()->format('Y-m-d');
+        
         $query = Bet::with(['draw', 'customer', 'location', 'gameType'])
             ->where('teller_id', $user->id)
             ->where('is_rejected', true)
+            ->whereHas('draw', function($query) use ($date) {
+                $query->whereDate('draw_date', $date);
+            })
             ->when($request->filled('search'), function ($q) use ($request) {
                 $q->where(function ($sub) use ($request) {
                 $sub->where('ticket_id', 'like', '%' . $request->search . '%')
                         ->orWhere('bet_number', 'like', '%' . $request->search . '%');
-                });
-            })
-            ->when($request->filled('date'), function($q) use ($request) {
-                $date = Carbon::parse($request->date)->startOfDay();
-                $q->whereHas('draw', function($query) use ($date) {
-                    $query->whereDate('draw_date', $date);
                 });
             })
             ->when($request->filled('draw_id'), function($q) use ($request) {
