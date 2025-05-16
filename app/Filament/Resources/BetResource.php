@@ -109,6 +109,39 @@ class BetResource extends Resource
                             ->helperText('Toggle ON if this bet is a combination bet (allows winning with different number arrangements)')
                             ->required()
                             ->default(false),
+                        Forms\Components\Select::make('d4_sub_selection')
+                            ->label('D4 Sub-Selection')
+                            ->options([
+                                'S2' => 'S2 (First 2 Digits)',
+                                'S3' => 'S3 (First 3 Digits)'
+                            ])
+                            ->helperText('Only applicable for D4 game type with 9 PM draw')
+                            ->visible(function ($get) {
+                                // Get the game type ID and draw ID
+                                $gameTypeId = $get('game_type_id');
+                                $drawId = $get('draw_id');
+                                
+                                // If either is not set, hide the field
+                                if (!$gameTypeId || !$drawId) {
+                                    return false;
+                                }
+                                
+                                // Check if game type is D4
+                                $gameType = GameType::find($gameTypeId);
+                                if (!$gameType || $gameType->code !== 'D4') {
+                                    return false;
+                                }
+                                
+                                // Check if draw time is 9 PM
+                                $draw = \App\Models\Draw::find($drawId);
+                                if (!$draw) {
+                                    return false;
+                                }
+                                
+                                // Check if the draw time is 9 PM (21:00:00)
+                                $drawTime = \Carbon\Carbon::createFromFormat('H:i:s', $draw->draw_time);
+                                return $drawTime->format('H:i') === '21:00';
+                            }),
                     ]),
 
                 // Customer and location information
@@ -215,6 +248,11 @@ class BetResource extends Resource
                     ->boolean()
                     ->trueColor('warning')
                     ->falseColor('gray'),
+                Tables\Columns\TextColumn::make('d4_sub_selection')
+                    ->label('D4 Sub-Selection')
+                    ->badge()
+                    ->color('primary')
+                    ->visible(fn ($record) => $record->d4_sub_selection !== null),
 
                 // Draw information - grouped together
                 Tables\Columns\TextColumn::make('draw.draw_date')
