@@ -480,10 +480,8 @@ class TellerReportController extends Controller
             $betsByGameType['D4-S2'] = [];
             $betsByGameType['D4-S3'] = [];
 
-            // Remove any standalone S2 or S3 categories if they exist
-            // These should only be D4 sub-selections, not standalone game types
-            unset($betsByGameType['S2']);
-            unset($betsByGameType['S3']);
+            // Do NOT remove S2 or S3 categories; keep them in the response so all categories are always present
+            // (unset lines removed as requested)
 
             foreach ($bets as $bet) {
                 $gameTypeCode = $gameTypes[$bet->game_type_id] ?? 'Unknown';
