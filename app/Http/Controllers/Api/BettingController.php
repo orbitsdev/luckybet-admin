@@ -36,7 +36,7 @@ class BettingController extends Controller
             'game_type_id' => 'required|exists:game_types,id',
             'customer_id' => 'nullable|exists:users,id',
             'is_combination' => 'boolean',
-            'd4_sub_selection' => 'nullable|in:s2,s3'
+            'd4_sub_selection' => 'nullable|in:S2,S3'
         ]);
 
         $user = $request->user();
