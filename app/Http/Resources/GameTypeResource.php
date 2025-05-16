@@ -19,6 +19,7 @@ class GameTypeResource extends JsonResource
             'name' => $this->name,
             'code' => $this->code,
             'digit_count' => $this->digit_count,
+            'is_d4'=> $this->code == 'D4',
         ];
     }
 }
