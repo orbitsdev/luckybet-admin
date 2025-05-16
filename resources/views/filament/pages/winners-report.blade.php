@@ -123,6 +123,16 @@
                     </tbody>
                 </table>
 
+                <!-- Breakdown Summary -->
+                <div class="flex flex-col sm:flex-row justify-between items-center gap-4 px-4 py-3 bg-amber-50 border-t border-amber-100">
+                    <div class="text-sm text-gray-700">
+                        <span class="font-medium">Total Winners:</span> {{ $totalWinners }}
+                    </div>
+                    <div class="text-sm text-gray-700">
+                        <span class="font-medium">Total Payout:</span> <span class="text-green-700 font-bold">₱{{ number_format($totalWinAmount, 2) }}</span>
+                    </div>
+                </div>
+
                 <!-- Pagination Controls - Hidden when printing -->
                 <div class="px-4 py-3 bg-white border-t border-gray-200 sm:px-6 print:hidden">
                     <div class="flex items-center justify-between">

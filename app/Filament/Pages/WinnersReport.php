@@ -15,6 +15,8 @@ use Filament\Actions\Action;
 use App\Filament\Actions\CoordinatorReportAction;
 class WinnersReport extends Page
 {
+    public $totalWinAmount = 0;
+    public $totalWinners = 0;
 
     use InteractsWithActions;
     use InteractsWithForms;
@@ -152,8 +154,10 @@ class WinnersReport extends Page
             ['path' => request()->url(), 'query' => request()->query()]
         );
 
+        $this->totalWinAmount = array_sum(array_column($winners, 'win_amount'));
+        $this->totalWinners = count($winners);
         return $paginator;
-    }
+    
 
     public function testAction(): Action
     {
