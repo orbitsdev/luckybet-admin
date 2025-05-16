@@ -481,6 +481,9 @@ class TellerReportController extends Controller
                 $gameTypeCode = $gameTypes[$bet->game_type_id] ?? 'Unknown';
                 $draw = Draw::find($bet->draw_id);
 
+                // Ensure d4_sub_selection is only used for D4 game type
+                $d4SubSelection = ($gameTypeCode === 'D4') ? $bet->d4_sub_selection : null;
+
                 $formattedBet = [
                     'bet_number' => $bet->bet_number,
                     'amount' => $bet->total_amount,
@@ -491,20 +494,22 @@ class TellerReportController extends Controller
                     'draw_time' => $draw?->draw_time,
                     'draw_time_formatted' => $draw?->draw_time ? Carbon::parse($draw->draw_time)->format('g:i A') : null,
                     'draw_time_simple' => $draw?->draw_time ? Carbon::parse($draw->draw_time)->format('gA') : null,
-                    'd4_sub_selection' => $bet->d4_sub_selection,
-                    'display_type' => $gameTypeCode === 'D4' && $bet->d4_sub_selection 
-                        ? $gameTypeCode . '-' . $bet->d4_sub_selection 
+                    'd4_sub_selection' => $d4SubSelection,
+                    'display_type' => $gameTypeCode === 'D4' && $d4SubSelection 
+                        ? $gameTypeCode . '-' . $d4SubSelection 
                         : $gameTypeCode
                 ];
 
                 $formattedBets[] = $formattedBet;
                 
-                // Add to regular game type category
-                $betsByGameType[$gameTypeCode][] = $formattedBet;
+                // Add to regular game type category - ensure we're not adding to non-existent categories
+                if (isset($betsByGameType[$gameTypeCode])) {
+                    $betsByGameType[$gameTypeCode][] = $formattedBet;
+                }
                 
                 // If it's a D4 with sub-selection, also add to the specific D4-S2 or D4-S3 category
-                if ($gameTypeCode === 'D4' && $bet->d4_sub_selection) {
-                    $betsByGameType["D4-{$bet->d4_sub_selection}"][] = $formattedBet;
+                if ($gameTypeCode === 'D4' && $d4SubSelection) {
+                    $betsByGameType["D4-{$d4SubSelection}"][] = $formattedBet;
                 }
             }
 
