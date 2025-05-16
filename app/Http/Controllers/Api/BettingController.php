@@ -35,7 +35,8 @@ class BettingController extends Controller
             'draw_id' => 'required|exists:draws,id',
             'game_type_id' => 'required|exists:game_types,id',
             'customer_id' => 'nullable|exists:users,id',
-            'is_combination' => 'boolean'
+            'is_combination' => 'boolean',
+            'd4_sub_selection' => 'nullable|in:s2,s3'
         ]);
 
         $user = $request->user();
@@ -65,7 +66,8 @@ class BettingController extends Controller
                 'location_id' => $user->location_id,
                 'bet_date' => today(),
                 'ticket_id' => $ticketId,
-                'is_combination' => $data['is_combination'] ?? false
+                'is_combination' => $data['is_combination'] ?? false,
+                'd4_sub_selection' => $data['d4_sub_selection'] ?? null
             ]);
 
         DB::commit();
