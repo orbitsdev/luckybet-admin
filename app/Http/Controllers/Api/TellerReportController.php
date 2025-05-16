@@ -470,16 +470,16 @@ class TellerReportController extends Controller
 
             // Get valid game type codes from the database
             $gameTypes = GameType::pluck('code', 'id'); // id => code
-            
+
             // Initialize categories for all valid game types
             foreach ($gameTypes as $code) {
                 $betsByGameType[$code] = [];
             }
-            
+
             // Add special categories for D4-S2 and D4-S3
             $betsByGameType['D4-S2'] = [];
             $betsByGameType['D4-S3'] = [];
-            
+
             // Remove any standalone S2 or S3 categories if they exist
             // These should only be D4 sub-selections, not standalone game types
             unset($betsByGameType['S2']);
@@ -503,13 +503,13 @@ class TellerReportController extends Controller
                     'draw_time_formatted' => $draw?->draw_time ? Carbon::parse($draw->draw_time)->format('g:i A') : null,
                     'draw_time_simple' => $draw?->draw_time ? Carbon::parse($draw->draw_time)->format('gA') : null,
                     'd4_sub_selection' => $d4SubSelection,
-                    'display_type' => $gameTypeCode === 'D4' && $d4SubSelection 
-                        ? $gameTypeCode . '-' . $d4SubSelection 
+                    'display_type' => $gameTypeCode === 'D4' && $d4SubSelection
+                        ? $gameTypeCode . '-' . $d4SubSelection
                         : $gameTypeCode
                 ];
 
                 $formattedBets[] = $formattedBet;
-                
+
                 // Handle D4 game type specially to avoid duplication
                 if ($gameTypeCode === 'D4') {
                     if ($d4SubSelection) {
@@ -525,14 +525,6 @@ class TellerReportController extends Controller
                 }
             }
 
-            // Filter out empty categories
-            $filteredBetsByGameType = [];
-            foreach ($betsByGameType as $category => $categoryBets) {
-                if (!empty($categoryBets)) {
-                    $filteredBetsByGameType[$category] = $categoryBets;
-                }
-            }
-            
             $responseData = [
                 'date' => $date,
                 'date_formatted' => $formattedDate,
@@ -546,7 +538,7 @@ class TellerReportController extends Controller
                     ? number_format($totalAmount, 0, '.', ',')
                     : number_format($totalAmount, 2, '.', ','),
                 'bets' => $formattedBets,
-                'bets_by_game_type' => $filteredBetsByGameType,
+                'bets_by_game_type' => $betsByGameType,
             ];
 
             if (!$showAll) {
