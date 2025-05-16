@@ -249,10 +249,10 @@ class BetResource extends Resource
                     ->trueColor('warning')
                     ->falseColor('gray'),
                 Tables\Columns\TextColumn::make('d4_sub_selection')
-                    ->label('D4 Sub-Selection')
+                    ->label('Sub-Type')
                     ->badge()
                     ->color('primary')
-                    ,
+                ,
 
                 // Draw information - grouped together
                 Tables\Columns\TextColumn::make('draw.draw_date')
