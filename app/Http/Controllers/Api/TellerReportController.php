@@ -468,7 +468,10 @@ class TellerReportController extends Controller
             $formattedBets = [];
             $betsByGameType = [];
 
+            // Get valid game type codes from the database
             $gameTypes = GameType::pluck('code', 'id'); // id => code
+            
+            // Initialize categories for all valid game types
             foreach ($gameTypes as $code) {
                 $betsByGameType[$code] = [];
             }
@@ -476,6 +479,11 @@ class TellerReportController extends Controller
             // Add special categories for D4-S2 and D4-S3
             $betsByGameType['D4-S2'] = [];
             $betsByGameType['D4-S3'] = [];
+            
+            // Remove any standalone S2 or S3 categories if they exist
+            // These should only be D4 sub-selections, not standalone game types
+            unset($betsByGameType['S2']);
+            unset($betsByGameType['S3']);
 
             foreach ($bets as $bet) {
                 $gameTypeCode = $gameTypes[$bet->game_type_id] ?? 'Unknown';
