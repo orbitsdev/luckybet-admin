@@ -93,8 +93,8 @@ class WinnersReport extends Page
                 // Check if bet number matches winning number
                 // For combination bets, we'd need more complex logic here
                 if ($betNumber == $winningNumber) {
-                    // Calculate win amount (this is simplified - you may have a more complex calculation)
-                    $winAmount = $bet->amount * 70; // Example: 70x payout
+                    // Use locked-in winning_amount from bets table
+                    $winAmount = $bet->winning_amount;
 
                     // Get claim information if it exists
                     $claim = $bet->claim;
@@ -111,6 +111,7 @@ class WinnersReport extends Page
                         'winning_number' => $winningNumber,
                         'bet_number' => $betNumber,
                         'win_amount' => $claim ? $claim->amount : $winAmount,
+                        'is_low_win' => $bet->is_low_win,
                         'claim_status' => $claimStatus,
                         'claimed_at' => $claimedAt,
                         'teller_name' => $bet->teller->name ?? '',

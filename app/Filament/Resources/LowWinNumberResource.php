@@ -26,25 +26,26 @@ class LowWinNumberResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Select::make('coordinator_id')
-                    ->relationship('coordinator', 'name')
-                    ->label('Coordinator')
-                    ->required()
-                    ->searchable(),
-                Forms\Components\DatePicker::make('draw_date')
-                    ->required(),
-                Forms\Components\TimePicker::make('draw_time')
-                    ->seconds(true)
-                    ->required(),
                 Forms\Components\Select::make('game_type_id')
                     ->relationship('gameType', 'name')
                     ->required()
                     ->searchable(),
-                Forms\Components\TextInput::make('bet_number')
+                Forms\Components\TextInput::make('amount')
                     ->required()
-                    ->maxLength(4)
+                    ->numeric()
+                    ->prefix('₱')
+                    ->step(0.01)
+                    ->label('Bet Amount'),
+                Forms\Components\TextInput::make('winning_amount')
+                    ->required()
+                    ->numeric()
+                    ->prefix('₱')
+                    ->step(0.01)
+                    ->label('Low Win Amount'),
+                Forms\Components\TextInput::make('bet_number')
+                    ->maxLength(5)
                     ->label('Bet Number')
-                    ->helperText('The specific number to mark as low win'),
+                    ->helperText('Leave blank or null for all numbers'),
                 Forms\Components\Textarea::make('reason')
                     ->maxLength(255)
                     ->nullable()
@@ -56,19 +57,18 @@ class LowWinNumberResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('coordinator.name')
-                    ->label('Coordinator')
-                    ->searchable()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('draw_date')
-                    ->date()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('draw_time')
-                    ->time()
-                    ->sortable(),
                 Tables\Columns\TextColumn::make('gameType.name')
                     ->label('Game Type')
-                    ->sortable(),
+                    ->sortable()
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('amount')
+                    ->money('PHP')
+                    ->sortable()
+                    ->label('Bet Amount'),
+                Tables\Columns\TextColumn::make('winning_amount')
+                    ->money('PHP')
+                    ->sortable()
+                    ->label('Low Win Amount'),
                 Tables\Columns\TextColumn::make('bet_number')
                     ->label('Bet Number')
                     ->searchable()
