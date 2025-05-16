@@ -16,12 +16,11 @@ class Schedule extends Model
         'draw_time', // System time format
         'is_active', // Show/Hide from dropdown
     ];
-    
+
     protected $casts = [
         'draw_time' => 'string',
         'is_active' => 'boolean',
     ];
 
-    // The draws relationship has been removed since schedule_id was removed from the Draw model
-    // Schedules are now used as a reference only
+    
 }

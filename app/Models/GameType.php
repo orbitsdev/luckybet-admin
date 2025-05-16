@@ -2,9 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\WinningAmount;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class GameType extends Model
 {
@@ -27,7 +28,7 @@ class GameType extends Model
     {
         return $this->hasMany(Bet::class);
     }
-    
+
     /**
      * Get the draws for this game type
      */
@@ -35,4 +36,10 @@ class GameType extends Model
     {
         return $this->hasMany(Draw::class);
     }
+
+    public function winningAmounts(){
+        return $this->hasMany(WinningAmount::class);
+    }
+
 }
+
