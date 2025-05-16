@@ -51,6 +51,15 @@ class WinningAmountResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->groups([
+                Tables\Grouping\Group::make('gameType.name')
+                    ->label('Game Type')
+                    ->collapsible(),
+                Tables\Grouping\Group::make('gameType.code')
+                    ->label('Game Code')
+                    ->collapsible(),
+            ])
+            ->defaultGroup('gameType.name')
             ->columns([
                 Tables\Columns\TextColumn::make('gameType.name')
                     ->label('Game Type')
