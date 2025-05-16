@@ -36,9 +36,64 @@ This document describes recent updates to the LuckyBet API and backend logic to 
   "amount": "2",
   "winning_amount": 1500,
   "is_low_win": true,
-  ...
+  "is_claimed": false,
+  "is_rejected": false,
+  "is_combination": false,
+  "is_winner": false,
+  "d4_sub_selection": null,
+  "bet_date": "2025-05-16",
+  "bet_date_formatted": "May 16, 2025 02:00 PM",
+  "claimed_at": null,
+  "claimed_at_formatted": null,
+  "created_at": "2025-05-16T13:55:00.000000Z",
+  "game_type": {
+    "id": 1,
+    "name": "S2",
+    ...
+  },
+  "draw": {
+    "id": 10,
+    "draw_date": "2025-05-16",
+    ...
+  },
+  "teller": {
+    "id": 5,
+    "name": "Teller Name",
+    ...
+  },
+  "location": {
+    "id": 2,
+    "name": "Branch ABC",
+    ...
+  },
+  "customer": null
 }
 ```
+
+#### Full BetResource Fields
+- `id`: Bet ID
+- `ticket_id`: Unique ticket string
+- `bet_number`: The bet number
+- `amount`: Bet amount (string, formatted)
+- `winning_amount`: Locked payout for this bet
+- `is_low_win`: True if a low win rule applies
+- `is_claimed`: True if bet has been claimed
+- `is_rejected`: True if bet was cancelled
+- `is_combination`: Combination bet flag
+- `is_winner`: True if bet is a winner (drawn)
+- `d4_sub_selection`: D4 sub-selection (if any)
+- `bet_date`: Date of bet
+- `bet_date_formatted`: Human readable date
+- `claimed_at`: Claim timestamp
+- `claimed_at_formatted`: Human readable claim date
+- `created_at`: Creation timestamp
+- `game_type`: GameType object (see GameTypeResource)
+- `draw`: Draw object (see DrawResource)
+- `teller`: Teller user object
+- `location`: Location object
+- `customer`: Customer user object (if any)
+
+All fields are present in every bet API response. Use these for display, reporting, and auditing.
 
 ### 5. **N+1 Optimized**
 - All queries are eager loaded (`draw`, `draw.result`, `gameType`, etc.) to avoid N+1 issues.
@@ -53,7 +108,49 @@ This document describes recent updates to the LuckyBet API and backend logic to 
 
 ---
 
-## Migration & Model Details
+## How the Locked Winning Amount & Low Win Logic Works
+
+### Visual Flow
+
+```mermaid
+graph TD;
+    A[Place Bet] --> B{Is Low Win Rule?}
+    B -- Yes --> C[Use Low Win Amount]
+    B -- No --> D[Use Default Winning Amount]
+    C & D --> E[Store winning_amount in bets table]
+    E --> F[Bet is locked with payout]
+    F --> G[Admin changes payout rules later]
+    G --> H[Old bets keep original payout]
+```
+
+### Practical Scenarios
+
+#### Scenario 1: Normal Bet (No Low Win)
+- User places a bet on S2, amount ₱2.
+- No low win rule for this number/amount.
+- System uses default winning amount (e.g., ₱1500).
+- This value is stored in the bet's `winning_amount` column.
+- Even if admin changes payout rules later, this bet will always pay ₱1500 if it wins.
+
+#### Scenario 2: Low Win Bet
+- User places a bet on S3, amount ₱1, number '123'.
+- There is a low win rule for S3, amount 1, number '123' (e.g., ₱2000).
+- System uses the low win amount (₱2000) and stores it in the bet's `winning_amount` column.
+- This bet is "flagged" as low win (`is_low_win: true`).
+- Admin changes payout rules later: this bet still pays ₱2000 if it wins.
+
+#### Scenario 3: No Winning Amount Set
+- User tries to place a bet on D4, amount ₱5.
+- No default or low win payout is set for this configuration.
+- System returns an error: "Winning amount is not set for this game type and amount. Please contact admin."
+- No bet is saved, preventing undefined payouts.
+
+### Key Takeaways
+- **Every bet is locked with its payout at placement time.**
+- **Old bets are never affected by admin changes.**
+- **Low win rules are applied automatically and flagged for frontend.**
+- **API always returns the correct, locked payout for display and reporting.**
+
 - See `database/migrations/2025_05_16_205104_create_winning_amounts_table.php` and `2025_05_06_032800_create_low_win_numbers_table.php` for schema.
 - See `WinningAmount.php` and `LowWinNumber.php` for model logic.
 
