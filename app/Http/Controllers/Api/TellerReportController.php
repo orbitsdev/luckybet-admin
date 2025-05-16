@@ -510,14 +510,18 @@ class TellerReportController extends Controller
 
                 $formattedBets[] = $formattedBet;
                 
-                // Add to regular game type category - ensure we're not adding to non-existent categories
-                if (isset($betsByGameType[$gameTypeCode])) {
+                // Handle D4 game type specially to avoid duplication
+                if ($gameTypeCode === 'D4') {
+                    if ($d4SubSelection) {
+                        // If it has a sub-selection, add only to the specific D4-S2 or D4-S3 category
+                        $betsByGameType["D4-{$d4SubSelection}"][] = $formattedBet;
+                    } else {
+                        // If it doesn't have a sub-selection, add to the regular D4 category
+                        $betsByGameType[$gameTypeCode][] = $formattedBet;
+                    }
+                } else if (isset($betsByGameType[$gameTypeCode])) {
+                    // For all other game types, add to their regular category
                     $betsByGameType[$gameTypeCode][] = $formattedBet;
-                }
-                
-                // If it's a D4 with sub-selection, also add to the specific D4-S2 or D4-S3 category
-                if ($gameTypeCode === 'D4' && $d4SubSelection) {
-                    $betsByGameType["D4-{$d4SubSelection}"][] = $formattedBet;
                 }
             }
 

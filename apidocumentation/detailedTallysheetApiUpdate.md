@@ -161,9 +161,10 @@ GET /api/teller/reports/detailed-tallysheet
      - `D4-S3`: Contains only D4 bets with S3 sub-selection
 
 3. **Categorization Logic**:
-   - All bets are added to their standard game type category (D2, D3, D4, etc.)
-   - D4 bets with sub-selections are additionally added to their specific sub-category (D4-S2 or D4-S3)
-   - D4 bets without sub-selections are only added to the standard D4 category
+   - Most bets are added to their standard game type category (D2, D3, etc.)
+   - D4 bets with sub-selections (S2 or S3) are added ONLY to their specific sub-category (D4-S2 or D4-S3)
+   - D4 bets without sub-selections are added ONLY to the standard D4 category
+   - This prevents duplication of bets between D4 and its sub-categories
 
 ## Frontend Implementation Notes
 
