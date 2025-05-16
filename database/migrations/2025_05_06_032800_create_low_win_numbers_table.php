@@ -13,11 +13,9 @@ return new class extends Migration
     {
         Schema::create('low_win_numbers', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('coordinator_id')->constrained('users');
-            $table->date('draw_date');
-            $table->time('draw_time');
             $table->foreignId('game_type_id')->constrained('game_types');
-            $table->string('bet_number');
+            $table->decimal('amount', 10, 2);
+            $table->string('bet_number')->nullable();
             $table->string('reason')->nullable();
             $table->timestamps();
         });

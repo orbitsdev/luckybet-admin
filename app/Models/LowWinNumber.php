@@ -5,32 +5,22 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\GameType;
 
 class LowWinNumber extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'coordinator_id',
-        'draw_date',
-        'draw_time',
         'game_type_id',
+        'amount',
         'bet_number',
         'reason',
     ];
 
     protected $casts = [
-        'draw_date' => 'date',
-        'draw_time' => 'string',
+        'amount' => 'decimal:2',
     ];
-
-    /**
-     * Get the coordinator that created this low win number
-     */
-    public function coordinator(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'coordinator_id');
-    }
 
     /**
      * Get the game type that this low win number applies to

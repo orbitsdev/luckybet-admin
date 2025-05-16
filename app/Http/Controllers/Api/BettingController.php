@@ -57,9 +57,32 @@ class BettingController extends Controller
 
             $ticketId = strtoupper(Str::random(10));
 
+            // Calculate winning amount at time of placement
+            $lowWin = \App\Models\LowWinNumber::where('game_type_id', $data['game_type_id'])
+                ->where('amount', $data['amount'])
+                ->where(function($q) use ($data) {
+                    $q->whereNull('bet_number')
+                      ->orWhere('bet_number', $data['bet_number']);
+                })
+                ->first();
+            $winningAmount = $lowWin && isset($lowWin->winning_amount)
+                ? $lowWin->winning_amount
+                : (\App\Models\WinningAmount::where('game_type_id', $data['game_type_id'])
+                    ->where('amount', $data['amount'])
+                    ->value('winning_amount'));
+
+            if (is_null($winningAmount)) {
+                DB::rollBack();
+                return ApiResponse::error(
+                    'Winning amount is not set for this game type and amount. Please contact admin.',
+                    422
+                );
+            }
+
             $bet = Bet::create([
                 'bet_number' => $data['bet_number'],
                 'amount' => $data['amount'],
+                'winning_amount' => $winningAmount,
                 'draw_id' => $data['draw_id'],
                 'game_type_id' => $data['game_type_id'],
                 'teller_id' => $user->id,

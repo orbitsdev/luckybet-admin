@@ -34,13 +34,17 @@ class DatabaseSeeder extends Seeder
             // 4. Create schedules for draws
             ScheduleSeeder::class,
             
-            // 5. Create draws (past, current, and future)
+            // 5. Seed winning amounts and low win numbers before draws/bets
+            WinningAmountSeeder::class,
+            LowWinNumberSeeder::class,
+
+            // 6. Create draws (past, current, and future)
             DrawSeeder::class,
             
-            // 6. Create bets for all draws
+            // 7. Create bets for all draws
             BetSeeder::class,
             
-            // 7. Create results for closed draws and update bet statuses
+            // 8. Create results for closed draws and update bet statuses
             ResultSeeder::class,
             
           

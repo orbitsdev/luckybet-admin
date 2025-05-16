@@ -22,6 +22,7 @@ class Bet extends Model
     protected $fillable = [
         'bet_number',
         'amount',
+        'winning_amount',
         'draw_id',
         'game_type_id',    // Foreign key to game_types table
         'teller_id',
@@ -41,6 +42,7 @@ class Bet extends Model
         'is_combination' => 'boolean',
         'is_claimed' => 'boolean',
         'is_rejected' => 'boolean',
+        'winning_amount' => 'decimal:2',
     ];
 
     /**
@@ -48,7 +50,7 @@ class Bet extends Model
      *
      * @var array
      */
-    protected $appends = ['is_winner'];
+    protected $appends = ['is_winner', 'winning_amount', 'is_low_win'];
 
 
     public function draw()
@@ -150,5 +152,50 @@ class Bet extends Model
     public function isHit()
     {
         return $this->getIsWinnerAttribute(true);
+    }
+
+    /**
+     * Get the winning amount for this bet, considering low win rules.
+     * Returns null if not set.
+     */
+    public function getWinningAmountAttribute()
+    {
+        // If the value is set in the database, always use it (new bets)
+        if (!is_null($this->attributes['winning_amount'] ?? null)) {
+            return $this->attributes['winning_amount'];
+        }
+        // Otherwise, fallback to config logic (legacy/old bets)
+        $lowWin = \App\Models\LowWinNumber::where('game_type_id', $this->game_type_id)
+            ->where('amount', $this->amount)
+            ->where(function($q) {
+                $q->whereNull('bet_number')
+                  ->orWhere('bet_number', $this->bet_number);
+            })
+            ->first();
+
+        if ($lowWin && isset($lowWin->winning_amount)) {
+            return $lowWin->winning_amount;
+        }
+
+        $winningAmount = \App\Models\WinningAmount::where('game_type_id', $this->game_type_id)
+            ->where('amount', $this->amount)
+            ->value('winning_amount');
+
+        return $winningAmount; // null if not set
+    }
+
+    /**
+     * Returns true if this bet is under a low win rule.
+     */
+    public function getIsLowWinAttribute()
+    {
+        $lowWin = \App\Models\LowWinNumber::where('game_type_id', $this->game_type_id)
+            ->where('amount', $this->amount)
+            ->where(function($q) {
+                $q->whereNull('bet_number')
+                  ->orWhere('bet_number', $this->bet_number);
+            })
+            ->first();
+        return $lowWin !== null;
     }
 }
