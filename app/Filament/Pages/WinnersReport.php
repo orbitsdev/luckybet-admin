@@ -57,7 +57,7 @@ class WinnersReport extends Page
     {
         // Default to today's date if no date is selected
         $date = $this->selectedDate ?? Carbon::today()->format('Y-m-d');
-        
+
         // Get all results for the selected date
         $results = Result::where('draw_date', $date)->get();
 
@@ -157,7 +157,7 @@ class WinnersReport extends Page
         $this->totalWinAmount = array_sum(array_column($winners, 'win_amount'));
         $this->totalWinners = count($winners);
         return $paginator;
-    
+    }
 
     public function testAction(): Action
     {
@@ -167,7 +167,7 @@ class WinnersReport extends Page
                 dd('test');
             });
     }
-    
+
     public function coordinatorReportAction(): Action
     {
         return CoordinatorReportAction::make()
