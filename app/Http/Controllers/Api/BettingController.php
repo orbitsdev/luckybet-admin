@@ -13,7 +13,6 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\BetResource;
 use App\Http\Resources\DrawResource;
-use Carbon\Carbon;
 
 class BettingController extends Controller
 {
@@ -104,7 +103,7 @@ class BettingController extends Controller
         ]);
         $perPage = $validated['per_page'] ?? 20;
 
-        // Default to today's date if no date provided
+
         $date = $request->filled('date') ? $request->date : Carbon::today()->format('Y-m-d');
         
         $query = Bet::with(['draw', 'customer', 'location', 'gameType'])
@@ -145,7 +144,7 @@ class BettingController extends Controller
         try {
             DB::beginTransaction();
 
-            // Find the bet by ID and ensure it belongs to the current user
+
             $bet = Bet::where('id', $id)
                 ->where('teller_id', $request->user()->id)
                 ->where('is_claimed', false)
@@ -163,13 +162,13 @@ class BettingController extends Controller
                 return ApiResponse::error('Cannot cancel bet as the draw is closed', 422);
             }
 
-            // Update the bet to mark it as rejected
+
             $bet->is_rejected = true;
             $bet->save();
 
             DB::commit();
 
-            // Return a simplified response according to the mobile API spec
+
             return ApiResponse::success(null, 'Bet cancelled successfully');
 
         } catch (\Exception $e) {
@@ -277,13 +276,13 @@ class BettingController extends Controller
                 return ApiResponse::error('Bet not found or already claimed/cancelled', 404);
             }
 
-            // Check if the draw is closed (can only claim after draw is closed)
+
             $draw = Draw::find($bet->draw_id);
             if ($draw && $draw->is_open) {
                 return ApiResponse::error('Cannot claim bet as the draw is still open', 422);
             }
 
-            // Mark the bet as claimed
+
             $bet->is_claimed = true;
             $bet->claimed_at = now();
             $bet->save();
@@ -299,10 +298,7 @@ class BettingController extends Controller
     }
 
 
-    //list claimed bets
-    /**
-     * List claimed bets (bets that have been marked as claimed)
-     */
+
     public function listClaimedBets(Request $request)
     {
         $user = $request->user();
@@ -331,10 +327,10 @@ class BettingController extends Controller
                 });
             })
             ->when($request->filled('date'), function($q) use ($request) {
-                // Filter by the specified date
+
                 $q->whereDate('claimed_at', $request->date);
             }, function($q) {
-                // Default to today if no date specified
+
                 $q->whereDate('claimed_at', today()->toDateString());
             })
             ->when($request->filled('draw_id'), function($q) use ($request) {
@@ -365,12 +361,12 @@ class BettingController extends Controller
             if ($request->filled('is_winner')) {
                 $isWinner = in_array($request->is_winner, ['true', '1']);
                 
-                // For paginated results, we need to filter the items collection
+    
                 $filteredItems = $bets->getCollection()->filter(function($bet) use ($isWinner) {
                     return $bet->is_winner === $isWinner;
                 });
                 
-                // Replace the items in the paginator with our filtered collection
+    
                 $bets->setCollection($filteredItems);
             }
             
@@ -378,10 +374,7 @@ class BettingController extends Controller
         }
     }
     
-    /**
-     * List hit bets (winning bets regardless of claim status)
-     * This method uses a more efficient approach to identify winning bets directly from results
-     */
+
     public function listHitBets(Request $request)
     {
         $user = $request->user();
@@ -400,13 +393,13 @@ class BettingController extends Controller
         $perPage = $validated['per_page'] ?? 20;
         $date = $request->filled('date') ? $request->date : today()->toDateString();
 
-        // Use a more efficient query to find winning bets directly
+
         $query = Bet::with(['draw', 'customer', 'location', 'gameType', 'draw.result'])
             ->where('teller_id', $user->id)
             ->where('is_rejected', false)
             ->whereDate('bet_date', $date)
             ->whereHas('draw', function($q) {
-                // Only include bets for draws that have results
+
                 $q->whereHas('result');
             })
             ->when($request->filled('search'), function ($q) use ($request) {
@@ -427,64 +420,62 @@ class BettingController extends Controller
             })
             ->latest();
 
-        // For better performance, let's limit the query results before filtering
-        // This helps with memory usage when there are many bets
+
         if ($request->boolean('all', false)) {
-            // If requesting all results, still apply a reasonable limit
+
             $allBets = $query->limit(1000)->get();
             
-            // Filter to only include winning bets using the isHit method
+
             $winningBets = $allBets->filter(function($bet) {
                 return $bet->isHit();
             });
             
             return ApiResponse::success(BetResource::collection($winningBets), 'All winning bets retrieved');
         } else {
-            // For paginated results, get more than we need to account for filtering
-            // This helps ensure we have enough items after filtering
-            $multiplier = 3; // Get 3x the items we need, assuming ~33% win rate
+
+            $multiplier = 3;
             $extendedLimit = $perPage * $multiplier;
             
             $page = $request->input('page', 1);
             $offset = ($page - 1) * $perPage;
             
-            // Get a batch of potential winners
+
             $potentialBets = $query->skip($offset)->limit($extendedLimit)->get();
             
-            // Filter to winners only
+
             $winningBets = $potentialBets->filter(function($bet) {
                 return $bet->isHit();
             });
             
-            // If we don't have enough winners, fetch more
+
             if ($winningBets->count() < $perPage && $potentialBets->count() >= $extendedLimit) {
-                // We hit our limit but didn't get enough winners, so fetch more
+
                 $additionalBets = $query->skip($offset + $extendedLimit)->limit($extendedLimit)->get();
                 
                 $additionalWinners = $additionalBets->filter(function($bet) {
                     return $bet->isHit();
                 });
                 
-                // Merge the winners
+
                 $winningBets = $winningBets->merge($additionalWinners);
             }
             
-            // Take just what we need for this page
+
             $paginatedBets = $winningBets->take($perPage)->values();
             
-            // Get total count for accurate pagination (only if on first page)
+
             $totalCount = $paginatedBets->count();
             if ($page == 1 && $paginatedBets->count() >= $perPage) {
-                // If we're on page 1 and have a full page, we need to count the total
+
                 $totalCount = $query->count();
                 
-                // Estimate the total winners based on our sample
+
                 $winRate = $paginatedBets->count() / $potentialBets->count();
                 $estimatedTotal = ceil($totalCount * $winRate);
                 $totalCount = $estimatedTotal;
             }
             
-            // Create paginator
+
             $paginator = new \Illuminate\Pagination\LengthAwarePaginator(
                 $paginatedBets,
                 $totalCount,
