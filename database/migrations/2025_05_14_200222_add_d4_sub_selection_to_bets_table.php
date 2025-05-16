@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('bets', function (Blueprint $table) {
-             $table->enum('d4_sub_selection', ['s2', 's3'])->nullable()->after('is_combination');
+             $table->enum('d4_sub_selection', ['S2', 'S3'])->nullable()->after('is_combination');
         });
     }
 
