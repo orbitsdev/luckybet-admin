@@ -165,6 +165,7 @@ GET /api/teller/reports/detailed-tallysheet
    - D4 bets with sub-selections (S2 or S3) are added ONLY to their specific sub-category (D4-S2 or D4-S3)
    - D4 bets without sub-selections are added ONLY to the standard D4 category
    - This prevents duplication of bets between D4 and its sub-categories
+   - Empty categories (those with no bets) are removed from the response entirely
 
 ## Frontend Implementation Notes
 

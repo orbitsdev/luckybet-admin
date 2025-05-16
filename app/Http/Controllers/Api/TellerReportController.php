@@ -525,6 +525,14 @@ class TellerReportController extends Controller
                 }
             }
 
+            // Filter out empty categories
+            $filteredBetsByGameType = [];
+            foreach ($betsByGameType as $category => $categoryBets) {
+                if (!empty($categoryBets)) {
+                    $filteredBetsByGameType[$category] = $categoryBets;
+                }
+            }
+            
             $responseData = [
                 'date' => $date,
                 'date_formatted' => $formattedDate,
@@ -538,7 +546,7 @@ class TellerReportController extends Controller
                     ? number_format($totalAmount, 0, '.', ',')
                     : number_format($totalAmount, 2, '.', ','),
                 'bets' => $formattedBets,
-                'bets_by_game_type' => $betsByGameType,
+                'bets_by_game_type' => $filteredBetsByGameType,
             ];
 
             if (!$showAll) {
