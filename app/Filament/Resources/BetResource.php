@@ -252,7 +252,7 @@ class BetResource extends Resource
                     ->label('D4 Sub-Selection')
                     ->badge()
                     ->color('primary')
-                    ->visible(fn ($record) => $record->d4_sub_selection !== null),
+                    ,
 
                 // Draw information - grouped together
                 Tables\Columns\TextColumn::make('draw.draw_date')
