@@ -59,5 +59,31 @@ class UserSeeder extends Seeder
             'coordinator_id' => $coordinator->id, // Link to coordinator
             'location_id' => $location->id,
         ]);
+
+        // Add Teller Joe
+        User::create([
+            'name' => 'Teller Joe',
+            'username' => 'tellerjoe',
+            'email' => 'joe@gmail.com',
+            'phone' => '09123456786',
+            'password' => Hash::make('password'),
+            'role' => 'teller',
+            'is_active' => true,
+            'coordinator_id' => $coordinator->id,
+            'location_id' => $location->id,
+        ]);
+
+        // Add Teller Kristine
+        User::create([
+            'name' => 'Teller Kristine',
+            'username' => 'tellerkristine',
+            'email' => 'kristine@gmail.com',
+            'phone' => '09123456785',
+            'password' => Hash::make('password'),
+            'role' => 'teller',
+            'is_active' => true,
+            'coordinator_id' => $coordinator->id,
+            'location_id' => $location->id,
+        ]);
     }
 }
