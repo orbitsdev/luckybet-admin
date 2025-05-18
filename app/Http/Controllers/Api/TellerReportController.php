@@ -381,7 +381,7 @@ class TellerReportController extends Controller
 
             // Get commission rate for the teller (assuming it's stored in the users table)
             // If it's stored elsewhere, adjust this query accordingly
-            $commissionRate = $user->commission_rate ?? 15; // Default to 15% if not set
+            $commissionRate = $user->commission_rate ?? 10; // Default to 10% if not set
 
             // Get cancellation count for today
             $cancellations = Bet::where('teller_id', $user->id)
