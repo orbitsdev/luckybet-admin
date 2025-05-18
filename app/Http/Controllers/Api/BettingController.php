@@ -19,8 +19,11 @@ class BettingController extends Controller
 
     public function availableDraws()
     {
+        $now = Carbon::now()->format('H:i:s');
+
         $draws = Draw::where('draw_date', today())
             ->where('is_open', true)
+            ->where('draw_time', '>=', $now)
             ->orderBy('draw_time')
             ->get();
 
