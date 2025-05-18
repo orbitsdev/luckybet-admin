@@ -55,85 +55,69 @@ class WinnersReport extends Page
     #[Computed]
     public function winners()
     {
-        // Default to today's date if no date is selected
         $date = $this->selectedDate ?? Carbon::today()->format('Y-m-d');
-
-        // Get all results for the selected date
         $results = Result::where('draw_date', $date)->get();
-
-        // Initialize winners array
         $winners = [];
 
-        // For each result, find matching bets
         foreach ($results as $result) {
-            // Get all bets for this draw
+            // Defensive: skip if result or draw_id is missing
+            if (!$result || !$result->draw_id) continue;
+
             $bets = Bet::with(['gameType', 'teller', 'draw', 'claim'])
                 ->where('draw_id', $result->draw_id)
                 ->where('is_rejected', false)
                 ->get();
 
-            // Check each bet to see if it's a winner
             foreach ($bets as $bet) {
-                $gameType = $bet->gameType->code ?? '';
-                $betNumber = $bet->bet_number;
+                // Defensive: skip if bet is null
+                if (!$bet) continue;
 
-                // Get the winning number based on game type
-                $winningNumber = null;
-                if ($gameType === 'S2' && !empty($result->s2_winning_number)) {
-                    $winningNumber = $result->s2_winning_number;
-                } elseif ($gameType === 'S3' && !empty($result->s3_winning_number)) {
-                    $winningNumber = $result->s3_winning_number;
-                } elseif ($gameType === 'D4' && !empty($result->d4_winning_number)) {
-                    $winningNumber = $result->d4_winning_number;
-                }
-
-                // Skip if no winning number for this game type
-                if (!$winningNumber) {
+                // Use the model's isHit() method for robust winner logic
+                try {
+                    if (method_exists($bet, 'isHit') && $bet->isHit()) {
+                        $claim = $bet->claim ?? null;
+                        $claimStatus = $bet->is_claimed ? 'Claimed' : 'Pending';
+                        $claimedAt = ($claim && $claim->claim_at) ? Carbon::parse($claim->claim_at)->format('Y-m-d g:i A') : '-';
+                        $drawDate = $result->draw_date instanceof Carbon ? $result->draw_date->format('Y-m-d') : (is_string($result->draw_date) ? $result->draw_date : '');
+                        $drawTime = $result->draw_time ? (Carbon::hasFormat($result->draw_time, 'H:i:s') ? Carbon::createFromFormat('H:i:s', $result->draw_time)->format('g:i A') : $result->draw_time) : '';
+                        $gameTypeName = $bet->gameType->name ?? '';
+                        $winningNumber = $bet->gameType->code === 'S2' ? $result->s2_winning_number : ($bet->gameType->code === 'S3' ? $result->s3_winning_number : ($bet->gameType->code === 'D4' ? $result->d4_winning_number : ''));
+                        $winAmount = $claim && isset($claim->amount) ? $claim->amount : ($bet->winning_amount ?? 0);
+                        $tellerName = $bet->teller->name ?? '';
+                        $winners[] = [
+                            'id' => $bet->id,
+                            'ticket_id' => $bet->ticket_id ?? '',
+                            'draw_date' => $drawDate,
+                            'draw_time' => $drawTime,
+                            'game_type' => $gameTypeName,
+                            'winning_number' => $winningNumber,
+                            'bet_number' => $bet->bet_number ?? '',
+                            'win_amount' => $winAmount,
+                            'is_low_win' => $bet->is_low_win ?? false,
+                            'claim_status' => $claimStatus,
+                            'claimed_at' => $claimedAt,
+                            'teller_name' => $tellerName,
+                        ];
+                    }
+                } catch (\Throwable $e) {
+                    // Log error or continue gracefully
                     continue;
-                }
-
-                // Check if bet number matches winning number
-                // For combination bets, we'd need more complex logic here
-                if ($betNumber == $winningNumber) {
-                    // Use locked-in winning_amount from bets table
-                    $winAmount = $bet->winning_amount;
-
-                    // Get claim information if it exists
-                    $claim = $bet->claim;
-                    $claimStatus = $bet->is_claimed ? 'Claimed' : 'Pending';
-                    $claimedAt = $claim && $claim->claim_at ? Carbon::parse($claim->claim_at)->format('Y-m-d g:i A') : '-';
-
-                    // Add to winners array
-                    $winners[] = [
-                        'id' => $bet->id,
-                        'ticket_id' => $bet->ticket_id,
-                        'draw_date' => $result->draw_date ? $result->draw_date->format('Y-m-d') : '',
-                        'draw_time' => $result->draw_time ? Carbon::createFromFormat('H:i:s', $result->draw_time)->format('g:i A') : '',
-                        'game_type' => $bet->gameType->name ?? '',
-                        'winning_number' => $winningNumber,
-                        'bet_number' => $betNumber,
-                        'win_amount' => $claim ? $claim->amount : $winAmount,
-                        'is_low_win' => $bet->is_low_win,
-                        'claim_status' => $claimStatus,
-                        'claimed_at' => $claimedAt,
-                        'teller_name' => $bet->teller->name ?? '',
-                    ];
                 }
             }
         }
 
-        // Sort winners by draw time
+        // Sort winners by draw time and date descending
         usort($winners, function($a, $b) {
-            return strcmp($b['draw_date'] . $b['draw_time'], $a['draw_date'] . $a['draw_time']);
+            return strcmp(($b['draw_date'] ?? '') . ($b['draw_time'] ?? ''), ($a['draw_date'] ?? '') . ($a['draw_time'] ?? ''));
         });
 
         // Apply search filter if search term is provided
         if (!empty($this->search)) {
             $search = strtolower($this->search);
             $winners = array_filter($winners, function($winner) use ($search) {
-                return str_contains(strtolower($winner['ticket_id']), $search) ||
-                       str_contains(strtolower($winner['bet_number']), $search) ||
-                       str_contains(strtolower($winner['winning_number']), $search);
+                return (isset($winner['ticket_id']) && str_contains(strtolower($winner['ticket_id']), $search)) ||
+                       (isset($winner['bet_number']) && str_contains(strtolower($winner['bet_number']), $search)) ||
+                       (isset($winner['winning_number']) && str_contains(strtolower($winner['winning_number']), $search));
             });
         }
 
@@ -141,11 +125,7 @@ class WinnersReport extends Page
         $page = $this->page;
         $perPage = $this->perPage;
         $total = count($winners);
-
-        // Get items for current page
         $items = array_slice($winners, ($page - 1) * $perPage, $perPage);
-
-        // Create a paginator instance
         $paginator = new LengthAwarePaginator(
             $items,
             $total,
@@ -153,7 +133,6 @@ class WinnersReport extends Page
             $page,
             ['path' => request()->url(), 'query' => request()->query()]
         );
-
         $this->totalWinAmount = array_sum(array_column($winners, 'win_amount'));
         $this->totalWinners = count($winners);
         return $paginator;

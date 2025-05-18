@@ -93,27 +93,43 @@
                         @forelse ($this->winners as $winner)
                             <tr class="border-t hover:bg-gray-50">
                                 <!-- Identification columns first -->
-                                <td class="px-4 py-2 font-medium">{{ $winner['ticket_id'] }}</td>
-                                <td class="px-4 py-2">{{ \Carbon\Carbon::parse($winner['draw_date'])->format('F j, Y') }} at {{ $winner['draw_time'] }}</td>
+                                <td class="px-4 py-2 font-medium">{{ $winner['ticket_id'] ?? '-' }}</td>
+                                <td class="px-4 py-2">
+                                    @php
+                                        $drawDate = $winner['draw_date'] ?? null;
+                                        $drawTime = $winner['draw_time'] ?? null;
+                                    @endphp
+                                    @if($drawDate)
+                                        {{ \Carbon\Carbon::hasFormat($drawDate, 'Y-m-d') ? \Carbon\Carbon::parse($drawDate)->format('F j, Y') : $drawDate }}
+                                    @else
+                                        -
+                                    @endif
+                                    @if($drawTime)
+                                        at {{ $drawTime }}
+                                    @endif
+                                </td>
 
                                 <!-- Game details -->
-                                <td class="px-4 py-2">{{ $winner['game_type'] }}</td>
-                                <td class="px-4 py-2 font-medium">{{ $winner['bet_number'] }}</td>
-                                <td class="px-4 py-2 font-medium text-amber-600">{{ $winner['winning_number'] }}</td>
+                                <td class="px-4 py-2">{{ $winner['game_type'] ?? '-' }}</td>
+                                <td class="px-4 py-2 font-medium">{{ $winner['bet_number'] ?? '-' }}</td>
+                                <td class="px-4 py-2 font-medium text-amber-600">{{ $winner['winning_number'] ?? '-' }}</td>
 
                                 <!-- Financial/Status information -->
-                                <td class="px-4 py-2 font-medium text-green-600">₱{{ number_format($winner['win_amount'], 2) }}</td>
+                                <td class="px-4 py-2 font-medium text-green-600">
+                                    @php $amount = $winner['win_amount'] ?? 0; @endphp
+                                    ₱{{ is_numeric($amount) ? number_format($amount, 2) : '0.00' }}
+                                </td>
                                 <td class="px-4 py-2">
-                                    @if($winner['claim_status'] === 'Claimed')
+                                    @if(($winner['claim_status'] ?? '') === 'Claimed')
                                         <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Claimed</span>
                                     @else
                                         <span class="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">Pending</span>
                                     @endif
                                 </td>
-                                <td class="px-4 py-2">{{ $winner['claimed_at'] }}</td>
+                                <td class="px-4 py-2">{{ $winner['claimed_at'] ?? '-' }}</td>
 
                                 <!-- Additional information -->
-                                <td class="px-4 py-2">{{ $winner['teller_name'] }}</td>
+                                <td class="px-4 py-2">{{ $winner['teller_name'] ?? '-' }}</td>
                             </tr>
                         @empty
                             <tr>
