@@ -127,10 +127,11 @@ class Bet extends Model
                 $isWinner = $this->bet_number === $result->d4_winning_number;
 
                 if (!$isWinner && $this->d4_sub_selection) {
-                    if ($this->d4_sub_selection === 's2' && $result->s2_winning_number) {
+                    $sub = strtoupper($this->d4_sub_selection);
+                    if ($sub === 'S2' && $result->s2_winning_number) {
 
                         $isWinner = substr($this->bet_number, -2) === $result->s2_winning_number;
-                    } else if ($this->d4_sub_selection === 's3' && $result->s3_winning_number) {
+                    } else if ($sub === 'S3' && $result->s3_winning_number) {
 
                         $isWinner = substr($this->bet_number, -3) === $result->s3_winning_number;
                     }
