@@ -37,10 +37,10 @@
 
             <div class="flex items-center space-x-2">
                 <label for="selectedDate" class="text-sm font-medium">Select Date:</label>
-                <input 
-                    type="date" 
-                    wire:model.live="selectedDate" 
-                    id="selectedDate" 
+                <input
+                    type="date"
+                    wire:model.live="selectedDate"
+                    id="selectedDate"
                     class="border rounded px-2 py-1 text-sm focus:ring-amber-500 focus:border-amber-500"
                     value="{{ $selectedDate }}"
                 />
@@ -76,7 +76,7 @@
                             <th class="px-4 py-2 text-left font-medium text-gray-600">Draw Date & Time</th>
 
                             <!-- Game details -->
-                            <th class="px-4 py-2 text-left font-medium text-gray-600">Game Type</th>
+                            <th class="px-4 py-2 text-left font-medium text-gray-600">Bet Type</th>
                             <th class="px-4 py-2 text-left font-medium text-gray-600">Bet Number</th>
                             <th class="px-4 py-2 text-left font-medium text-gray-600">Winning Number</th>
 
@@ -110,7 +110,14 @@
                                 </td>
 
                                 <!-- Game details -->
-                                <td class="px-4 py-2">{{ $winner['game_type'] ?? '-' }}</td>
+                                <td class="px-4 py-2">
+    {{ $winner['game_type'] ?? '-' }}
+    @if(isset($winner['d4_sub_selection']) && $winner['d4_sub_selection'])
+        <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-700 border border-amber-300">
+            D4-{{ strtoupper($winner['d4_sub_selection']) }}
+        </span>
+    @endif
+</td>
                                 <td class="px-4 py-2 font-medium">{{ $winner['bet_number'] ?? '-' }}</td>
                                 <td class="px-4 py-2 font-medium text-amber-600">{{ $winner['winning_number'] ?? '-' }}</td>
 
