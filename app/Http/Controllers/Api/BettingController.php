@@ -58,7 +58,7 @@ class BettingController extends Controller
 
             DB::beginTransaction();
 
-            $ticketId = strtoupper(Str::random(10));
+            $ticketId = strtoupper(Str::random(6));
 
             // Calculate winning amount at time of placement
             $lowWin = \App\Models\LowWinNumber::where('game_type_id', $data['game_type_id'])
@@ -131,7 +131,7 @@ class BettingController extends Controller
 
 
         $date = $request->filled('date') ? $request->date : Carbon::today()->format('Y-m-d');
-        
+
         $query = Bet::with(['draw', 'customer', 'location', 'gameType'])
             ->where('teller_id', $user->id)
             ->whereDate('bet_date', $date)
@@ -219,7 +219,7 @@ class BettingController extends Controller
         $perPage = $validated['per_page'] ?? 20;
 
         $date = $request->filled('date') ? $request->date : Carbon::today()->format('Y-m-d');
-        
+
         $query = Bet::with(['draw', 'customer', 'location', 'gameType'])
             ->where('teller_id', $user->id)
             ->where('is_rejected', true)
@@ -369,7 +369,7 @@ class BettingController extends Controller
         // Get the results
         if ($request->boolean('all', false)) {
             $bets = $query->limit(1000)->get();
-            
+
             // Filter by is_winner if requested
             if ($request->filled('is_winner')) {
                 $isWinner = in_array($request->is_winner, ['true', '1']);
@@ -377,28 +377,28 @@ class BettingController extends Controller
                     return $bet->is_winner === $isWinner;
                 });
             }
-            
+
             return ApiResponse::success(BetResource::collection($bets), 'All claimed bets retrieved');
         } else {
             $bets = $query->paginate($perPage);
-            
+
             // Filter by is_winner if requested
             if ($request->filled('is_winner')) {
                 $isWinner = in_array($request->is_winner, ['true', '1']);
-                
-    
+
+
                 $filteredItems = $bets->getCollection()->filter(function($bet) use ($isWinner) {
                     return $bet->is_winner === $isWinner;
                 });
-                
-    
+
+
                 $bets->setCollection($filteredItems);
             }
-            
+
             return ApiResponse::paginated($bets, 'Claimed bets retrieved', BetResource::class);
         }
     }
-    
+
 
     public function listHitBets(Request $request)
     {
@@ -449,57 +449,57 @@ class BettingController extends Controller
         if ($request->boolean('all', false)) {
 
             $allBets = $query->limit(1000)->get();
-            
+
 
             $winningBets = $allBets->filter(function($bet) {
                 return $bet->isHit();
             });
-            
+
             return ApiResponse::success(BetResource::collection($winningBets), 'All winning bets retrieved');
         } else {
 
             $multiplier = 3;
             $extendedLimit = $perPage * $multiplier;
-            
+
             $page = $request->input('page', 1);
             $offset = ($page - 1) * $perPage;
-            
+
 
             $potentialBets = $query->skip($offset)->limit($extendedLimit)->get();
-            
+
 
             $winningBets = $potentialBets->filter(function($bet) {
                 return $bet->isHit();
             });
-            
+
 
             if ($winningBets->count() < $perPage && $potentialBets->count() >= $extendedLimit) {
 
                 $additionalBets = $query->skip($offset + $extendedLimit)->limit($extendedLimit)->get();
-                
+
                 $additionalWinners = $additionalBets->filter(function($bet) {
                     return $bet->isHit();
                 });
-                
+
 
                 $winningBets = $winningBets->merge($additionalWinners);
             }
-            
+
 
             $paginatedBets = $winningBets->take($perPage)->values();
-            
+
 
             $totalCount = $paginatedBets->count();
             if ($page == 1 && $paginatedBets->count() >= $perPage) {
 
                 $totalCount = $query->count();
-                
+
 
                 $winRate = $paginatedBets->count() / $potentialBets->count();
                 $estimatedTotal = ceil($totalCount * $winRate);
                 $totalCount = $estimatedTotal;
             }
-            
+
 
             $paginator = new \Illuminate\Pagination\LengthAwarePaginator(
                 $paginatedBets,
@@ -508,7 +508,7 @@ class BettingController extends Controller
                 $page,
                 ['path' => $request->url(), 'query' => $request->query()]
             );
-            
+
             return ApiResponse::paginated($paginator, 'Winning bets retrieved', BetResource::class);
         }
     }

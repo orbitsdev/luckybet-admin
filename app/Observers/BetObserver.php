@@ -13,10 +13,8 @@ class BetObserver
     public function creating(Bet $bet): void
     {
         if (empty($bet->ticket_id)) {
-            // Generate format: BET-YYYYMMDD-XXXXX (where X is random)
-            $date = now()->format('Ymd');
-            $random = str_pad(mt_rand(1, 99999), 5, '0', STR_PAD_LEFT);
-            $bet->ticket_id = "BET-{$date}-{$random}";
+            // Generate a random 6-character uppercase alphanumeric ticket ID
+            $bet->ticket_id = strtoupper(\Illuminate\Support\Str::random(6));
         }
     }
 }
