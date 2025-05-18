@@ -413,6 +413,7 @@ class BettingController extends Controller
             'search' => 'sometimes|string',
             'game_type_id' => 'sometimes|integer|exists:game_types,id',
             'is_claimed' => 'sometimes|string|in:true,false,0,1',
+            'd4_sub_selection' => 'sometimes|in:S2,S3',
         ]);
 
         $perPage = $validated['per_page'] ?? 20;
@@ -438,6 +439,9 @@ class BettingController extends Controller
             })
             ->when($request->filled('game_type_id'), function($q) use ($request) {
                 $q->where('game_type_id', $request->game_type_id);
+            })
+            ->when($request->filled('d4_sub_selection'), function($q) use ($request) {
+                $q->where('d4_sub_selection', $request->d4_sub_selection);
             })
             ->when($request->filled('is_claimed'), function($q) use ($request) {
                 $isClaimed = in_array($request->is_claimed, ['true', '1']);
