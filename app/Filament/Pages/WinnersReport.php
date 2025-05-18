@@ -97,6 +97,7 @@ class WinnersReport extends Page
                             'claim_status' => $claimStatus,
                             'claimed_at' => $claimedAt,
                             'teller_name' => $tellerName,
+                            'd4_sub_selection' => $bet->d4_sub_selection ?? null,
                         ];
                     }
                 } catch (\Throwable $e) {
