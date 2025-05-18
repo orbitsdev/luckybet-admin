@@ -591,7 +591,7 @@ class TellerReportController extends Controller
         ];
 
         return ApiResponse::success(
-            new CommissionReportResource($data),
+            new CommissionReportResource((object) $data),
             'Commission report generated successfully'
         );
     }
