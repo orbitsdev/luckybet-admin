@@ -38,12 +38,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/betting/claimed', [BettingController::class, 'listClaimedBets']);
     Route::get('/betting/hits', [BettingController::class, 'listHitBets']);
 
+
     // Reports
     Route::get('/reports/tallysheet', [TellerReportController::class, 'tallysheet']);
     Route::get('/reports/sales', [TellerReportController::class, 'sales']);
     Route::get('/reports/detailed-tallysheet', [TellerReportController::class, 'detailedTallysheet']);
     Route::get('/teller/today-sales', [TellerReportController::class, 'todaySales']);
     Route::get('/teller/detailed-tallysheet', [TellerReportController::class, 'detailedTallysheet']);
+    Route::get('/teller/commission-report', [TellerReportController::class, 'commissionReport']);
 });
 
 // Dropdown endpoints for frontend dropdowns and calendar

@@ -2,18 +2,19 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Bet;
 use App\Models\Draw;
 use App\Models\GameType;
 use App\Helpers\ApiResponse;
-use App\Http\Resources\TallysheetReportResource;
-use App\Http\Resources\TodaySalesResource;
-use App\Http\Resources\DetailedTallysheetResource;
+use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
+use App\Http\Resources\TodaySalesResource;
 use Illuminate\Pagination\LengthAwarePaginator;
+use App\Http\Resources\CommissionReportResource;
+use App\Http\Resources\TallysheetReportResource;
+use App\Http\Resources\DetailedTallysheetResource;
 
 class TellerReportController extends Controller
 {
@@ -554,6 +555,45 @@ class TellerReportController extends Controller
         } catch (\Exception $e) {
             return ApiResponse::error('Failed to retrieve detailed tally sheet: ' . $e->getMessage(), 500);
         }
+    }
+
+    /**
+     * Commission report for teller (by date, default today)
+     */
+    public function commissionReport(Request $request)
+    {
+        $validated = $request->validate([
+            'date' => 'sometimes|date_format:Y-m-d',
+        ]);
+
+        $user = $request->user();
+        $date = $validated['date'] ?? now()->toDateString();
+        $formattedDate = \Carbon\Carbon::parse($date)->format('F j, Y');
+
+        // Get commission rate (default 10%)
+        $commissionRate = $user->commission_rate ?? 10;
+
+        // Sum total sales for this teller and date (not rejected)
+        $totalSales = Bet::where('teller_id', $user->id)
+            ->whereDate('bet_date', $date)
+            ->where('is_rejected', false)
+            ->sum('amount');
+
+        // Calculate commission
+        $commissionAmount = $totalSales * ($commissionRate / 100);
+
+        $data = [
+            'date' => $date,
+            'date_formatted' => $formattedDate,
+            'commission_rate' => $commissionRate,
+            'total_sales' => $totalSales,
+            'commission_amount' => $commissionAmount,
+        ];
+
+        return ApiResponse::success(
+            new CommissionReportResource($data),
+            'Commission report generated successfully'
+        );
     }
 
 }
