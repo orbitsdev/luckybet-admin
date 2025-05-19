@@ -90,34 +90,38 @@ class BettingController extends Controller
         $parentAmount = ($isCombination && $hasSubtype && $hasCombinations) ? 0 : $data['amount'];
         $parentAmount = (int) $parentAmount; // Cast to integer
 
-        
         $parentGameTypeId = $data['game_type_id']; // Should be D4
-        // $lowWin = \App\Models\LowWinNumber::where('game_type_id', $parentGameTypeId)
-        //     ->where('amount', $parentAmount)
-        //     ->where(function ($q) use ($data) {
-        //         $q->whereNull('bet_number')
-        //             ->orWhere('bet_number', $data['bet_number']);
-        //     })
-        //     ->first();
-        // $winningAmount = $lowWin &&     ($lowWin->winning_amount)
-        //     ? $lowWin->winning_amount
-        //     : (\App\Models\WinningAmount::where('game_type_id', $parentGameTypeId)
-        //         ->where('amount', $parentAmount)
-        //         ->value('winning_amount'));
-
-        // if (is_null($winningAmount)) {
-        //     DB::rollBack();
-        //     return ApiResponse::error(
-        //         'Winning amount is not set for this game type and amount. Please contact admin.',
-        //         422
-        //     );
-        // }
+        $parentWinningAmount = null;
+        if (!($isCombination && $hasSubtype && $hasCombinations)) {
+            // Only calculate for non-combo parent bets
+            $lowWin = \App\Models\LowWinNumber::where('game_type_id', $parentGameTypeId)
+                ->where('amount', $parentAmount)
+                ->where(function ($q) use ($data) {
+                    $q->whereNull('bet_number')
+                        ->orWhere('bet_number', $data['bet_number']);
+                })
+                ->first();
+            if ($lowWin && !is_null($lowWin->winning_amount)) {
+                $parentWinningAmount = $lowWin->winning_amount;
+            } else {
+                $parentWinningAmount = \App\Models\WinningAmount::where('game_type_id', $parentGameTypeId)
+                    ->where('amount', $parentAmount)
+                    ->value('winning_amount');
+            }
+            if (is_null($parentWinningAmount)) {
+                DB::rollBack();
+                return ApiResponse::error(
+                    'Winning amount is not set for this bet type (' . (\App\Models\GameType::find($parentGameTypeId)?->code) . ') and amount. Please contact admin.',
+                    422
+                );
+            }
+        }
 
         // Create parent bet
         $parentBet = Bet::create([
             'bet_number' => $data['bet_number'],
             'amount' => $parentAmount,
-            'winning_amount' => null,
+            'winning_amount' => $parentWinningAmount,
             'draw_id' => $data['draw_id'],
             'game_type_id' => $data['game_type_id'],
             'teller_id' => $user->id,
@@ -130,10 +134,22 @@ class BettingController extends Controller
             'parent_id' => null,
         ]);
 
-            // If combination bet, create children
-            $childBets = [];
-            if ($isCombination && $hasSubtype && $hasCombinations) {
-                foreach ($data['combinations'] as $combo) {
+        // Collect all winning amounts for response clarity
+        $winningAmountsResponse = [];
+        if (!($isCombination && $hasSubtype && $hasCombinations)) {
+            $winningAmountsResponse[] = [
+                'bet_number' => $data['bet_number'],
+                'amount' => $parentAmount,
+                'winning_amount' => $parentWinningAmount,
+                'bet_type' => \App\Models\GameType::find($parentGameTypeId)?->code,
+                'type' => 'parent',
+            ];
+        }
+
+        // If combination bet, create children
+        $childBets = [];
+        if ($isCombination && $hasSubtype && $hasCombinations) {
+            foreach ($data['combinations'] as $comboIdx => $combo) {
                     // Generate unique ticket_id for each child bet
                     do {
                         $childTicketId = strtoupper(Str::random(6));
@@ -154,10 +170,34 @@ class BettingController extends Controller
                     }
                     $comboAmount = (int) $combo['amount']; // Cast to integer
 
+                    // WINNING AMOUNT LOOKUP FOR CHILD BETS
+                    $childWinningAmount = null;
+                    $lowWin = \App\Models\LowWinNumber::where('game_type_id', $childGameTypeId)
+                        ->where('amount', $comboAmount)
+                        ->where(function ($q) use ($combo) {
+                            $q->whereNull('bet_number')
+                                ->orWhere('bet_number', $combo['combination']);
+                        })
+                        ->first();
+                    if ($lowWin && !is_null($lowWin->winning_amount)) {
+                        $childWinningAmount = $lowWin->winning_amount;
+                    } else {
+                        $childWinningAmount = \App\Models\WinningAmount::where('game_type_id', $childGameTypeId)
+                            ->where('amount', $comboAmount)
+                            ->value('winning_amount');
+                    }
+                    if (is_null($childWinningAmount)) {
+                        DB::rollBack();
+                        return ApiResponse::error(
+                            'Winning amount is not set for combination child bet #' . ($comboIdx+1) . ' (bet_number: ' . $combo['combination'] . ', amount: ' . $comboAmount . ', bet_type: ' . (\App\Models\GameType::find($childGameTypeId)?->code) . '). Please contact admin.',
+                            422
+                        );
+                    }
+
                     $childBets[] = Bet::create([
                         'bet_number' => $combo['combination'],
                         'amount' => $comboAmount,
-                        'winning_amount' => null,
+                        'winning_amount' => $childWinningAmount,
                         'draw_id' => $data['draw_id'],
                         'game_type_id' => $childGameTypeId,
                         'teller_id' => $user->id,
@@ -169,14 +209,26 @@ class BettingController extends Controller
                         'd4_sub_selection' => $data['d4_sub_selection'] ?? null,
                         'parent_id' => $parentBet->id,
                     ]);
+
+                    $winningAmountsResponse[] = [
+                        'bet_number' => $combo['combination'],
+                        'amount' => $comboAmount,
+                        'winning_amount' => $childWinningAmount,
+                        'bet_type' => \App\Models\GameType::find($childGameTypeId)?->code,
+                        'type' => 'combination_child',
+                    ];
                 }
-            }
+        }
 
-            DB::commit();
+        DB::commit();
 
-            $parentBet->load(['combinations', 'draw', 'customer', 'location', 'gameType']);
+        $parentBet->load(['combinations', 'draw', 'customer', 'location', 'gameType']);
 
-            return ApiResponse::success(new BetResource($parentBet), 'Bet placed successfully');
+        // Return both parent and child bet winning amounts for UI
+        $response = new BetResource($parentBet);
+        $response->additional(['winning_amounts' => $winningAmountsResponse]);
+
+        return ApiResponse::success($response, 'Bet placed successfully');
         } catch (\Exception $e) {
             DB::rollBack();
             return ApiResponse::error('Failed to place bet: ' . $e->getMessage(), 500);
