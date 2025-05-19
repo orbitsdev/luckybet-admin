@@ -77,7 +77,9 @@ class BettingController extends Controller
 
             DB::beginTransaction();
 
-            $ticketId = strtoupper(Str::random(6));
+            do {
+    $ticketId = strtoupper(Str::random(6)); // 6 characters as requested
+} while (\App\Models\Bet::where('ticket_id', $ticketId)->exists());
 
 
             $isCombination = $data['is_combination'] ?? false;
