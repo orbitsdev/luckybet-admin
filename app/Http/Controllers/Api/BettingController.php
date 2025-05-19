@@ -23,7 +23,7 @@ class BettingController extends Controller
 
         $draws = Draw::where('draw_date', today())
             ->where('is_open', true)
-            ->where('draw_time', '>=', $now)
+            //->where('draw_time', '>=', $now)
             ->orderBy('draw_time')
             ->get();
 
@@ -86,7 +86,7 @@ class BettingController extends Controller
         $hasSubtype = !empty($data['d4_sub_selection']);
         $hasCombinations = isset($data['combinations']) && is_array($data['combinations']) && count($data['combinations']) > 0;
 
-       
+
         $parentAmount = ($isCombination && $hasSubtype && $hasCombinations) ? 0 : $data['amount'];
         $parentAmount = (int) $parentAmount; // Cast to integer
 
