@@ -79,13 +79,14 @@ class BettingController extends Controller
 
             $ticketId = strtoupper(Str::random(6));
 
-            // Combination bet logic
+           
             $isCombination = $data['is_combination'] ?? false;
             $hasSubtype = !empty($data['d4_sub_selection']);
             $hasCombinations = isset($data['combinations']) && is_array($data['combinations']) && count($data['combinations']) > 0;
 
             // If it's a combination bet with subtype and combinations, parent amount is 0
             $parentAmount = ($isCombination && $hasSubtype && $hasCombinations) ? 0 : $data['amount'];
+            $parentAmount = (int) $parentAmount; // Cast to integer
 
             // Calculate winning amount for parent
             $lowWin = \App\Models\LowWinNumber::where('game_type_id', $data['game_type_id'])
@@ -137,9 +138,10 @@ class BettingController extends Controller
                     } elseif ($hasSubtype && $data['d4_sub_selection'] === 'S3') {
                         $childGameTypeId = \App\Models\GameType::where('code', 'S3')->value('id');
                     }
+                    $comboAmount = (int) $combo['amount']; // Cast to integer
                     // Calculate winning amount for each child
                     $childLowWin = \App\Models\LowWinNumber::where('game_type_id', $childGameTypeId)
-                        ->where('amount', $combo['amount'])
+                        ->where('amount', $comboAmount)
                         ->where(function($q) use ($combo) {
                             $q->whereNull('bet_number')
                               ->orWhere('bet_number', $combo['combination']);
@@ -148,12 +150,12 @@ class BettingController extends Controller
                     $childWinningAmount = $childLowWin && isset($childLowWin->winning_amount)
                         ? $childLowWin->winning_amount
                         : (\App\Models\WinningAmount::where('game_type_id', $childGameTypeId)
-                            ->where('amount', $combo['amount'])
+                            ->where('amount', $comboAmount)
                             ->value('winning_amount'));
 
                     $childBets[] = Bet::create([
                         'bet_number' => $combo['combination'],
-                        'amount' => $combo['amount'],
+                        'amount' => $comboAmount,
                         'winning_amount' => $childWinningAmount,
                         'draw_id' => $data['draw_id'],
                         'game_type_id' => $childGameTypeId,
