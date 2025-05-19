@@ -130,8 +130,15 @@ class BettingController extends Controller
             $childBets = [];
             if ($isCombination && $hasSubtype && $hasCombinations) {
                 foreach ($data['combinations'] as $combo) {
+                    // Determine correct game_type_id for child (S2/S3 combos)
+                    $childGameTypeId = $data['game_type_id'];
+                    if ($hasSubtype && $data['d4_sub_selection'] === 'S2') {
+                        $childGameTypeId = \App\Models\GameType::where('code', 'S2')->value('id');
+                    } elseif ($hasSubtype && $data['d4_sub_selection'] === 'S3') {
+                        $childGameTypeId = \App\Models\GameType::where('code', 'S3')->value('id');
+                    }
                     // Calculate winning amount for each child
-                    $childLowWin = \App\Models\LowWinNumber::where('game_type_id', $data['game_type_id'])
+                    $childLowWin = \App\Models\LowWinNumber::where('game_type_id', $childGameTypeId)
                         ->where('amount', $combo['amount'])
                         ->where(function($q) use ($combo) {
                             $q->whereNull('bet_number')
@@ -140,7 +147,7 @@ class BettingController extends Controller
                         ->first();
                     $childWinningAmount = $childLowWin && isset($childLowWin->winning_amount)
                         ? $childLowWin->winning_amount
-                        : (\App\Models\WinningAmount::where('game_type_id', $data['game_type_id'])
+                        : (\App\Models\WinningAmount::where('game_type_id', $childGameTypeId)
                             ->where('amount', $combo['amount'])
                             ->value('winning_amount'));
 
@@ -149,7 +156,7 @@ class BettingController extends Controller
                         'amount' => $combo['amount'],
                         'winning_amount' => $childWinningAmount,
                         'draw_id' => $data['draw_id'],
-                        'game_type_id' => $data['game_type_id'],
+                        'game_type_id' => $childGameTypeId,
                         'teller_id' => $user->id,
                         'customer_id' => $data['customer_id'] ?? null,
                         'location_id' => $user->location_id,
