@@ -35,7 +35,24 @@ class BettingController extends Controller
     {
         $data = $request->validate([
             'bet_number' => 'required|string|max:5',
-            'amount' => 'required|numeric|min:1',
+            'amount' => [
+    'required',
+    'numeric',
+    function ($attribute, $value, $fail) use ($request) {
+        $isCombo = $request->is_combination ?? false;
+        $hasSubtype = !empty($request->d4_sub_selection);
+        $hasCombinations = isset($request->combinations) && is_array($request->combinations) && count($request->combinations) > 0;
+        if ($isCombo && $hasSubtype && $hasCombinations) {
+            if ($value != 0) {
+                $fail('The amount must be 0 for combination bets.');
+            }
+        } else {
+            if ($value < 1) {
+                $fail('The amount field must be at least 1.');
+            }
+        }
+    }
+],
             'draw_id' => 'required|exists:draws,id',
             'game_type_id' => 'required|exists:game_types,id',
             'customer_id' => 'nullable|exists:users,id',
