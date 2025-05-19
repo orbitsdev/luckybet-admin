@@ -116,7 +116,7 @@ class BettingController extends Controller
             $parentBet = Bet::create([
                 'bet_number' => $data['bet_number'],
                 'amount' => $parentAmount,
-                'winning_amount' => $winningAmount,
+                'winning_amount' => null,
                 'draw_id' => $data['draw_id'],
                 'game_type_id' => $data['game_type_id'],
                 'teller_id' => $user->id,
@@ -148,23 +148,23 @@ class BettingController extends Controller
                     }
                     $comboAmount = (int) $combo['amount']; // Cast to integer
                     // Calculate winning amount for each child (using correct game_type_id)
-                    $childLowWin = \App\Models\LowWinNumber::where('game_type_id', $childGameTypeId)
-                        ->where('amount', $comboAmount)
-                        ->where(function ($q) use ($combo) {
-                            $q->whereNull('bet_number')
-                                ->orWhere('bet_number', $combo['combination']);
-                        })
-                        ->first();
-                    $childWinningAmount = $childLowWin && isset($childLowWin->winning_amount)
-                        ? $childLowWin->winning_amount
-                        : (\App\Models\WinningAmount::where('game_type_id', $childGameTypeId)
-                            ->where('amount', $comboAmount)
-                            ->value('winning_amount'));
+                    // $childLowWin = \App\Models\LowWinNumber::where('game_type_id', $childGameTypeId)
+                    //     ->where('amount', $comboAmount)
+                    //     ->where(function ($q) use ($combo) {
+                    //         $q->whereNull('bet_number')
+                    //             ->orWhere('bet_number', $combo['combination']);
+                    //     })
+                    //     ->first();
+                    // $childWinningAmount = $childLowWin && isset($childLowWin->winning_amount)
+                    //     ? $childLowWin->winning_amount
+                    //     : (\App\Models\WinningAmount::where('game_type_id', $childGameTypeId)
+                    //         ->where('amount', $comboAmount)
+                    //         ->value('winning_amount'));
 
                     $childBets[] = Bet::create([
                         'bet_number' => $combo['combination'],
                         'amount' => $comboAmount,
-                        'winning_amount' => $childWinningAmount,
+                        'winning_amount' => null,
                         'draw_id' => $data['draw_id'],
                         'game_type_id' => $childGameTypeId,
                         'teller_id' => $user->id,
