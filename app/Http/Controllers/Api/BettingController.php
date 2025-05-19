@@ -41,6 +41,7 @@ class BettingController extends Controller
             'customer_id' => 'nullable|exists:users,id',
             'is_combination' => 'boolean',
             'd4_sub_selection' => 'nullable|in:S2,S3'
+            
         ]);
 
         $user = $request->user();
@@ -111,7 +112,7 @@ class BettingController extends Controller
             return ApiResponse::error('Failed to place bet: ' . $e->getMessage(), 500);
         }
     }
-
+//
 
     public function listBets(Request $request)
     {
