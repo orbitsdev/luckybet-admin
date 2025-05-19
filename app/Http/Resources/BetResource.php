@@ -77,16 +77,16 @@ class BetResource extends JsonResource
             $parentDrawTime = $this->parent->draw && isset($this->parent->draw->draw_time_simple)
                 ? $this->parent->draw->draw_time_simple
                 : ($this->parent->draw && isset($this->parent->draw->draw_time) ? date('ga', strtotime($this->parent->draw->draw_time)) : '');
-            return $parentDrawTime . 'D4-' . $code;
+            return strtoupper($parentDrawTime . 'D4-' . $code);
         }
 
         // If D4 with sub-selection
         if (($code === 'D4' || $code === '4D') && $d4Sub) {
-            return $drawTime . $code . '-' . strtoupper($d4Sub);
+            return strtoupper($drawTime . $code . '-' . $d4Sub);
         }
 
         // Default: just draw time + code
-        return $drawTime . $code;
+        return strtoupper($drawTime . $code);
     }
 }
 
