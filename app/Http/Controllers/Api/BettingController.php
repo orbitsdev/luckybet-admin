@@ -36,23 +36,23 @@ class BettingController extends Controller
         $data = $request->validate([
             'bet_number' => 'required|string|max:5',
             'amount' => [
-    'required',
-    'numeric',
-    function ($attribute, $value, $fail) use ($request) {
-        $isCombo = $request->is_combination ?? false;
-        $hasSubtype = !empty($request->d4_sub_selection);
-        $hasCombinations = isset($request->combinations) && is_array($request->combinations) && count($request->combinations) > 0;
-        if ($isCombo && $hasSubtype && $hasCombinations) {
-            if ($value != 0) {
-                $fail('The amount must be 0 for combination bets.');
-            }
-        } else {
-            if ($value < 1) {
-                $fail('The amount field must be at least 1.');
-            }
-        }
-    }
-],
+                'required',
+                'numeric',
+                function ($attribute, $value, $fail) use ($request) {
+                    $isCombo = $request->is_combination ?? false;
+                    $hasSubtype = !empty($request->d4_sub_selection);
+                    $hasCombinations = isset($request->combinations) && is_array($request->combinations) && count($request->combinations) > 0;
+                    if ($isCombo && $hasSubtype && $hasCombinations) {
+                        if ($value != 0) {
+                            $fail('The amount must be 0 for combination bets.');
+                        }
+                    } else {
+                        if ($value < 1) {
+                            $fail('The amount field must be at least 1.');
+                        }
+                    }
+                }
+            ],
             'draw_id' => 'required|exists:draws,id',
             'game_type_id' => 'required|exists:game_types,id',
             'customer_id' => 'nullable|exists:users,id',
@@ -79,7 +79,7 @@ class BettingController extends Controller
 
             $ticketId = strtoupper(Str::random(6));
 
-           
+
             $isCombination = $data['is_combination'] ?? false;
             $hasSubtype = !empty($data['d4_sub_selection']);
             $hasCombinations = isset($data['combinations']) && is_array($data['combinations']) && count($data['combinations']) > 0;
@@ -88,17 +88,19 @@ class BettingController extends Controller
             $parentAmount = ($isCombination && $hasSubtype && $hasCombinations) ? 0 : $data['amount'];
             $parentAmount = (int) $parentAmount; // Cast to integer
 
-            // Calculate winning amount for parent
-            $lowWin = \App\Models\LowWinNumber::where('game_type_id', $data['game_type_id'])
+            // --- PARENT BET: Always use D4 game type for payout lookup ---
+            // This assumes $data['game_type_id'] is D4 for parent bets
+            $parentGameTypeId = $data['game_type_id']; // Should be D4
+            $lowWin = \App\Models\LowWinNumber::where('game_type_id', $parentGameTypeId)
                 ->where('amount', $parentAmount)
-                ->where(function($q) use ($data) {
+                ->where(function ($q) use ($data) {
                     $q->whereNull('bet_number')
-                      ->orWhere('bet_number', $data['bet_number']);
+                        ->orWhere('bet_number', $data['bet_number']);
                 })
                 ->first();
-            $winningAmount = $lowWin && isset($lowWin->winning_amount)
+            $winningAmount = $lowWin &&     ($lowWin->winning_amount)
                 ? $lowWin->winning_amount
-                : (\App\Models\WinningAmount::where('game_type_id', $data['game_type_id'])
+                : (\App\Models\WinningAmount::where('game_type_id', $parentGameTypeId)
                     ->where('amount', $parentAmount)
                     ->value('winning_amount'));
 
@@ -131,20 +133,26 @@ class BettingController extends Controller
             $childBets = [];
             if ($isCombination && $hasSubtype && $hasCombinations) {
                 foreach ($data['combinations'] as $combo) {
-                    // Determine correct game_type_id for child (S2/S3 combos)
+                    // --- CHILD BETS: Use S2/S3 game type for payout lookup if sub-selection is S2/S3 ---
+                    // Default to parent game type, but override if S2/S3
                     $childGameTypeId = $data['game_type_id'];
                     if ($hasSubtype && $data['d4_sub_selection'] === 'S2') {
                         $childGameTypeId = \App\Models\GameType::where('code', 'S2')->value('id');
                     } elseif ($hasSubtype && $data['d4_sub_selection'] === 'S3') {
                         $childGameTypeId = \App\Models\GameType::where('code', 'S3')->value('id');
                     }
+                    // Extra check: fail if S2/S3 code not found
+                    if (!$childGameTypeId) {
+                        DB::rollBack();
+                        return ApiResponse::error('Game type for sub-selection not found.', 422);
+                    }
                     $comboAmount = (int) $combo['amount']; // Cast to integer
-                    // Calculate winning amount for each child
+                    // Calculate winning amount for each child (using correct game_type_id)
                     $childLowWin = \App\Models\LowWinNumber::where('game_type_id', $childGameTypeId)
                         ->where('amount', $comboAmount)
-                        ->where(function($q) use ($combo) {
+                        ->where(function ($q) use ($combo) {
                             $q->whereNull('bet_number')
-                              ->orWhere('bet_number', $combo['combination']);
+                                ->orWhere('bet_number', $combo['combination']);
                         })
                         ->first();
                     $childWinningAmount = $childLowWin && isset($childLowWin->winning_amount)
@@ -176,13 +184,12 @@ class BettingController extends Controller
             $parentBet->load(['combinations', 'draw', 'customer', 'location', 'gameType']);
 
             return ApiResponse::success(new BetResource($parentBet), 'Bet placed successfully');
-
         } catch (\Exception $e) {
             DB::rollBack();
             return ApiResponse::error('Failed to place bet: ' . $e->getMessage(), 500);
         }
     }
-//
+    //
 
     public function listBets(Request $request)
     {
@@ -216,11 +223,11 @@ class BettingController extends Controller
 
             ->when($request->filled('draw_id'), fn($q) => $q->where('draw_id', $request->draw_id))
             ->when($request->filled('game_type_id'), fn($q) => $q->where('game_type_id', $request->game_type_id))
-            ->when($request->filled('is_rejected'), function($q) use ($request) {
+            ->when($request->filled('is_rejected'), function ($q) use ($request) {
                 $value = filter_var($request->is_rejected, FILTER_VALIDATE_BOOLEAN);
                 $q->where('is_rejected', $value);
             })
-            ->when($request->filled('is_claimed'), function($q) use ($request) {
+            ->when($request->filled('is_claimed'), function ($q) use ($request) {
                 $value = filter_var($request->is_claimed, FILTER_VALIDATE_BOOLEAN);
                 $q->where('is_claimed', $value);
             })
@@ -267,7 +274,6 @@ class BettingController extends Controller
 
 
             return ApiResponse::success(null, 'Bet cancelled successfully');
-
         } catch (\Exception $e) {
             DB::rollBack();
             return ApiResponse::error('Failed to cancel bet: ' . $e->getMessage(), 500);
@@ -294,19 +300,19 @@ class BettingController extends Controller
         $query = Bet::with(['draw', 'customer', 'location', 'gameType'])
             ->where('teller_id', $user->id)
             ->where('is_rejected', true)
-            ->whereHas('draw', function($query) use ($date) {
+            ->whereHas('draw', function ($query) use ($date) {
                 $query->whereDate('draw_date', $date);
             })
             ->when($request->filled('search'), function ($q) use ($request) {
                 $q->where(function ($sub) use ($request) {
-                $sub->where('ticket_id', 'like', '%' . $request->search . '%')
+                    $sub->where('ticket_id', 'like', '%' . $request->search . '%')
                         ->orWhere('bet_number', 'like', '%' . $request->search . '%');
                 });
             })
-            ->when($request->filled('draw_id'), function($q) use ($request) {
+            ->when($request->filled('draw_id'), function ($q) use ($request) {
                 $q->where('draw_id', $request->draw_id);
             })
-            ->when($request->filled('game_type_id'), function($q) use ($request) {
+            ->when($request->filled('game_type_id'), function ($q) use ($request) {
                 $q->where('game_type_id', $request->game_type_id);
             })
             ->latest();
@@ -347,7 +353,6 @@ class BettingController extends Controller
             DB::commit();
 
             return ApiResponse::success(null, 'Bet cancelled successfully');
-
         } catch (\Exception $e) {
             DB::rollBack();
             return ApiResponse::error('Failed to cancel bet: ' . $e->getMessage(), 500);
@@ -386,7 +391,6 @@ class BettingController extends Controller
             DB::commit();
 
             return ApiResponse::success(null, 'Bet claimed successfully');
-
         } catch (\Exception $e) {
             DB::rollBack();
             return ApiResponse::error('Failed to claim bet: ' . $e->getMessage(), 500);
@@ -422,17 +426,17 @@ class BettingController extends Controller
                         ->orWhere('bet_number', 'like', '%' . $request->search . '%');
                 });
             })
-            ->when($request->filled('date'), function($q) use ($request) {
+            ->when($request->filled('date'), function ($q) use ($request) {
 
                 $q->whereDate('claimed_at', $request->date);
-            }, function($q) {
+            }, function ($q) {
 
                 $q->whereDate('claimed_at', today()->toDateString());
             })
-            ->when($request->filled('draw_id'), function($q) use ($request) {
+            ->when($request->filled('draw_id'), function ($q) use ($request) {
                 $q->where('draw_id', $request->draw_id);
             })
-            ->when($request->filled('game_type_id'), function($q) use ($request) {
+            ->when($request->filled('game_type_id'), function ($q) use ($request) {
                 $q->where('game_type_id', $request->game_type_id);
             })
             ->latest();
@@ -444,7 +448,7 @@ class BettingController extends Controller
             // Filter by is_winner if requested
             if ($request->filled('is_winner')) {
                 $isWinner = in_array($request->is_winner, ['true', '1']);
-                $bets = $bets->filter(function($bet) use ($isWinner) {
+                $bets = $bets->filter(function ($bet) use ($isWinner) {
                     return $bet->is_winner === $isWinner;
                 });
             }
@@ -458,7 +462,7 @@ class BettingController extends Controller
                 $isWinner = in_array($request->is_winner, ['true', '1']);
 
 
-                $filteredItems = $bets->getCollection()->filter(function($bet) use ($isWinner) {
+                $filteredItems = $bets->getCollection()->filter(function ($bet) use ($isWinner) {
                     return $bet->is_winner === $isWinner;
                 });
 
@@ -495,7 +499,7 @@ class BettingController extends Controller
             ->where('teller_id', $user->id)
             ->where('is_rejected', false)
             ->whereDate('bet_date', $date)
-            ->whereHas('draw', function($q) {
+            ->whereHas('draw', function ($q) {
 
                 $q->whereHas('result');
             })
@@ -505,16 +509,16 @@ class BettingController extends Controller
                         ->orWhere('bet_number', 'like', '%' . $request->search . '%');
                 });
             })
-            ->when($request->filled('draw_id'), function($q) use ($request) {
+            ->when($request->filled('draw_id'), function ($q) use ($request) {
                 $q->where('draw_id', $request->draw_id);
             })
-            ->when($request->filled('game_type_id'), function($q) use ($request) {
+            ->when($request->filled('game_type_id'), function ($q) use ($request) {
                 $q->where('game_type_id', $request->game_type_id);
             })
-            ->when($request->filled('d4_sub_selection'), function($q) use ($request) {
+            ->when($request->filled('d4_sub_selection'), function ($q) use ($request) {
                 $q->where('d4_sub_selection', $request->d4_sub_selection);
             })
-            ->when($request->filled('is_claimed'), function($q) use ($request) {
+            ->when($request->filled('is_claimed'), function ($q) use ($request) {
                 $isClaimed = in_array($request->is_claimed, ['true', '1']);
                 $q->where('is_claimed', $isClaimed);
             })
@@ -526,7 +530,7 @@ class BettingController extends Controller
             $allBets = $query->limit(1000)->get();
 
 
-            $winningBets = $allBets->filter(function($bet) {
+            $winningBets = $allBets->filter(function ($bet) {
                 return $bet->isHit();
             });
 
@@ -543,7 +547,7 @@ class BettingController extends Controller
             $potentialBets = $query->skip($offset)->limit($extendedLimit)->get();
 
 
-            $winningBets = $potentialBets->filter(function($bet) {
+            $winningBets = $potentialBets->filter(function ($bet) {
                 return $bet->isHit();
             });
 
@@ -552,7 +556,7 @@ class BettingController extends Controller
 
                 $additionalBets = $query->skip($offset + $extendedLimit)->limit($extendedLimit)->get();
 
-                $additionalWinners = $additionalBets->filter(function($bet) {
+                $additionalWinners = $additionalBets->filter(function ($bet) {
                     return $bet->isHit();
                 });
 
@@ -587,5 +591,4 @@ class BettingController extends Controller
             return ApiResponse::paginated($paginator, 'Winning bets retrieved', BetResource::class);
         }
     }
-
 }
