@@ -19,6 +19,8 @@ class BetResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
+            // ...existing fields...
+            'bet_type_draw_label' => $this->getBetTypeDrawLabel(),
             'id' => $this->id,
             'ticket_id' => $this->ticket_id,
             'bet_number' => $this->bet_number,
@@ -58,6 +60,33 @@ class BetResource extends JsonResource
             'customer' => $this->when($this->customer_id, new UserResource($this->whenLoaded('customer'))),
         ];
     }
-}
+    /**
+     * Compute the bet type draw label for frontend display.
+     */
+    private function getBetTypeDrawLabel()
+    {
+        // Draw time (e.g., 9PM)
+        $drawTime = $this->draw && isset($this->draw->draw_time_simple)
+            ? $this->draw->draw_time_simple
+            : ($this->draw && isset($this->draw->draw_time) ? date('ga', strtotime($this->draw->draw_time)) : '');
+        $code = $this->gameType && isset($this->gameType->code) ? strtoupper($this->gameType->code) : '';
+        $d4Sub = $this->d4_sub_selection;
 
+        // If S2/S3 with a parent that is D4, use parent's draw time and D4 label
+        if (($code === 'S2' || $code === 'S3') && $this->parent_id && $this->parent && $this->parent->gameType && strtoupper($this->parent->gameType->code) === 'D4') {
+            $parentDrawTime = $this->parent->draw && isset($this->parent->draw->draw_time_simple)
+                ? $this->parent->draw->draw_time_simple
+                : ($this->parent->draw && isset($this->parent->draw->draw_time) ? date('ga', strtotime($this->parent->draw->draw_time)) : '');
+            return $parentDrawTime . 'D4-' . $code;
+        }
+
+        // If D4 with sub-selection
+        if (($code === 'D4' || $code === '4D') && $d4Sub) {
+            return $drawTime . $code . '-' . strtoupper($d4Sub);
+        }
+
+        // Default: just draw time + code
+        return $drawTime . $code;
+    }
+}
 

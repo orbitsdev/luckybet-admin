@@ -40,8 +40,10 @@ class BettingController extends Controller
             'game_type_id' => 'required|exists:game_types,id',
             'customer_id' => 'nullable|exists:users,id',
             'is_combination' => 'boolean',
-            'd4_sub_selection' => 'nullable|in:S2,S3'
-            
+            'd4_sub_selection' => 'nullable|in:S2,S3',
+            'combinations' => 'nullable|array',
+            'combinations.*.combination' => 'required_with:combinations|string|max:5',
+            'combinations.*.amount' => 'required_with:combinations|numeric|min:1',
         ]);
 
         $user = $request->user();
@@ -51,7 +53,6 @@ class BettingController extends Controller
         }
 
         try {
-
             $draw = Draw::findOrFail($data['draw_id']);
             if (!$draw->is_open) {
                 return ApiResponse::error('This draw is no longer accepting bets', 422);
@@ -61,9 +62,17 @@ class BettingController extends Controller
 
             $ticketId = strtoupper(Str::random(6));
 
-            // Calculate winning amount at time of placement
+            // Combination bet logic
+            $isCombination = $data['is_combination'] ?? false;
+            $hasSubtype = !empty($data['d4_sub_selection']);
+            $hasCombinations = isset($data['combinations']) && is_array($data['combinations']) && count($data['combinations']) > 0;
+
+            // If it's a combination bet with subtype and combinations, parent amount is 0
+            $parentAmount = ($isCombination && $hasSubtype && $hasCombinations) ? 0 : $data['amount'];
+
+            // Calculate winning amount for parent
             $lowWin = \App\Models\LowWinNumber::where('game_type_id', $data['game_type_id'])
-                ->where('amount', $data['amount'])
+                ->where('amount', $parentAmount)
                 ->where(function($q) use ($data) {
                     $q->whereNull('bet_number')
                       ->orWhere('bet_number', $data['bet_number']);
@@ -72,7 +81,7 @@ class BettingController extends Controller
             $winningAmount = $lowWin && isset($lowWin->winning_amount)
                 ? $lowWin->winning_amount
                 : (\App\Models\WinningAmount::where('game_type_id', $data['game_type_id'])
-                    ->where('amount', $data['amount'])
+                    ->where('amount', $parentAmount)
                     ->value('winning_amount'));
 
             if (is_null($winningAmount)) {
@@ -83,9 +92,10 @@ class BettingController extends Controller
                 );
             }
 
-            $bet = Bet::create([
+            // Create parent bet
+            $parentBet = Bet::create([
                 'bet_number' => $data['bet_number'],
-                'amount' => $data['amount'],
+                'amount' => $parentAmount,
                 'winning_amount' => $winningAmount,
                 'draw_id' => $data['draw_id'],
                 'game_type_id' => $data['game_type_id'],
@@ -94,21 +104,55 @@ class BettingController extends Controller
                 'location_id' => $user->location_id,
                 'bet_date' => today(),
                 'ticket_id' => $ticketId,
-                'is_combination' => $data['is_combination'] ?? false,
-                'd4_sub_selection' => $data['d4_sub_selection'] ?? null
+                'is_combination' => $isCombination,
+                'd4_sub_selection' => $data['d4_sub_selection'] ?? null,
+                'parent_id' => null,
             ]);
 
-        DB::commit();
+            // If combination bet, create children
+            $childBets = [];
+            if ($isCombination && $hasSubtype && $hasCombinations) {
+                foreach ($data['combinations'] as $combo) {
+                    // Calculate winning amount for each child
+                    $childLowWin = \App\Models\LowWinNumber::where('game_type_id', $data['game_type_id'])
+                        ->where('amount', $combo['amount'])
+                        ->where(function($q) use ($combo) {
+                            $q->whereNull('bet_number')
+                              ->orWhere('bet_number', $combo['combination']);
+                        })
+                        ->first();
+                    $childWinningAmount = $childLowWin && isset($childLowWin->winning_amount)
+                        ? $childLowWin->winning_amount
+                        : (\App\Models\WinningAmount::where('game_type_id', $data['game_type_id'])
+                            ->where('amount', $combo['amount'])
+                            ->value('winning_amount'));
 
+                    $childBets[] = Bet::create([
+                        'bet_number' => $combo['combination'],
+                        'amount' => $combo['amount'],
+                        'winning_amount' => $childWinningAmount,
+                        'draw_id' => $data['draw_id'],
+                        'game_type_id' => $data['game_type_id'],
+                        'teller_id' => $user->id,
+                        'customer_id' => $data['customer_id'] ?? null,
+                        'location_id' => $user->location_id,
+                        'bet_date' => today(),
+                        'ticket_id' => $ticketId,
+                        'is_combination' => false, // only parent has this
+                        'd4_sub_selection' => $data['d4_sub_selection'] ?? null,
+                        'parent_id' => $parentBet->id,
+                    ]);
+                }
+            }
 
-            $bet->load(['draw', 'customer', 'location', 'gameType']);
+            DB::commit();
 
+            $parentBet->load(['combinations', 'draw', 'customer', 'location', 'gameType']);
 
-            return ApiResponse::success(new BetResource($bet), 'Bet placed successfully');
+            return ApiResponse::success(new BetResource($parentBet), 'Bet placed successfully');
 
         } catch (\Exception $e) {
             DB::rollBack();
-
             return ApiResponse::error('Failed to place bet: ' . $e->getMessage(), 500);
         }
     }

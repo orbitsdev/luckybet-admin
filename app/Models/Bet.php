@@ -34,6 +34,7 @@ class Bet extends Model
         'is_rejected',    // boolean, default false
         'is_combination', // true/false
         'd4_sub_selection', // enum: 's2' or 's3' for D4 game type
+        'parent_id', // nullable, for nested combos
     ];
 
     protected $casts = [
@@ -86,6 +87,22 @@ class Bet extends Model
     public function commission()
     {
         return $this->hasOne(Commission::class, 'bet_id');
+    }
+
+    /**
+     * Child bets (combinations) for this bet.
+     */
+    public function combinations()
+    {
+        return $this->hasMany(Bet::class, 'parent_id');
+    }
+
+    /**
+     * Parent bet (if this is a combination/child bet).
+     */
+    public function parent()
+    {
+        return $this->belongsTo(Bet::class, 'parent_id');
     }
 
     /**
