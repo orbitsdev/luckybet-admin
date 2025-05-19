@@ -92,30 +92,29 @@ class BettingController extends Controller
 
         $parentGameTypeId = $data['game_type_id']; // Should be D4
         $parentWinningAmount = null;
-        if (!($isCombination && $hasSubtype && $hasCombinations)) {
-            // Only calculate for non-combo parent bets
-            $lowWin = \App\Models\LowWinNumber::where('game_type_id', $parentGameTypeId)
+        // Always calculate the parent winning amount, even for combination bets
+        $lowWin = \App\Models\LowWinNumber::where('game_type_id', $parentGameTypeId)
+            ->where('amount', $parentAmount)
+            ->where(function ($q) use ($data) {
+                $q->whereNull('bet_number')
+                    ->orWhere('bet_number', $data['bet_number']);
+            })
+            ->first();
+        if ($lowWin && !is_null($lowWin->winning_amount)) {
+            $parentWinningAmount = $lowWin->winning_amount;
+        } else {
+            $parentWinningAmount = \App\Models\WinningAmount::where('game_type_id', $parentGameTypeId)
                 ->where('amount', $parentAmount)
-                ->where(function ($q) use ($data) {
-                    $q->whereNull('bet_number')
-                        ->orWhere('bet_number', $data['bet_number']);
-                })
-                ->first();
-            if ($lowWin && !is_null($lowWin->winning_amount)) {
-                $parentWinningAmount = $lowWin->winning_amount;
-            } else {
-                $parentWinningAmount = \App\Models\WinningAmount::where('game_type_id', $parentGameTypeId)
-                    ->where('amount', $parentAmount)
-                    ->value('winning_amount');
-            }
-            if (is_null($parentWinningAmount)) {
-                DB::rollBack();
-                return ApiResponse::error(
-                    'Winning amount is not set for this bet type (' . (\App\Models\GameType::find($parentGameTypeId)?->code) . ') and amount. Please contact admin.',
-                    422
-                );
-            }
+                ->value('winning_amount');
         }
+        if (is_null($parentWinningAmount)) {
+            DB::rollBack();
+            return ApiResponse::error(
+                'Winning amount is not set for this bet type (' . (\App\Models\GameType::find($parentGameTypeId)?->code) . ') and amount. Please contact admin.',
+                422
+            );
+        }
+
 
         // Create parent bet
         $parentBet = Bet::create([
