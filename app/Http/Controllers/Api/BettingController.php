@@ -91,26 +91,26 @@ class BettingController extends Controller
             // --- PARENT BET: Always use D4 game type for payout lookup ---
             // This assumes $data['game_type_id'] is D4 for parent bets
             $parentGameTypeId = $data['game_type_id']; // Should be D4
-            $lowWin = \App\Models\LowWinNumber::where('game_type_id', $parentGameTypeId)
-                ->where('amount', $parentAmount)
-                ->where(function ($q) use ($data) {
-                    $q->whereNull('bet_number')
-                        ->orWhere('bet_number', $data['bet_number']);
-                })
-                ->first();
-            $winningAmount = $lowWin &&     ($lowWin->winning_amount)
-                ? $lowWin->winning_amount
-                : (\App\Models\WinningAmount::where('game_type_id', $parentGameTypeId)
-                    ->where('amount', $parentAmount)
-                    ->value('winning_amount'));
+            // $lowWin = \App\Models\LowWinNumber::where('game_type_id', $parentGameTypeId)
+            //     ->where('amount', $parentAmount)
+            //     ->where(function ($q) use ($data) {
+            //         $q->whereNull('bet_number')
+            //             ->orWhere('bet_number', $data['bet_number']);
+            //     })
+            //     ->first();
+            // $winningAmount = $lowWin &&     ($lowWin->winning_amount)
+            //     ? $lowWin->winning_amount
+            //     : (\App\Models\WinningAmount::where('game_type_id', $parentGameTypeId)
+            //         ->where('amount', $parentAmount)
+            //         ->value('winning_amount'));
 
-            if (is_null($winningAmount)) {
-                DB::rollBack();
-                return ApiResponse::error(
-                    'Winning amount is not set for this game type and amount. Please contact admin.',
-                    422
-                );
-            }
+            // if (is_null($winningAmount)) {
+            //     DB::rollBack();
+            //     return ApiResponse::error(
+            //         'Winning amount is not set for this game type and amount. Please contact admin.',
+            //         422
+            //     );
+            // }
 
             // Create parent bet
             $parentBet = Bet::create([
