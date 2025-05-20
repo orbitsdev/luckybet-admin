@@ -60,7 +60,7 @@ class BettingController extends Controller
 
             $ticketId = strtoupper(Str::random(6));
 
-            // Calculate winning amount at time of placement
+         
             $lowWin = \App\Models\LowWinNumber::where('game_type_id', $data['game_type_id'])
                 ->where('amount', $data['amount'])
                 ->where(function($q) use ($data) {
