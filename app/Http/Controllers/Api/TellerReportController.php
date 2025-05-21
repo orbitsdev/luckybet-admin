@@ -49,17 +49,11 @@ class TellerReportController extends Controller
         // Aggregate per-draw
         $perDraw = $draws->map(function ($draw) use ($bets) {
             $drawBets = $bets->where('draw_id', $draw->id);
-            $gross = $drawBets->sum('amount');
-
-            $sales = $drawBets->where('is_rejected', false)->sum('amount');
-
-            // Get the result for this draw
+            // Calculate gross as sum of winning_amount for all winning bets (with D4-S2/S3 logic)
+            $gross = 0;
             $result = $draw->result;
-
-            // Calculate hits using the same logic as in the sales report (sum winning_amount for all winning bets, including D4-S2 and D4-S3)
-            $hits = 0;
             if ($result) {
-                $hits = $drawBets->filter(function($bet) use ($result) {
+                $gross = $drawBets->filter(function($bet) use ($result) {
                     $gameTypeCode = $bet->gameType->code ?? '';
                     if ($gameTypeCode === 'S2' && !empty($result->s2_winning_number)) {
                         return $bet->bet_number === $result->s2_winning_number;
@@ -77,7 +71,12 @@ class TellerReportController extends Controller
                     return false;
                 })->sum('winning_amount');
             }
-            $kabig = $gross - $hits;
+
+            $sales = $drawBets->where('is_rejected', false)->sum('amount');
+
+            // Calculate hits using the same logic as in the sales report (sum winning_amount for all winning bets, including D4-S2 and D4-S3)
+            $hits = $gross;
+            $kabig = $sales - $gross;
 
             // Format draw time for better readability
             $formattedTime = Carbon::parse($draw->draw_time)->format('h:i A');
@@ -113,14 +112,12 @@ class TellerReportController extends Controller
         });
 
         // Overall totals
-        $gross = $bets->sum('amount');
-        $sales = $bets->where('is_rejected', false)->sum('amount');
-        // Calculate total hits using the same logic as per-draw: sum winning_amount for all winning bets, including D4-S2 and D4-S3 logic
-        $hits = 0;
+        // Calculate gross as sum of winning_amount for all winning bets (with D4-S2/S3 logic)
+        $gross = 0;
         foreach ($draws as $draw) {
             $result = $draw->result;
             if ($result) {
-                $hits += $bets->where('draw_id', $draw->id)
+                $gross += $bets->where('draw_id', $draw->id)
                     ->filter(function($bet) use ($result) {
                         $gameTypeCode = $bet->gameType->code ?? '';
                         if ($gameTypeCode === 'S2' && !empty($result->s2_winning_number)) {
@@ -140,7 +137,9 @@ class TellerReportController extends Controller
                     })->sum('winning_amount');
             }
         }
-        $kabig = $gross - $hits;
+        $sales = $bets->where('is_rejected', false)->sum('amount');
+        $hits = $gross;
+        $kabig = $sales - $gross;
         $voided = $bets->where('is_rejected', true)->sum('amount');
 
         $formattedDate = Carbon::parse($date)->format('F j, Y');
