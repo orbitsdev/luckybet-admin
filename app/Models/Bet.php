@@ -126,18 +126,19 @@ class Bet extends Model
 
                 $isWinner = $this->bet_number === $result->d4_winning_number;
 
-                if (!$isWinner && $this->d4_sub_selection) {
-                    $sub = strtoupper($this->d4_sub_selection);
-                    if ($sub === 'S2' && $result->s2_winning_number) {
-
-                        $isWinner = substr($this->bet_number, -2) === $result->s2_winning_number;
-                    } else if ($sub === 'S3' && $result->s3_winning_number) {
-
-                        $isWinner = substr($this->bet_number, -3) === $result->s3_winning_number;
-                    }
+            // D4 sub-selection logic: compare to last 2/3 digits of D4 result, not S2/S3 result fields
+            if (!$isWinner && $this->d4_sub_selection && $result->d4_winning_number) {
+                $sub = strtoupper($this->d4_sub_selection);
+                if ($sub === 'S2') {
+                    // Compare last 2 digits of D4 result to bet number (pad bet number to 2 digits)
+                    $isWinner = substr($result->d4_winning_number, -2) === str_pad($this->bet_number, 2, '0', STR_PAD_LEFT);
+                } else if ($sub === 'S3') {
+                    // Compare last 3 digits of D4 result to bet number (pad bet number to 3 digits)
+                    $isWinner = substr($result->d4_winning_number, -3) === str_pad($this->bet_number, 3, '0', STR_PAD_LEFT);
                 }
+            }
 
-                return $isWinner;
+            return $isWinner;
 
             default:
                 return false;
