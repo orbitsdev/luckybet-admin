@@ -35,57 +35,114 @@ class TellerReportController extends Controller
         $locationId = $validated['location_id'] ?? null;
         $drawId = $validated['draw_id'] ?? null;
 
-        // Build SQL and params
-        $where = "WHERE DATE(b.bet_date) = ?";
-        $params = [$date];
-        if ($tellerId) {
-            $where .= " AND b.teller_id = ?";
-            $params[] = $tellerId;
-        }
-        if ($locationId) {
-            $where .= " AND b.location_id = ?";
-            $params[] = $locationId;
-        }
-        if ($drawId) {
-            $where .= " AND d.id = ?";
-            $params[] = $drawId;
-        }
+        // Query all draws for the date (optionally filter by draw_id)
+        $drawsQuery = Draw::where('draw_date', $date);
+        if ($drawId) $drawsQuery->where('id', $drawId);
+        $draws = $drawsQuery->get();
 
-        $sql = "
-            SELECT
-                d.id as draw_id,
-                d.draw_time as draw_time,
-                gt.code as game_type_code,
-                gt.name as game_type_name,
-                CASE
-                    WHEN gt.code = 'S2' THEN r.s2_winning_number
-                    WHEN gt.code = 'S3' THEN r.s3_winning_number
-                    WHEN gt.code = 'D4' THEN r.d4_winning_number
-                    ELSE NULL
-                END as winning_number,
-                SUM(CASE WHEN b.is_rejected = 0 THEN b.amount ELSE 0 END) as sales,
-                SUM(CASE
-                    WHEN gt.code = 'S2' AND b.bet_number = r.s2_winning_number THEN COALESCE(b.winning_amount, 0)
-                    WHEN gt.code = 'S3' AND b.bet_number = r.s3_winning_number THEN COALESCE(b.winning_amount, 0)
-                    -- D4 pure
-                    WHEN gt.code = 'D4' AND (b.d4_sub_selection IS NULL OR b.d4_sub_selection = '') AND b.bet_number = r.d4_winning_number THEN COALESCE(b.winning_amount, 0)
-                    -- D4-S2: last 2 digits
-                    WHEN gt.code = 'D4' AND b.d4_sub_selection = 'S2' AND RIGHT(r.d4_winning_number, 2) = LPAD(b.bet_number, 2, '0') THEN COALESCE(b.winning_amount, 0)
-                    -- D4-S3: last 3 digits
-                    WHEN gt.code = 'D4' AND b.d4_sub_selection = 'S3' AND RIGHT(r.d4_winning_number, 3) = LPAD(b.bet_number, 3, '0') THEN COALESCE(b.winning_amount, 0)
-                    ELSE 0
-                END) as gross,
-                COUNT(CASE WHEN b.is_rejected = 1 THEN 1 END) as voided
-            FROM bets b
-            JOIN draws d ON b.draw_id = d.id
-            JOIN game_types gt ON b.game_type_id = gt.id
-            LEFT JOIN results r ON r.draw_date = d.draw_date AND r.draw_time = d.draw_time
-            $where
-            GROUP BY d.id, d.draw_time, gt.code, gt.name, r.s2_winning_number, r.s3_winning_number, r.d4_winning_number
-            ORDER BY d.draw_time ASC
-        ";
+        // Query all bets for the date (optionally filter by teller/location)
+        $betsQuery = Bet::whereDate('bet_date', $date);
+        if ($tellerId) $betsQuery->where('teller_id', $tellerId);
+        if ($locationId) $betsQuery->where('location_id', $locationId);
+        $bets = $betsQuery->get();
 
-        $drawSummary = DB::select($sql, $params);
+        // Aggregate per-draw
+        $perDraw = $draws->map(function ($draw) use ($bets) {
+            $drawBets = $bets->where('draw_id', $draw->id);
+            // Calculate gross as sum of winning_amount for all winning bets (with D4-S2/S3 logic)
+            $gross = 0;
+            $result = $draw->result;
+            if ($result) {
+                $gross = $drawBets->filter(function($bet) use ($result) {
+                    $gameTypeCode = $bet->gameType->code ?? '';
+                    if ($gameTypeCode === 'S2' && !empty($result->s2_winning_number)) {
+                        return $bet->bet_number === $result->s2_winning_number;
+                    } elseif ($gameTypeCode === 'S3' && !empty($result->s3_winning_number)) {
+                        return $bet->bet_number === $result->s3_winning_number;
+                    } elseif ($gameTypeCode === 'D4' && !empty($result->d4_winning_number)) {
+                        if ($bet->d4_sub_selection === 'S2') {
+                            return substr($result->d4_winning_number, -2) === str_pad($bet->bet_number, 2, '0', STR_PAD_LEFT);
+                        } elseif ($bet->d4_sub_selection === 'S3') {
+                            return substr($result->d4_winning_number, -3) === str_pad($bet->bet_number, 3, '0', STR_PAD_LEFT);
+                        } else {
+                            return $bet->bet_number === $result->d4_winning_number;
+                        }
+                    }
+                    return false;
+                })->sum('winning_amount');
+            }
+
+            $sales = $drawBets->where('is_rejected', false)->sum('amount');
+
+            // Calculate hits using the same logic as in the sales report (sum winning_amount for all winning bets, including D4-S2 and D4-S3)
+            $hits = $gross;
+            $kabig = $sales - $gross;
+
+            // Format draw time for better readability
+            $formattedTime = Carbon::parse($draw->draw_time)->format('h:i A');
+
+            // Helper function to format numbers - only show decimal places if needed
+            $formatNumber = function($value) {
+                // Check if the value has decimal places
+                if (floor($value) == $value) {
+                    // No decimal places needed
+                    return number_format($value, 0);
+                } else {
+                    // Has decimal places, format with 2 decimal places
+                    return number_format($value, 2);
+                }
+            };
+
+            return [
+                'draw_id' => $draw->id,
+                'type' => $draw->type ?? null,
+                'winning_number' => $draw->winning_number ?? null, // If available on the Draw model
+                'draw_time' => $draw->draw_time,
+                'draw_time_formatted' => $formattedTime,
+                'draw_label' => "Draw #{$draw->id}: {$formattedTime}",
+                'gross' => $gross,
+                'gross_formatted' => $formatNumber($gross),
+                'sales' => $sales,
+                'sales_formatted' => $formatNumber($sales),
+                'hits' => $hits,
+                'hits_formatted' => $formatNumber($hits),
+                'kabig' => $kabig,
+                'kabig_formatted' => $formatNumber($kabig),
+            ];
+        });
+
+        // Overall totals
+        // Calculate gross as sum of winning_amount for all winning bets (with D4-S2/S3 logic)
+        $gross = 0;
+        foreach ($draws as $draw) {
+            $result = $draw->result;
+            if ($result) {
+                $gross += $bets->where('draw_id', $draw->id)
+                    ->filter(function($bet) use ($result) {
+                        $gameTypeCode = $bet->gameType->code ?? '';
+                        if ($gameTypeCode === 'S2' && !empty($result->s2_winning_number)) {
+                            return $bet->bet_number === $result->s2_winning_number;
+                        } elseif ($gameTypeCode === 'S3' && !empty($result->s3_winning_number)) {
+                            return $bet->bet_number === $result->s3_winning_number;
+                        } elseif ($gameTypeCode === 'D4' && !empty($result->d4_winning_number)) {
+                            if ($bet->d4_sub_selection === 'S2') {
+                                return substr($result->d4_winning_number, -2) === str_pad($bet->bet_number, 2, '0', STR_PAD_LEFT);
+                            } elseif ($bet->d4_sub_selection === 'S3') {
+                                return substr($result->d4_winning_number, -3) === str_pad($bet->bet_number, 3, '0', STR_PAD_LEFT);
+                            } else {
+                                return $bet->bet_number === $result->d4_winning_number;
+                            }
+                        }
+                        return false;
+                    })->sum('winning_amount');
+            }
+        }
+        $sales = $bets->where('is_rejected', false)->sum('amount');
+        $hits = $gross;
+        $kabig = $sales - $gross;
+        $voided = $bets->where('is_rejected', true)->sum('amount');
+
+        $formattedDate = Carbon::parse($date)->format('F j, Y');
 
         // Helper function to format numbers - only show decimal places if needed
         $formatNumber = function($value) {
@@ -99,41 +156,19 @@ class TellerReportController extends Controller
             }
         };
 
-        $formattedDate = \Carbon\Carbon::parse($date)->format('F j, Y');
-        // Calculate totals from drawSummary
-        $gross = 0;
-        $sales = 0;
-        $hits = 0;
-        $kabig = 0;
-        $voided = 0;
-        $perDraw = [];
-        foreach ($drawSummary as $row) {
-            $gross += $row->gross;
-            $sales += $row->sales;
-            $hits += $row->gross; // hits = gross
-            $voided += $row->voided;
-            // Ensure draw_time and draw_id are never null
-            $perDraw[] = [
-                'draw_id' => $row->draw_id ?? '-',
-                'draw_time' => $row->draw_time ?? '-',
-                'game_type_code' => $row->game_type_code ?? '',
-                'game_type_name' => $row->game_type_name ?? '',
-                'winning_number' => $row->winning_number ?? '',
-                'gross' => $row->gross ?? 0,
-                'sales' => $row->sales ?? 0,
-                'hits' => $row->gross ?? 0,
-                'voided' => $row->voided ?? 0,
-            ];
-        }
-        $kabig = $sales - $gross;
         $report = [
             'date' => $date,
             'date_formatted' => $formattedDate,
             'gross' => $gross,
+            'gross_formatted' => $formatNumber($gross),
             'sales' => $sales,
+            'sales_formatted' => $formatNumber($sales),
             'hits' => $hits,
+            'hits_formatted' => $formatNumber($hits),
             'kabig' => $kabig,
+            'kabig_formatted' => $formatNumber($kabig),
             'voided' => $voided,
+            'voided_formatted' => $formatNumber($voided),
             'per_draw' => $perDraw,
         ];
 
