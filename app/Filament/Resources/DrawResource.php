@@ -59,7 +59,7 @@ class DrawResource extends Resource
                     Forms\Components\Wizard\Step::make('Bet Ratios')
                         ->icon('heroicon-o-scale')
                         ->schema([
-                            Forms\Components\TableRepeater::make('betRatios')
+                            Forms\Components\Repeater::make('betRatios')
                                 ->label('Bet Ratios')
                                 ->relationship('betRatios')
                                 ->schema([
