@@ -6,12 +6,15 @@ use Carbon\Carbon;
 
 use App\Models\Bet;
 use App\Models\Draw;
+use App\Models\BetRatio;
 use Illuminate\Support\Str;
 use App\Helpers\ApiResponse;
+use App\Models\LowWinNumber;
 use Illuminate\Http\Request;
+use App\Models\WinningAmount;
 use Illuminate\Support\Facades\DB;
-use App\Http\Controllers\Controller;
 use App\Http\Resources\BetResource;
+use App\Http\Controllers\Controller;
 use App\Http\Resources\DrawResource;
 
 class BettingController extends Controller
@@ -61,17 +64,30 @@ class BettingController extends Controller
 
             $ticketId = strtoupper(Str::random(6));
 
-         
-            $lowWin = \App\Models\LowWinNumber::where('game_type_id', $data['game_type_id'])
-                ->where('amount', $data['amount'])
-                ->where(function($q) use ($data) {
-                    $q->whereNull('bet_number')
-                      ->orWhere('bet_number', $data['bet_number']);
-                })
+            
+            $totalBetForNumber = Bet::where('draw_id', $data['draw_id'])
+                ->where('game_type_id', $data['game_type_id'])
+                ->where('bet_number', $data['bet_number'])
+                ->sum('amount');
+
+            $cap = BetRatio::where('draw_id', $data['draw_id'])
+                ->where('game_type_id', $data['game_type_id'])
+                ->where('bet_number', $data['bet_number'])
+                ->value('max_amount');
+
+            if ($cap !== null && ($totalBetForNumber + $data['amount']) > $cap) {
+                DB::rollBack();
+                return ApiResponse::error('Sold Out', 422);
+            }
+
+            $lowWin = LowWinNumber::where('draw_id', $data['draw_id'])
+                ->where('game_type_id', $data['game_type_id'])
+                ->where('bet_number', $data['bet_number'])
                 ->first();
+
             $winningAmount = $lowWin && isset($lowWin->winning_amount)
                 ? $lowWin->winning_amount
-                : (\App\Models\WinningAmount::where('game_type_id', $data['game_type_id'])
+                : (WinningAmount::where('game_type_id', $data['game_type_id'])
                     ->where('amount', $data['amount'])
                     ->value('winning_amount'));
 

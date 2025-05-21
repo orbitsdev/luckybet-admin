@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('draw_id')->nullable()->constrained('draws')->onDelete('cascade');
             $table->foreignId('game_type_id')->constrained('game_types');
-            $table->string('bet_number'); // e.g., '21'
-            $table->decimal('amount', 18, 2); // Override payout for this number/draw/game
+            $table->string('bet_number');
+            $table->decimal('winning_amount', 18, 2);
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('reason')->nullable();
             $table->timestamps();

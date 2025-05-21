@@ -14,8 +14,8 @@ class LowWinNumber extends Model
     protected $fillable = [
         'draw_id',
         'game_type_id',
-        'amount',
         'bet_number',
+        'winning_amount',
         'reason',
         'user_id',
     ];
