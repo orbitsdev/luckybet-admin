@@ -112,7 +112,18 @@ class TellerReportController extends Controller
             $sales += $row->sales;
             $hits += $row->gross; // hits = gross
             $voided += $row->voided;
-            $perDraw[] = $row;
+            // Ensure draw_time and draw_id are never null
+            $perDraw[] = [
+                'draw_id' => $row->draw_id ?? '-',
+                'draw_time' => $row->draw_time ?? '-',
+                'game_type_code' => $row->game_type_code ?? '',
+                'game_type_name' => $row->game_type_name ?? '',
+                'winning_number' => $row->winning_number ?? '',
+                'gross' => $row->gross ?? 0,
+                'sales' => $row->sales ?? 0,
+                'hits' => $row->gross ?? 0,
+                'voided' => $row->voided ?? 0,
+            ];
         }
         $kabig = $sales - $gross;
         $report = [
