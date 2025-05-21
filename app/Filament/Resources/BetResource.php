@@ -231,6 +231,11 @@ class BetResource extends Resource
                     ->money('PHP')
                     ->sortable()
                     ->alignRight(),
+                Tables\Columns\TextColumn::make('winning_amount')
+                    ->label('Winning Amount')
+                    ->money('PHP')
+                    ->sortable()
+                    ->alignRight(),
 
                 // Status indicators - grouped together
                 Tables\Columns\IconColumn::make('is_claimed')
