@@ -169,7 +169,7 @@ class DrawResource extends Resource
                 Tables\Columns\TextColumn::make('draw_date')
                     ->date()
                     ->sortable()
-                    ->group('draw_date'),
+                 
                 Tables\Columns\TextColumn::make('draw_time')
                     ->time('h:i A')
                     ->label('Draw Time')
@@ -217,7 +217,13 @@ class DrawResource extends Resource
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
-            ])->modifyQueryUsing(fn (Builder $query): Builder => $query->orderBy('draw_date', 'desc')->orderBy('draw_time', 'desc'));
+            ])->modifyQueryUsing(fn (Builder $query): Builder => $query->orderBy('draw_date', 'desc')->orderBy('draw_time', 'desc'))
+            ->groups([
+                Group::make('draw_date')
+                    ->titlePrefixedWithLabel(false),
+            ])
+
+            ;
     }
 
     public static function getRelations(): array
