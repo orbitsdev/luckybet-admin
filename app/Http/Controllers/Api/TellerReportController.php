@@ -216,7 +216,12 @@ class TellerReportController extends Controller
                     SUM(CASE
                         WHEN gt.code = 'S2' AND b.bet_number = r.s2_winning_number THEN COALESCE(b.winning_amount, 0)
                         WHEN gt.code = 'S3' AND b.bet_number = r.s3_winning_number THEN COALESCE(b.winning_amount, 0)
-                        WHEN gt.code = 'D4' AND b.bet_number = r.d4_winning_number THEN COALESCE(b.winning_amount, 0)
+                        -- D4 pure
+                        WHEN gt.code = 'D4' AND (b.d4_sub_selection IS NULL OR b.d4_sub_selection = '') AND b.bet_number = r.d4_winning_number THEN COALESCE(b.winning_amount, 0)
+                        -- D4-S2: last 2 digits
+                        WHEN gt.code = 'D4' AND b.d4_sub_selection = 'S2' AND RIGHT(r.d4_winning_number, 2) = LPAD(b.bet_number, 2, '0') THEN COALESCE(b.winning_amount, 0)
+                        -- D4-S3: last 3 digits
+                        WHEN gt.code = 'D4' AND b.d4_sub_selection = 'S3' AND RIGHT(r.d4_winning_number, 3) = LPAD(b.bet_number, 3, '0') THEN COALESCE(b.winning_amount, 0)
                         ELSE 0
                     END) as hits,
                     COUNT(CASE WHEN b.is_rejected = 1 THEN 1 END) as voided,
@@ -224,7 +229,12 @@ class TellerReportController extends Controller
                     SUM(CASE
                         WHEN gt.code = 'S2' AND b.bet_number = r.s2_winning_number THEN b.amount
                         WHEN gt.code = 'S3' AND b.bet_number = r.s3_winning_number THEN b.amount
-                        WHEN gt.code = 'D4' AND b.bet_number = r.d4_winning_number THEN b.amount
+                        -- D4 pure
+                        WHEN gt.code = 'D4' AND (b.d4_sub_selection IS NULL OR b.d4_sub_selection = '') AND b.bet_number = r.d4_winning_number THEN b.amount
+                        -- D4-S2: last 2 digits
+                        WHEN gt.code = 'D4' AND b.d4_sub_selection = 'S2' AND RIGHT(r.d4_winning_number, 2) = LPAD(b.bet_number, 2, '0') THEN b.amount
+                        -- D4-S3: last 3 digits
+                        WHEN gt.code = 'D4' AND b.d4_sub_selection = 'S3' AND RIGHT(r.d4_winning_number, 3) = LPAD(b.bet_number, 3, '0') THEN b.amount
                         ELSE 0
                     END) as gross
                 FROM bets b
