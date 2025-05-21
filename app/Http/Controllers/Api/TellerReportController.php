@@ -56,25 +56,26 @@ class TellerReportController extends Controller
             // Get the result for this draw
             $result = $draw->result;
 
-            // Calculate hits based on matching bet numbers with winning numbers by game type
+            // Calculate hits using the same logic as in the sales report (sum winning_amount for all winning bets, including D4-S2 and D4-S3)
             $hits = 0;
             if ($result) {
                 $hits = $drawBets->filter(function($bet) use ($result) {
-                    // Get the winning number based on game type
                     $gameTypeCode = $bet->gameType->code ?? '';
-                    $winningNumber = null;
-
                     if ($gameTypeCode === 'S2' && !empty($result->s2_winning_number)) {
-                        $winningNumber = $result->s2_winning_number;
+                        return $bet->bet_number === $result->s2_winning_number;
                     } elseif ($gameTypeCode === 'S3' && !empty($result->s3_winning_number)) {
-                        $winningNumber = $result->s3_winning_number;
+                        return $bet->bet_number === $result->s3_winning_number;
                     } elseif ($gameTypeCode === 'D4' && !empty($result->d4_winning_number)) {
-                        $winningNumber = $result->d4_winning_number;
+                        if ($bet->d4_sub_selection === 'S2') {
+                            return substr($result->d4_winning_number, -2) === str_pad($bet->bet_number, 2, '0', STR_PAD_LEFT);
+                        } elseif ($bet->d4_sub_selection === 'S3') {
+                            return substr($result->d4_winning_number, -3) === str_pad($bet->bet_number, 3, '0', STR_PAD_LEFT);
+                        } else {
+                            return $bet->bet_number === $result->d4_winning_number;
+                        }
                     }
-
-                    // Check if bet number matches winning number
-                    return $winningNumber && $bet->bet_number == $winningNumber;
-                })->sum('amount');
+                    return false;
+                })->sum('winning_amount');
             }
             $kabig = $gross - $hits;
 
