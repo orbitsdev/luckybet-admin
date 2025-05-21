@@ -56,6 +56,28 @@ class DrawResource extends Resource
                                 ->default(true)
                                 ->helperText('Hide this draw from dropdowns and betting screens without deleting.'),
                         ]),
+                    Forms\Components\Wizard\Step::make('Bet Ratios')
+                        ->icon('heroicon-o-scale')
+                        ->schema([
+                            Forms\Components\TableRepeater::make('betRatios')
+                                ->label('Bet Ratios')
+                                ->relationship('betRatios')
+                                ->schema([
+                                    Forms\Components\Select::make('game_type_id')
+                                        ->label('Game Type')
+                                        ->relationship('gameType', 'name')
+                                        ->required(),
+                                    Forms\Components\TextInput::make('bet_number')
+                                        ->label('Bet Number')
+                                        ->required(),
+                                    Forms\Components\TextInput::make('max_amount')
+                                        ->label('Max Amount')
+                                        ->numeric()
+                                        ->required(),
+                                ])
+                                ->defaultItems(1)
+                                ->columnSpanFull()
+                        ]),
                     Forms\Components\Wizard\Step::make('Winning Numbers')
                         ->icon('heroicon-o-trophy')
                         ->schema([

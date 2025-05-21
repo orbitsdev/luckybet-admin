@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\BetRatio;
 use App\Models\WinningAmount;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -39,6 +40,10 @@ class GameType extends Model
 
     public function winningAmounts(){
         return $this->hasMany(WinningAmount::class);
+    }
+
+    public function betRatios(){
+        return $this->hasMany(BetRatio::class);
     }
 
 }

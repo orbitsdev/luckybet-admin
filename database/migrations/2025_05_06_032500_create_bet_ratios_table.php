@@ -13,17 +13,11 @@ return new class extends Migration
     {
         Schema::create('bet_ratios', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('coordinator_id')->constrained('users');
-            $table->date('draw_date');
-            $table->decimal('s2_limit', 10, 2)->nullable();
-            $table->decimal('s3_limit', 10, 2)->nullable();
-            $table->decimal('d4_limit', 10, 2)->nullable();
-            $table->decimal('s2_win_amount', 10, 2)->nullable();
-            $table->decimal('s3_win_amount', 10, 2)->nullable();
-            $table->decimal('d4_win_amount', 10, 2)->nullable();
-            $table->decimal('s2_low_win_amount', 10, 2)->nullable();
-            $table->decimal('s3_low_win_amount', 10, 2)->nullable();
-            $table->decimal('d4_low_win_amount', 10, 2)->nullable();
+            $table->foreignId('draw_id')->constrained('draws')->onDelete('cascade');
+            $table->foreignId('game_type_id')->constrained('game_types');
+            $table->string('bet_number');
+            $table->decimal('max_amount', 10, 2);
+            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
         });
     }

@@ -2,55 +2,46 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\Draw;
+use App\Models\User;
+use App\Models\GameType;
+use App\Models\BetRatioAudit;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
+use App\Observers\BetRatioObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+ 
+#[ObservedBy([BetRatioObserver::class])]
 class BetRatio extends Model
 {
     use HasFactory;
 
+    //filalble
     protected $fillable = [
-        'coordinator_id',
-        'draw_date',
-        's2_limit',
-        's3_limit',
-        'd4_limit',
-        's2_win_amount',
-        's3_win_amount',
-        'd4_win_amount',
-        's2_low_win_amount',
-        's3_low_win_amount',
-        'd4_low_win_amount',
+        'bet_ratio',
+        'user_id',
+        'draw_id',
     ];
+   
 
-    protected $casts = [
-        'draw_date' => 'date',
-        's2_limit' => 'decimal:2',
-        's3_limit' => 'decimal:2',
-        'd4_limit' => 'decimal:2',
-        's2_win_amount' => 'decimal:2',
-        's3_win_amount' => 'decimal:2',
-        'd4_win_amount' => 'decimal:2',
-        's2_low_win_amount' => 'decimal:2',
-        's3_low_win_amount' => 'decimal:2',
-        'd4_low_win_amount' => 'decimal:2',
-    ];
-
-    /**
-     * Get the coordinator that owns the bet ratio
-     */
-    public function coordinator(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'coordinator_id');
+    public function user(){
+        return $this->belongsTo(User::class);
     }
 
-    /**
-     * Get the restrictions for this bet ratio
-     */
-    public function restrictions(): HasMany
-    {
-        return $this->hasMany(BetRatioRestriction::class);
+    public function draw(){
+        return $this->belongsTo(Draw::class);
     }
-}
+
+    public function gameType(){
+        return $this->belongsTo(GameType::class);
+    }
+
+    public function betRatioAudit(){
+        return $this->hasMany(BetRatioAudit::class);
+    }
+
+    
+}   
