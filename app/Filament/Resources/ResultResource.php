@@ -19,8 +19,8 @@ class ResultResource extends Resource
     protected static ?string $model = Result::class;
     //should register navigation
     protected static ?string $navigationGroup = 'Draw Management';
+    protected static ?string $navigationLabel = 'Results';
     // protected static bool $shouldRegisterNavigation = false;
-
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
     protected static ?int $navigationSort = 5;
