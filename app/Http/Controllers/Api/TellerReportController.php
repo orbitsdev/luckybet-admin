@@ -100,6 +100,21 @@ class TellerReportController extends Controller
         };
 
         $formattedDate = \Carbon\Carbon::parse($date)->format('F j, Y');
+        // Calculate totals from drawSummary
+        $gross = 0;
+        $sales = 0;
+        $hits = 0;
+        $kabig = 0;
+        $voided = 0;
+        $perDraw = [];
+        foreach ($drawSummary as $row) {
+            $gross += $row->gross;
+            $sales += $row->sales;
+            $hits += $row->gross; // hits = gross
+            $voided += $row->voided;
+            $perDraw[] = $row;
+        }
+        $kabig = $sales - $gross;
         $report = [
             'date' => $date,
             'date_formatted' => $formattedDate,
