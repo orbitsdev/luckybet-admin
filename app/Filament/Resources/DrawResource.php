@@ -63,17 +63,20 @@ class DrawResource extends Resource
                                 ->label('Bet Ratios')
                                 ->relationship('betRatios')
                                 ->schema([
-                                    Forms\Components\Select::make('game_type_id')
-                                        ->label('Game Type')
-                                        ->relationship('gameType', 'name')
-                                        ->required(),
-                                    Forms\Components\TextInput::make('bet_number')
-                                        ->label('Bet Number')
-                                        ->required(),
-                                    Forms\Components\TextInput::make('max_amount')
-                                        ->label('Max Amount')
-                                        ->numeric()
-                                        ->required(),
+                                    Forms\Components\Grid::make(3)
+                                        ->schema([
+                                            Forms\Components\Select::make('game_type_id')
+                                                ->label('Game Type')
+                                                ->relationship('gameType', 'name')
+                                                ->required(),
+                                            Forms\Components\TextInput::make('bet_number')
+                                                ->label('Bet Number')
+                                                ->required(),
+                                            Forms\Components\TextInput::make('max_amount')
+                                                ->label('Max Amount')
+                                                ->numeric()
+                                                ->required(),
+                                        ])
                                 ])
                                 ->defaultItems(1)
                                 ->columnSpanFull()
