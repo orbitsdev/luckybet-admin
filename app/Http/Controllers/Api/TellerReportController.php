@@ -119,15 +119,10 @@ class TellerReportController extends Controller
             'date' => $date,
             'date_formatted' => $formattedDate,
             'gross' => $gross,
-            'gross_formatted' => $formatNumber($gross),
             'sales' => $sales,
-            'sales_formatted' => $formatNumber($sales),
             'hits' => $hits,
-            'hits_formatted' => $formatNumber($hits),
             'kabig' => $kabig,
-            'kabig_formatted' => $formatNumber($kabig),
             'voided' => $voided,
-            'voided_formatted' => $formatNumber($voided),
             'per_draw' => $perDraw,
         ];
 
