@@ -168,7 +168,8 @@ class DrawResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('draw_date')
                     ->date()
-                    ->sortable(),
+                    ->sortable()
+                    ->group('draw_date'),
                 Tables\Columns\TextColumn::make('draw_time')
                     ->time('h:i A')
                     ->label('Draw Time')
