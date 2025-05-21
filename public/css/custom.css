@@ -27,9 +27,8 @@
 }
 
 /* Enhanced search input styling - specifically for our report pages */
-.p-6 input[type="search"],
-#winners-report input[type="search"],
 #bet-sales-report input[type="search"],
+#winners-report input[type="search"],
 #draw-results-report input[type="search"],
 #teller-sales-summary input[type="search"] {
     min-width: 300px !important;
@@ -42,9 +41,8 @@
     transition: all 0.2s ease !important;
 }
 
-.p-6 input[type="search"]:focus,
-#winners-report input[type="search"]:focus,
 #bet-sales-report input[type="search"]:focus,
+#winners-report input[type="search"]:focus,
 #draw-results-report input[type="search"]:focus,
 #teller-sales-summary input[type="search"]:focus {
     outline: none !important;
@@ -54,7 +52,10 @@
 }
 
 /* Search icon styling - specifically for our report pages */
-.p-6 .search-input-icon svg {
+#bet-sales-report .search-input-icon svg,
+#winners-report .search-input-icon svg,
+#draw-results-report .search-input-icon svg,
+#teller-sales-summary .search-input-icon svg {
     position: absolute !important;
     left: 1rem !important;
     top: 50% !important;
@@ -66,13 +67,19 @@
 }
 
 /* Placeholder text styling - specifically for our report pages */
-.p-6 input[type="search"]::placeholder {
+#bet-sales-report input[type="search"]::placeholder,
+#winners-report input[type="search"]::placeholder,
+#draw-results-report input[type="search"]::placeholder,
+#teller-sales-summary input[type="search"]::placeholder {
     color: #9ca3af !important;
     font-style: italic !important;
 }
 
 /* Enhanced select styling for report pages */
-.p-6 select {
+#bet-sales-report select,
+#winners-report select,
+#draw-results-report select,
+#teller-sales-summary select {
     padding: 0.5rem 2rem 0.5rem 1rem !important;
     border: 2px solid #e5e7eb !important;
     border-radius: 0.5rem !important;
@@ -87,26 +94,38 @@
     color: #374151 !important;
 }
 
-.p-6 select:focus {
+#bet-sales-report select:focus,
+#winners-report select:focus,
+#draw-results-report select:focus,
+#teller-sales-summary select:focus {
     outline: none !important;
     border-color: #f59e0b !important;
     box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.25) !important;
 }
 
 /* Style labels for select elements */
-.p-6 label {
+#bet-sales-report label,
+#winners-report label,
+#draw-results-report label,
+#teller-sales-summary label {
     font-weight: 500 !important;
     color: #4b5563 !important;
     margin-right: 0.5rem !important;
 }
 
 /* Enhanced pagination styling for report pages */
-.p-6 nav[aria-label="Pagination"] {
+#bet-sales-report nav[aria-label="Pagination"],
+#winners-report nav[aria-label="Pagination"],
+#draw-results-report nav[aria-label="Pagination"],
+#teller-sales-summary nav[aria-label="Pagination"] {
     margin-top: 1rem !important;
 }
 
 /* Pagination buttons */
-.p-6 button.relative.inline-flex {
+#bet-sales-report button.relative.inline-flex,
+#winners-report button.relative.inline-flex,
+#draw-results-report button.relative.inline-flex,
+#teller-sales-summary button.relative.inline-flex {
     border: 2px solid #e5e7eb !important;
     padding: 0.5rem 0.75rem !important;
     font-weight: 500 !important;
@@ -114,7 +133,10 @@
 }
 
 /* Current page button */
-.p-6 button.relative.inline-flex.text-amber-600 {
+#bet-sales-report button.relative.inline-flex.text-amber-600,
+#winners-report button.relative.inline-flex.text-amber-600,
+#draw-results-report button.relative.inline-flex.text-amber-600,
+#teller-sales-summary button.relative.inline-flex.text-amber-600 {
     background-color: #fff7ed !important; /* Amber 50 */
     border-color: #f59e0b !important; /* Amber 500 */
     color: #d97706 !important; /* Amber 600 */
@@ -122,19 +144,28 @@
 }
 
 /* Hover state for pagination buttons */
-.p-6 button.relative.inline-flex:hover:not([disabled]) {
+#bet-sales-report button.relative.inline-flex:hover:not([disabled]),
+#winners-report button.relative.inline-flex:hover:not([disabled]),
+#draw-results-report button.relative.inline-flex:hover:not([disabled]),
+#teller-sales-summary button.relative.inline-flex:hover:not([disabled]) {
     background-color: #f9fafb !important;
     border-color: #d1d5db !important;
 }
 
 /* Pagination text */
-.p-6 p.text-sm.text-gray-700 {
+#bet-sales-report p.text-sm.text-gray-700,
+#winners-report p.text-sm.text-gray-700,
+#draw-results-report p.text-sm.text-gray-700,
+#teller-sales-summary p.text-sm.text-gray-700 {
     font-size: 0.875rem !important;
     color: #4b5563 !important;
 }
 
 /* Pagination text with numbers */
-.p-6 p.text-sm.text-gray-700 span.font-medium {
+#bet-sales-report p.text-sm.text-gray-700 span.font-medium,
+#winners-report p.text-sm.text-gray-700 span.font-medium,
+#draw-results-report p.text-sm.text-gray-700 span.font-medium,
+#teller-sales-summary p.text-sm.text-gray-700 span.font-medium {
     color: #f59e0b !important; /* Amber 500 */
     font-weight: 600 !important;
 }

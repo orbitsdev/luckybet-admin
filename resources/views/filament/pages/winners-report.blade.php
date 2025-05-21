@@ -18,7 +18,7 @@
         }
     </script>
 
-    <div class="p-6 space-y-4 w-full">
+    <div id="winners-report" class="p-6 space-y-4 w-full">
         <!-- Print Button - Positioned at the top right -->
         <div class="flex justify-end mb-4">
             <button
