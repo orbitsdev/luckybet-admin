@@ -209,16 +209,6 @@ class BetResource extends Resource
                 // Primary information - most important columns first
                 Tables\Columns\TextColumn::make('bet_number')
                     ->label('Bet Number')
-                    ->formatStateUsing(function ($state, $record) {
-                        $code = $record->gameType->code ?? null;
-                        // Format based on game type
-                        return match ($code) {
-                            'S2' => str_pad($state, 2, '0', STR_PAD_LEFT),
-                            'S3' => str_pad($state, 3, '0', STR_PAD_LEFT),
-                            'D4' => str_pad($state, 4, '0', STR_PAD_LEFT),
-                            default => $state,
-                        };
-                    })
                     ->searchable()
                     ->sortable()
                     ->weight('bold'),
