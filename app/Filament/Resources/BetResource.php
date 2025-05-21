@@ -427,7 +427,7 @@ class BetResource extends Resource
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])->modifyQueryUsing(fn (Builder $query): Builder => $query->latest());
     }
 
     public static function getRelations(): array
