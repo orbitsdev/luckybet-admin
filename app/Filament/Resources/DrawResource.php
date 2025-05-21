@@ -219,12 +219,16 @@ class DrawResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ])->modifyQueryUsing(fn (Builder $query): Builder => $query->orderBy('draw_date', 'desc')->orderBy('draw_time', 'desc'))
-            ->groups([
-                Group::make('draw_date')
-                    ->getTitleFromRecordUsing(fn (Draw $record): string => \Carbon\Carbon::createFromFormat('Y-m-d', $record->draw_date)->format('F j, Y'))
-                    ->titlePrefixedWithLabel(false)
-            ])
-            ->defaultGroup('draw_date');
+          ->groups([
+    Group::make('draw_date')
+        ->getTitleFromRecordUsing(fn (Draw $record) =>
+            // This is safe since draw_date is 'Y-m-d'
+            \Illuminate\Support\Carbon::parse($record->draw_date)->format('F j, Y')
+        )
+        ->titlePrefixedWithLabel(false)
+])
+->defaultGroup('draw_date');
+
     }
 
     public static function getRelations(): array
