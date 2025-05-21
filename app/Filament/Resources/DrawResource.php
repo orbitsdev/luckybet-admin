@@ -196,10 +196,10 @@ class DrawResource extends Resource
                     ->label('Is Open')
                     ->sortable()
                     ->tooltip('Toggle whether this draw is currently open for accepting bets.'),
-                Tables\Columns\ToggleColumn::make('is_active')
+                Tables\Columns\IconColumn::make('is_active')
+                    ->boolean()
                     ->label('Active')
-                    ->sortable()
-                    ->tooltip('Toggle to show or hide this draw from dropdowns and betting screens.'),
+                    ->tooltip('Hide this draw from dropdowns and betting screens without deleting.'),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
