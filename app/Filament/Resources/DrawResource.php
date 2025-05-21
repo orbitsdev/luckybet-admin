@@ -2,16 +2,17 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\DrawResource\Pages;
-use App\Filament\Resources\DrawResource\RelationManagers;
-use App\Models\Draw;
 use Filament\Forms;
-use Filament\Forms\Form;
-use Filament\Resources\Resource;
+use App\Models\Draw;
 use Filament\Tables;
+use Filament\Forms\Form;
 use Filament\Tables\Table;
+use Filament\Resources\Resource;
+use Filament\Tables\Grouping\Group;
 use Illuminate\Database\Eloquent\Builder;
+use App\Filament\Resources\DrawResource\Pages;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Filament\Resources\DrawResource\RelationManagers;
 
 class DrawResource extends Resource
 {
@@ -168,7 +169,7 @@ class DrawResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('draw_date')
                     ->date()
-                    ->sortable()
+                    ->sortable(),
                  
                 Tables\Columns\TextColumn::make('draw_time')
                     ->time('h:i A')
