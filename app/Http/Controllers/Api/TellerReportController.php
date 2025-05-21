@@ -214,9 +214,9 @@ class TellerReportController extends Controller
                     END as winning_number,
                     SUM(CASE WHEN b.is_rejected = 0 THEN b.amount ELSE 0 END) as sales,
                     SUM(CASE
-                        WHEN gt.code = 'S2' AND b.bet_number = r.s2_winning_number THEN b.amount
-                        WHEN gt.code = 'S3' AND b.bet_number = r.s3_winning_number THEN b.amount
-                        WHEN gt.code = 'D4' AND b.bet_number = r.d4_winning_number THEN b.amount
+                        WHEN gt.code = 'S2' AND b.bet_number = r.s2_winning_number THEN COALESCE(b.winning_amount, 0)
+                        WHEN gt.code = 'S3' AND b.bet_number = r.s3_winning_number THEN COALESCE(b.winning_amount, 0)
+                        WHEN gt.code = 'D4' AND b.bet_number = r.d4_winning_number THEN COALESCE(b.winning_amount, 0)
                         ELSE 0
                     END) as hits,
                     COUNT(CASE WHEN b.is_rejected = 1 THEN 1 END) as voided,
