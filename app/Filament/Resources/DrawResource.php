@@ -223,7 +223,7 @@ class DrawResource extends Resource
     Group::make('draw_date')
         ->getTitleFromRecordUsing(fn (Draw $record) =>
             // This is safe since draw_date is 'Y-m-d'
-            \Illuminate\Support\Carbon::parse($record->draw_date)->format('F j, Y')
+            \Illuminate\Support\Carbon::parse($record->draw_date)->format('m/d/Y')
         )
         ->titlePrefixedWithLabel(false)
 ])
