@@ -176,14 +176,6 @@ class DrawResource extends Resource
                     ->label('Draw Time')
                     ->sortable(),
                 // Game type column removed as per documentation
-                Tables\Columns\ToggleColumn::make('is_open')
-                    ->label('Is Open')
-                    ->sortable()
-                    ->tooltip('Toggle whether this draw is currently open for accepting bets.'),
-                Tables\Columns\ToggleColumn::make('is_active')
-                    ->label('Active')
-                    ->sortable()
-                    ->tooltip('Toggle to show or hide this draw from dropdowns and betting screens.'),
                 // Custom columns for winning numbers from result relationship
                 Tables\Columns\TextColumn::make('result.s2_winning_number')
                     ->label('S2 Winner')
@@ -200,6 +192,14 @@ class DrawResource extends Resource
                     ->placeholder('-')
                     ->badge()
                     ->color('danger'),
+                Tables\Columns\ToggleColumn::make('is_open')
+                    ->label('Is Open')
+                    ->sortable()
+                    ->tooltip('Toggle whether this draw is currently open for accepting bets.'),
+                Tables\Columns\ToggleColumn::make('is_active')
+                    ->label('Active')
+                    ->sortable()
+                    ->tooltip('Toggle to show or hide this draw from dropdowns and betting screens.'),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
