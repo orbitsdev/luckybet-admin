@@ -19,11 +19,12 @@ class BettingController extends Controller
 
     public function availableDraws()
     {
-        $now = Carbon::now()->format('H:i:s');
+        // Add a 30-minute cutoff before the draw time
+        $cutoffTime = Carbon::now()->addMinutes(30)->format('H:i:s');
 
         $draws = Draw::where('draw_date', today())
             ->where('is_open', true)
-            ->where('draw_time', '>=', $now)
+            ->where('draw_time', '>=', $cutoffTime)
             ->orderBy('draw_time')
             ->get();
 
