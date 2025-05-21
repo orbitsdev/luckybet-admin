@@ -16,8 +16,15 @@ class DropdownController extends Controller
 {
     public function gameTypes()
     {
-        $gameTypes = cache()->remember('dropdown_game_types', 3600, function() {
-            return GameTypeResource::collection(GameType::where('is_active', true)->get());
+        $today = now()->format('l'); // 'Sunday', 'Monday', etc.
+
+        $gameTypesQuery = GameType::where('is_active', true);
+        // Exclude D4 on Sundays
+        if ($today === 'Sunday') {
+            $gameTypesQuery->where('code', '!=', 'D4');
+        }
+        $gameTypes = cache()->remember('dropdown_game_types_' . $today, 3600, function() use ($gameTypesQuery) {
+            return GameTypeResource::collection($gameTypesQuery->get());
         });
         return ApiResponse::success($gameTypes);
     }
