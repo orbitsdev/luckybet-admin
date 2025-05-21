@@ -176,9 +176,10 @@ class DrawResource extends Resource
                     ->label('Draw Time')
                     ->sortable(),
                 // Game type column removed as per documentation
-                Tables\Columns\IconColumn::make('is_open')
-                    ->boolean()
-                    ->tooltip('Whether this draw is currently open for accepting bets.'),
+                Tables\Columns\ToggleColumn::make('is_open')
+                    ->label('Is Open')
+                    ->sortable()
+                    ->tooltip('Toggle whether this draw is currently open for accepting bets.'),
                 Tables\Columns\IconColumn::make('is_active')
                     ->boolean()
                     ->label('Active')
