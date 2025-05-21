@@ -180,10 +180,10 @@ class DrawResource extends Resource
                     ->label('Is Open')
                     ->sortable()
                     ->tooltip('Toggle whether this draw is currently open for accepting bets.'),
-                Tables\Columns\IconColumn::make('is_active')
-                    ->boolean()
+                Tables\Columns\ToggleColumn::make('is_active')
                     ->label('Active')
-                    ->tooltip('Hide this draw from dropdowns and betting screens without deleting.'),
+                    ->sortable()
+                    ->tooltip('Toggle to show or hide this draw from dropdowns and betting screens.'),
                 // Custom columns for winning numbers from result relationship
                 Tables\Columns\TextColumn::make('result.s2_winning_number')
                     ->label('S2 Winner')
