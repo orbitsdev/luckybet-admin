@@ -81,6 +81,34 @@ class DrawResource extends Resource
                                 ->defaultItems(1)
                                 ->columnSpanFull()
                         ]),
+                    Forms\Components\Wizard\Step::make('Low Win Numbers')
+                        ->icon('heroicon-o-arrow-trending-down')
+                        ->schema([
+                            Forms\Components\Repeater::make('lowWinNumbers')
+                                ->label('Low Win Numbers')
+                                ->relationship('lowWinNumbers')
+                                ->schema([
+                                    Forms\Components\Grid::make(4)
+                                        ->schema([
+                                            Forms\Components\Select::make('game_type_id')
+                                                ->label('Game Type')
+                                                ->relationship('gameType', 'name')
+                                                ->required(),
+                                            Forms\Components\TextInput::make('bet_number')
+                                                ->label('Bet Number')
+                                                ->required(),
+                                            Forms\Components\TextInput::make('amount')
+                                                ->label('Override Amount')
+                                                ->numeric()
+                                                ->required(),
+                                            Forms\Components\TextInput::make('reason')
+                                                ->label('Reason')
+                                                ->nullable(),
+                                        ])
+                                ])
+                                ->defaultItems(0)
+                                ->columnSpanFull()
+                        ]),
                     Forms\Components\Wizard\Step::make('Winning Numbers')
                         ->icon('heroicon-o-trophy')
                         ->schema([

@@ -12,10 +12,12 @@ class LowWinNumber extends Model
     use HasFactory;
 
     protected $fillable = [
+        'draw_id',
         'game_type_id',
         'amount',
         'bet_number',
         'reason',
+        'user_id',
     ];
 
     protected $casts = [
@@ -28,5 +30,21 @@ class LowWinNumber extends Model
     public function gameType(): BelongsTo
     {
         return $this->belongsTo(GameType::class);
+    }
+
+    /**
+     * Get the draw that this low win number applies to
+     */
+    public function draw(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\Draw::class);
+    }
+
+    /**
+     * Get the user who set this low win number
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\User::class);
     }
 }

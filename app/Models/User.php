@@ -8,6 +8,7 @@ use App\Models\Claim;
 use App\Models\Teller;
 use App\Models\Commission;
 
+use App\Models\LowWinNumber;
 use Laravel\Sanctum\HasApiTokens;
 use Laravel\Jetstream\HasProfilePhoto;
 use Illuminate\Notifications\Notifiable;
@@ -89,6 +90,14 @@ class User extends Authenticatable
     public function commissions()
     {
         return $this->hasMany(Commission::class, 'teller_id');
+    }
+
+    /**
+     * Get all low win numbers set by this user
+     */
+    public function lowWinNumbers()
+    {
+        return $this->hasMany(LowWinNumber::class);
     }
 
     public function coordinator()

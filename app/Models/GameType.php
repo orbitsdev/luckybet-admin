@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\BetRatio;
+use App\Models\LowWinNumber;
 use App\Models\WinningAmount;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -44,6 +45,14 @@ class GameType extends Model
 
     public function betRatios(){
         return $this->hasMany(BetRatio::class);
+    }
+
+    /**
+     * Get all low win numbers for this game type
+     */
+    public function lowWinNumbers()
+    {
+        return $this->hasMany(LowWinNumber::class);
     }
 
 }

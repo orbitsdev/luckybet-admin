@@ -7,6 +7,7 @@ use App\Models\Result;
 use App\Models\BetRatio;
 use App\Models\GameType;
 use App\Models\Schedule;
+use App\Models\LowWinNumber;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -47,5 +48,12 @@ class Draw extends Model
         return $this->hasMany(BetRatio::class);
     }
 
+    /**
+     * Get all low win numbers for this draw
+     */
+    public function lowWinNumbers(): HasMany
+    {
+        return $this->hasMany(LowWinNumber::class);
+    }
 
 }
