@@ -221,8 +221,9 @@ class DrawResource extends Resource
             ])->modifyQueryUsing(fn (Builder $query): Builder => $query->orderBy('draw_date', 'desc')->orderBy('draw_time', 'desc'))
             ->groups([
                 Group::make('draw_date')
-                    ->titlePrefixedWithLabel(false),
-            ])
+    ->getTitleFromRecordUsing(fn (Draw $record): string => \Carbon\Carbon::createFromFormat('Y-m-d', $record->draw_date)->format('F j, Y'))
+    ->titlePrefixedWithLabel(false),
+            ]) ->defaultGroup('draw_date');
 
             ;
     }
