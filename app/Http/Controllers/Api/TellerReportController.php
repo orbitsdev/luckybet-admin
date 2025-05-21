@@ -99,6 +99,7 @@ class TellerReportController extends Controller
             }
         };
 
+        $formattedDate = \Carbon\Carbon::parse($date)->format('F j, Y');
         $report = [
             'date' => $date,
             'date_formatted' => $formattedDate,
