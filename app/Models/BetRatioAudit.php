@@ -11,8 +11,9 @@ class BetRatioAudit extends Model
     protected $fillable = [
         'bet_ratio_id',
         'user_id',
-        'draw_id',
-        'bet_ratio',
+        'old_max_amount',
+        'new_max_amount',
+        'action',
     ];
 
     public function betRatio(){

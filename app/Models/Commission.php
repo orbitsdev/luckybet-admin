@@ -17,8 +17,9 @@ class Commission extends Model
     use HasFactory;
 
     protected $fillable = [
-        'teller_id',       
-        'rate',            
+        'teller_id',
+        'rate',
+        'bet_id',
     ];
     
     protected $casts = [

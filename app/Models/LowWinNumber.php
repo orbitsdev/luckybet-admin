@@ -20,6 +20,7 @@ class LowWinNumber extends Model
         'winning_amount',
         'reason',
         'user_id',
+        'locations_id',
     ];
 
     protected $casts = [

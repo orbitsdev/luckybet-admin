@@ -17,13 +17,12 @@ class Result extends Model
     use HasFactory;
 
     protected $fillable = [
-        'draw_id',             // Reference to the draw
-        'draw_date',           // Copy of draw date for reporting
-        'draw_time',           // Copy of draw time for reporting
-        's2_winning_number',   // S2 winning number (e.g., 21)
-        's3_winning_number',   // S3 winning number (e.g., 456)
-        'd4_winning_number',   // D4 winning number (e.g., 7890)
-        'coordinator_id',      // User who inputted the result
+        'draw_id',
+        'draw_date',
+        'draw_time',
+        's2_winning_number',
+        's3_winning_number',
+        'd4_winning_number',
     ];
 
     protected $casts = [
