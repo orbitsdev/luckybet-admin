@@ -2,12 +2,15 @@
 
 namespace App\Providers;
 
+use Dedoc\Scramble\Scramble;
+use Filament\Support\Assets\Css;
+use Filament\Support\Colors\Color;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\ServiceProvider;
-use Filament\Support\Facades\FilamentColor;
-use Filament\Support\Colors\Color;
-use Filament\Support\Assets\Css;
 use Filament\Support\Facades\FilamentAsset;
+use Filament\Support\Facades\FilamentColor;
+use Dedoc\Scramble\Support\Generator\OpenApi;
+use Dedoc\Scramble\Support\Generator\SecurityScheme;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -28,7 +31,7 @@ class AppServiceProvider extends ServiceProvider
         
         $this->configureModel();
         $this->configureFilament();
-       
+        $this->configureScramble();
 
 
        
@@ -61,5 +64,14 @@ class AppServiceProvider extends ServiceProvider
         FilamentAsset::register([
             Css::make('custom-styles', asset('css/custom.css')),
         ]);
+    }
+
+    public function configureScramble(){
+        Scramble::configure()
+        ->withDocumentTransformers(function (OpenApi $openApi) {
+            $openApi->secure(
+                SecurityScheme::http('bearer')
+            );
+        });
     }
 }
