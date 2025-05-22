@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('bet_number');
             $table->decimal('winning_amount', 18, 2);
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->foreignId('locations_id')->nullable()->constrained('locations')->nullOnDelete();
+            $table->foreignId('location_id')->nullable()->constrained('locations')->nullOnDelete();
             $table->string('reason')->nullable();
             $table->timestamps();
         });
