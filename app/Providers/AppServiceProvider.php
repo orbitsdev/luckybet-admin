@@ -16,7 +16,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        
+        $this->configureTelescope();
     }
 
     /**
@@ -24,10 +25,29 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        
+        $this->configureModel();
+        $this->configureFilament();
+       
+
+
+       
+    }
+
+    public function configureTelescope(): void
+    {
+        if ($this->app->environment('local') && class_exists(\Laravel\Telescope\TelescopeServiceProvider::class)) {
+            $this->app->register(\Laravel\Telescope\TelescopeServiceProvider::class);
+            $this->app->register(TelescopeServiceProvider::class);
+        }
+    }
+
+    public function configureModel(){
         Model::unguard();
         Model::shouldBeStrict();
+    }
 
-
+    public function configureFilament(){
         FilamentColor::register([
             'danger' => Color::Red,
             'gray' => Color::Zinc,
