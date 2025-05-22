@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\User;
+use App\Models\GameType;
+use App\Models\Location;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use App\Models\GameType;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class LowWinNumber extends Model
 {
@@ -37,7 +39,7 @@ class LowWinNumber extends Model
      */
     public function draw(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\Draw::class);
+        return $this->belongsTo(Draw::class);
     }
 
     /**
@@ -45,6 +47,10 @@ class LowWinNumber extends Model
      */
     public function user(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\User::class);
+        return $this->belongsTo(User::class);
+    }
+
+     public function location(){
+        return $this->belongsTo(Location::class);
     }
 }

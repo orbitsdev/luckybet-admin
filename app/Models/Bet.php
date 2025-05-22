@@ -24,16 +24,18 @@ class Bet extends Model
         'amount',
         'winning_amount',
         'draw_id',
-        'game_type_id',    // Foreign key to game_types table
+        'game_type_id',    
         'teller_id',
-        'customer_id',    // optional
+        'customer_id',   
         'location_id',
         'bet_date',
         'ticket_id',
-        'is_claimed',     // boolean, default false
-        'is_rejected',    // boolean, default false
-        'is_combination', // true/false
-        'd4_sub_selection', // enum: 's2' or 's3' for D4 game type
+        'is_claimed',  
+        'is_rejected',    
+        'is_combination',
+        'd4_sub_selection',
+        'commission_rate',
+        'commission_amount'
     ];
 
     protected $casts = [
@@ -78,10 +80,6 @@ class Bet extends Model
         return $this->belongsTo(Location::class);
     }
 
-    public function claim()
-    {
-        return $this->hasOne(Claim::class);
-    }
 
     public function commission()
     {

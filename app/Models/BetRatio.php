@@ -5,13 +5,14 @@ namespace App\Models;
 use App\Models\Draw;
 use App\Models\User;
 use App\Models\GameType;
+use App\Models\Location;
 use App\Models\BetRatioAudit;
+use App\Observers\BetRatioObserver;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-
-use App\Observers\BetRatioObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
  
 #[ObservedBy([BetRatioObserver::class])]
@@ -21,9 +22,12 @@ class BetRatio extends Model
 
     //filalble
     protected $fillable = [
-        'bet_ratio',
-        'user_id',
         'draw_id',
+        'game_type_id',
+        'bet_number',
+        'max_amount',
+        'user_id',
+        'location_id',
     ];
    
 
@@ -37,6 +41,10 @@ class BetRatio extends Model
 
     public function gameType(){
         return $this->belongsTo(GameType::class);
+    }
+
+    public function location(){
+        return $this->belongsTo(Location::class);
     }
 
     public function betRatioAudit(){

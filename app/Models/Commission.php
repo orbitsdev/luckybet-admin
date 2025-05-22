@@ -5,27 +5,24 @@ namespace App\Models;
 use App\Models\Bet;
 use App\Models\User;
 use App\Models\Claim;
+use App\Models\CommissionHistory;
+use App\Observers\CommissionObserver;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 
+#[ObservedBy([CommissionObserver::class])]
 class Commission extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'teller_id',       // References users.id
-        'rate',            // % rate
-        'amount',          // Computed commission
-        'commission_date', // Date of commission
-        'type',            // 'bet' or 'claim'
-        'bet_id',          // For type 'bet'
-        'claim_id'         // For type 'claim'
+        'teller_id',       
+        'rate',            
     ];
     
     protected $casts = [
         'rate' => 'decimal:2',
-        'amount' => 'decimal:2',
-        'commission_date' => 'date',
     ];
 
     public function teller()
@@ -38,8 +35,9 @@ class Commission extends Model
         return $this->belongsTo(Bet::class);
     }
 
-    public function claim()
+
+    public function commissionHistory()
     {
-        return $this->belongsTo(Claim::class);
+        return $this->hasMany(CommissionHistory::class);
     }
 }

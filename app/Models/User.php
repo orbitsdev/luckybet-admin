@@ -82,15 +82,13 @@ class User extends Authenticatable
         return $this->hasMany(Bet::class, 'teller_id');
     }
 
-    public function claims()
+
+    public function commission()
     {
-        return $this->hasMany(Claim::class, 'teller_id');
+        return $this->hasOne(Commission::class, 'teller_id');
     }
 
-    public function commissions()
-    {
-        return $this->hasMany(Commission::class, 'teller_id');
-    }
+    
 
     /**
      * Get all low win numbers set by this user

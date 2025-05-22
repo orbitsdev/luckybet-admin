@@ -4,7 +4,10 @@ namespace App\Models;
 
 use App\Models\Bet;
 use App\Models\User;
+use App\Models\BetRatio;
 use App\Models\TallySheet;
+use App\Models\LowWinNumber;
+use App\Models\WinningAmount;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
@@ -31,9 +34,21 @@ class Location extends Model
     {
         return $this->hasMany(Bet::class);
     }
-    
-    public function tallySheets()
+
+
+
+    public function betRatios()
     {
-        return $this->hasMany(TallySheet::class);
+        return $this->hasMany(BetRatio::class);
+    }
+
+    public function lowWinNumbers()
+    {
+        return $this->hasMany(LowWinNumber::class);
+    }
+
+    public function winningAmounts()
+    {
+        return $this->hasMany(WinningAmount::class);
     }
 }

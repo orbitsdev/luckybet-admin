@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\GameType;
+use App\Models\Location;
 use Illuminate\Database\Eloquent\Model;
 
 class WinningAmount extends Model
@@ -19,4 +20,9 @@ class WinningAmount extends Model
     {
         return $this->belongsTo(GameType::class);
     }
+
+    public function location(){
+        return $this->belongsTo(Location::class);
+    }
+    
 }
