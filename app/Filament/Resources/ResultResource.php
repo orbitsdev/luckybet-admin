@@ -22,7 +22,7 @@ class ResultResource extends Resource
     protected static ?string $navigationLabel = 'Results';
     // protected static bool $shouldRegisterNavigation = false;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-trophy';
     protected static ?int $navigationSort = 5;
 
     public static function form(Form $form): Form
@@ -153,11 +153,15 @@ class ResultResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('draw.id')
-                    ->numeric()
+                Tables\Columns\TextColumn::make('draw.draw_date')
+                    ->label('Draw Date')
+                    ->date('M d, Y')
                     ->sortable()
-                    ->label('Draw ID')
                     ->searchable(),
+                Tables\Columns\TextColumn::make('draw.draw_time')
+                    ->label('Draw Time')
+                    ->time('h:i A')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('draw_date')
                     ->date('M d, Y')
                     ->sortable()
@@ -204,7 +208,18 @@ class ResultResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('draw_id')
+                    ->relationship('draw', 'id')
+                    ->label('Draw Date & Time')
+                    ->indicator('Draw Date & Time')
+                    ->getOptionLabelFromRecordUsing(function ($record) {
+                        if (!$record->draw_date || !$record->draw_time) return 'Unknown';
+                        $date = \Illuminate\Support\Carbon::parse($record->draw_date)->format('M d, Y');
+                        $time = \Illuminate\Support\Carbon::createFromFormat('H:i:s', $record->draw_time)->format('g:i A');
+                        return "$date ($time)";
+                    })
+                    ->preload()
+                    ->searchable(),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
