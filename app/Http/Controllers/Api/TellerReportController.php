@@ -391,9 +391,20 @@ class TellerReportController extends Controller
                 ->where('is_rejected', false)
                 ->sum('amount');
 
-            // Get commission rate for the teller (assuming it's stored in the users table)
-            // If it's stored elsewhere, adjust this query accordingly
-            $commissionRate = $user->commission_rate ?? 10; // Default to 10% if not set
+            // Calculate total commission for today (sum commission_amount, or fallback to amount * commission_rate or 0.15)
+            $bets = Bet::where('teller_id', $user->id)
+                ->whereDate('bet_date', $today)
+                ->where('is_rejected', false)
+                ->get();
+
+            $totalCommission = 0;
+            $commissionRates = [];
+            foreach ($bets as $bet) {
+                $rate = $bet->commission_rate ?? 0.15;
+                $commissionRates[] = $rate;
+                $totalCommission += $bet->commission_amount ?? ($bet->amount * $rate);
+            }
+            $averageCommissionRate = count($commissionRates) ? array_sum($commissionRates) / count($commissionRates) : 0.15;
 
             // Get cancellation count for today
             $cancellations = Bet::where('teller_id', $user->id)
@@ -415,8 +426,10 @@ class TellerReportController extends Controller
             $data = [
                 'sales' => $sales,
                 'sales_formatted' => $formatNumber($sales),
-                'commission_rate' => $commissionRate,
-                'commission_rate_formatted' => $commissionRate . '%',
+                'total_commission' => $totalCommission,
+                'total_commission_formatted' => $formatNumber($totalCommission),
+                'average_commission_rate' => $averageCommissionRate,
+                'average_commission_rate_formatted' => ($averageCommissionRate * 100) . '%',
                 'cancellations' => $cancellations,
                 'cancellations_formatted' => (string) $cancellations,
             ];
@@ -582,24 +595,28 @@ class TellerReportController extends Controller
         $date = $validated['date'] ?? now()->toDateString();
         $formattedDate = \Carbon\Carbon::parse($date)->format('F j, Y');
 
-        // Get commission rate (default 10%)
-        $commissionRate = $user->commission_rate ?? 10;
-
-        // Sum total sales for this teller and date (not rejected)
-        $totalSales = Bet::where('teller_id', $user->id)
+        // Get all valid bets for this teller and date
+        $bets = Bet::where('teller_id', $user->id)
             ->whereDate('bet_date', $date)
             ->where('is_rejected', false)
-            ->sum('amount');
+            ->get();
 
-        // Calculate commission
-        $commissionAmount = $totalSales * ($commissionRate / 100);
+        $totalSales = $bets->sum('amount');
+        $totalCommission = 0;
+        $commissionRates = [];
+        foreach ($bets as $bet) {
+            $rate = $bet->commission_rate ?? 0.15;
+            $commissionRates[] = $rate;
+            $totalCommission += $bet->commission_amount ?? ($bet->amount * $rate);
+        }
+        $averageCommissionRate = count($commissionRates) ? array_sum($commissionRates) / count($commissionRates) : 0.15;
 
         $data = [
             'date' => $date,
             'date_formatted' => $formattedDate,
-            'commission_rate' => $commissionRate,
+            'commission_rate' => $averageCommissionRate, // keep key for compatibility
             'total_sales' => $totalSales,
-            'commission_amount' => $commissionAmount,
+            'commission_amount' => $totalCommission,
         ];
 
         return ApiResponse::success(
