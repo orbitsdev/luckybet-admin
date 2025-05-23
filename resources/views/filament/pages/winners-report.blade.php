@@ -17,6 +17,7 @@
             document.body.innerHTML = originalContents;
         }
     </script>
+    @dump($winners)
 
     <div id="winners-report" class="p-6 space-y-4 w-full">
         <!-- Print Button - Positioned at the top right -->
