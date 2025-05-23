@@ -26,42 +26,36 @@ class BetRatioResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Select::make('coordinator_id')
-                    ->relationship('coordinator', 'name')
-                    ->label('Coordinator')
+                Forms\Components\Select::make('draw_id')
+                    ->relationship('draw', 'id')
+                    ->label('Draw')
                     ->required()
                     ->searchable(),
-                Forms\Components\DatePicker::make('draw_date')
+                Forms\Components\Select::make('game_type_id')
+                    ->relationship('gameType', 'name')
+                    ->label('Game Type')
+                    ->required()
+                    ->searchable(),
+                Forms\Components\TextInput::make('bet_number')
+                    ->label('Bet Number')
                     ->required(),
-                Forms\Components\Grid::make(3)
-                    ->schema([
-                        Forms\Components\Section::make('S2 (2-Digit) Settings')
-                            ->schema([
-                                Forms\Components\TextInput::make('s2_limit')
-                                    ->label('Betting Limit')
-                                    ->numeric()
-                                    ->step(0.01)
-                                    ->prefix('₱'),
-                                Forms\Components\TextInput::make('s2_win_amount')
-                                    ->label('Win Amount')
-                                    ->numeric()
-                                    ->step(0.01)
-                                    ->prefix('₱'),
-                                Forms\Components\TextInput::make('s2_low_win_amount')
-                                    ->label('Low Win Amount')
-                                    ->numeric()
-                                    ->step(0.01)
-                                    ->prefix('₱'),
-                            ]),
-                        Forms\Components\Section::make('S3 (3-Digit) Settings')
-                            ->schema([
-                                Forms\Components\TextInput::make('s3_limit')
-                                    ->label('Betting Limit')
-                                    ->numeric()
-                                    ->step(0.01)
-                                    ->prefix('₱'),
-                                Forms\Components\TextInput::make('s3_win_amount')
-                                    ->label('Win Amount')
+                Forms\Components\TextInput::make('max_amount')
+                    ->label('Max Amount')
+                    ->numeric()
+                    ->step(0.01)
+                    ->prefix('₱')
+                    ->required(),
+                Forms\Components\Select::make('user_id')
+                    ->relationship('user', 'name')
+                    ->label('Teller')
+                    ->searchable()
+                    ->nullable(),
+                Forms\Components\Select::make('location_id')
+                    ->relationship('location', 'name')
+                    ->label('Location')
+                    ->searchable()
+                    ->nullable(),
+            ]);
                                     ->numeric()
                                     ->step(0.01)
                                     ->prefix('₱'),
@@ -89,42 +83,66 @@ class BetRatioResource extends Resource
                                     ->step(0.01)
                                     ->prefix('₱'),
                             ]),
-                    ]),
-            ]);
+                
+            
     }
 
     public static function table(Table $table): Table
     {
         return $table
+            ->groups([
+                \Filament\Tables\Grouping\Group::make('location.name')
+                    ->label('Location')
+                    ->collapsible(),
+            ])
+            ->defaultGroup('location.name')
             ->columns([
-                Tables\Columns\TextColumn::make('coordinator.name')
-                    ->label('Coordinator')
+                Tables\Columns\TextColumn::make('draw.id')
+                    ->label('Draw ID')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('gameType.name')
+                    ->label('Game Type')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('bet_number')
+                    ->label('Bet Number')
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('draw_date')
-                    ->date()
+                Tables\Columns\TextColumn::make('max_amount')
+                    ->money('PHP')
+                    ->label('Max Amount'),
+                Tables\Columns\TextColumn::make('user.name')
+                    ->label('Teller')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('s2_limit')
-                    ->money('PHP')
-                    ->label('S2 Limit'),
-                Tables\Columns\TextColumn::make('s3_limit')
-                    ->money('PHP')
-                    ->label('S3 Limit'),
-                Tables\Columns\TextColumn::make('d4_limit')
-                    ->money('PHP')
-                    ->label('D4 Limit'),
+                Tables\Columns\TextColumn::make('location.name')
+                    ->label('Location')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('updated_at')
                     ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->sortable(),
             ])
             ->filters([
-                //
-            ])
+                Tables\Filters\SelectFilter::make('location_id')
+                    ->relationship('location', 'name')
+                    ->label('Location')
+                    ->indicator('Location')
+                    ->preload()
+                    ->searchable(),
+                Tables\Filters\SelectFilter::make('game_type_id')
+                    ->relationship('gameType', 'name')
+                    ->label('Game Type')
+                    ->indicator('Game Type')
+                    ->preload()
+                    ->searchable(),
+                Tables\Filters\SelectFilter::make('draw_id')
+                    ->relationship('draw', 'id')
+                    ->label('Draw')
+                    ->indicator('Draw')
+                    ->preload()
+                    ->searchable(),
+            ], layout: \Filament\Tables\Enums\FiltersLayout::AboveContent)
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
