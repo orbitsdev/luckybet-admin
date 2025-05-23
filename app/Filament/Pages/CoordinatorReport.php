@@ -96,7 +96,7 @@ class CoordinatorReport extends Page
             // For each teller, calculate their sales for the selected date
             foreach ($tellers as $teller) {
                 // Get bets for this teller for the selected bet_date
-                $tellerBets = Bet::with(['draw.result'])
+                $tellerBets = Bet::with(['draw.result', 'gameType'])
                     ->where('teller_id', $teller->id)
                     ->whereDate('bet_date', $this->selectedDate)
                     ->where('is_rejected', false)
