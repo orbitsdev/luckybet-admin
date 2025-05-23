@@ -35,63 +35,63 @@
     <!-- Filters -->
     <form wire:submit.prevent class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <div>
-            <x-filament::input type="date" wire:model.live="selectedDate" label="Date" class="w-full" />
+            <input type="date" wire:model.live="selectedDate" class="w-full" />
         </div>
         <div>
-            <x-filament::input type="text" wire:model.live="search" placeholder="Search Ticket or Bet Number" class="w-full" />
+            <input type="text" wire:model.live="search" placeholder="Search Ticket or Bet Number" class="w-full" />
         </div>
         <div>
-            <x-filament::select wire:model.live="selectedTeller" class="w-full">
-                <option value="">All Tellers</option>
-                @foreach (\App\Models\User::where('role', 'teller')->get() as $teller)
-                    <option value="{{ $teller->id }}">{{ $teller->name }}</option>
-                @endforeach
-            </x-filament::select>
+            <select wire:model.live="selectedTeller" class="w-full">
+    <option value="">All Tellers</option>
+    @foreach (\App\Models\User::where('role', 'teller')->get() as $teller)
+        <option value="{{ $teller->id }}">{{ $teller->name }}</option>
+    @endforeach
+</select>
         </div>
         <div>
-            <x-filament::select wire:model.live="selectedCoordinator" class="w-full">
-                <option value="">All Coordinators</option>
-                @foreach (\App\Models\User::where('role', 'coordinator')->get() as $coord)
-                    <option value="{{ $coord->id }}">{{ $coord->name }}</option>
-                @endforeach
-            </x-filament::select>
+            <select wire:model.live="selectedCoordinator" class="w-full">
+    <option value="">All Coordinators</option>
+    @foreach (\App\Models\User::where('role', 'coordinator')->get() as $coord)
+        <option value="{{ $coord->id }}">{{ $coord->name }}</option>
+    @endforeach
+</select>
         </div>
         <div>
-            <x-filament::select wire:model.live="selectedLocation" class="w-full">
-                <option value="">All Locations</option>
-                @foreach (\App\Models\Location::all() as $loc)
-                    <option value="{{ $loc->id }}">{{ $loc->name }}</option>
-                @endforeach
-            </x-filament::select>
+            <select wire:model.live="selectedLocation" class="w-full">
+    <option value="">All Locations</option>
+    @foreach (\App\Models\Location::all() as $loc)
+        <option value="{{ $loc->id }}">{{ $loc->name }}</option>
+    @endforeach
+</select>
         </div>
         <div>
-            <x-filament::select wire:model.live="selectedGameType" class="w-full">
-                <option value="">All Game Types</option>
-                @foreach (\App\Models\GameType::all() as $gt)
-                    <option value="{{ $gt->code }}">{{ $gt->name }}</option>
-                @endforeach
-            </x-filament::select>
+            <select wire:model.live="selectedGameType" class="w-full">
+    <option value="">All Game Types</option>
+    @foreach (\App\Models\GameType::all() as $gt)
+        <option value="{{ $gt->code }}">{{ $gt->name }}</option>
+    @endforeach
+</select>
         </div>
         <div>
-            <x-filament::select wire:model.live="selectedD4SubSelection" class="w-full">
-                <option value="">D4 Sub-Selection</option>
-                <option value="S2">S2</option>
-                <option value="S3">S3</option>
-            </x-filament::select>
+            <select wire:model.live="selectedD4SubSelection" class="w-full">
+    <option value="">D4 Sub-Selection</option>
+    <option value="S2">S2</option>
+    <option value="S3">S3</option>
+</select>
         </div>
         <div>
-            <x-filament::select wire:model.live="selectedClaimedStatus" class="w-full">
-                <option value="">All Status</option>
-                <option value="1">Claimed</option>
-                <option value="0">Unclaimed</option>
-            </x-filament::select>
+            <select wire:model.live="selectedClaimedStatus" class="w-full">
+    <option value="">All Status</option>
+    <option value="1">Claimed</option>
+    <option value="0">Unclaimed</option>
+</select>
         </div>
         <div>
-            <x-filament::select wire:model.live="perPage" class="w-full">
-                <option value="20">20</option>
-                <option value="50">50</option>
-                <option value="100">100</option>
-            </x-filament::select>
+            <select wire:model.live="perPage" class="w-full">
+    <option value="20">20</option>
+    <option value="50">50</option>
+    <option value="100">100</option>
+</select>
         </div>
     </form>
 
