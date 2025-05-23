@@ -46,7 +46,8 @@ class TellerResource extends Resource
                         ->numeric()
                         ->nullable()
                         ->helperText('Optional: set a fixed commission amount'),
-                ])->relationship('commission'),
+                ])->relationship('commission')
+                  ->hidden(fn (string $operation) => $operation !== 'edit'),
 
                 Forms\Components\TextInput::make('name')
                     ->required()
