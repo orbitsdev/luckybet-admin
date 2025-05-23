@@ -15,139 +15,109 @@ use Filament\Actions\Action;
 use App\Filament\Actions\CoordinatorReportAction;
 class WinnersReport extends Page
 {
+    use InteractsWithActions;
+    use InteractsWithForms;
+
+    
+    // Filter properties
+    public $selectedDate;
+    public $search = '';
+    public $selectedTeller = '';
+    public $selectedLocation = '';
+    public $selectedCoordinator = '';
+    public $selectedGameType = '';
+    public $selectedD4SubSelection = '';
+    public $selectedClaimedStatus = '';
+    public $page = 1;
+    public $perPage = 20;
+
     public $totalWinAmount = 0;
     public $totalWinners = 0;
 
-    use InteractsWithActions;
-    use InteractsWithForms;
     protected static ?string $navigationIcon = 'heroicon-o-star';
     protected static ?string $navigationGroup = 'Reports';
     protected static ?string $navigationLabel = 'Winners';
     protected static ?int $navigationSort = 4;
     protected static string $view = 'filament.pages.winners-report';
 
-    public $selectedDate;
-    public $selectedTellerId = 'all';
-    public $tellerOptions = [];
-
-    #[Url]
-    public $search = '';
-
-    public $perPage = 10;
-    public $page = 1;
-
     public function mount(): void
     {
-        // Set default to today's date
-        $this->selectedDate = Carbon::today()->format('Y-m-d');
-        // Populate teller options
-        $this->tellerOptions = \App\Models\User::where('role', 'teller')
-            ->orderBy('name')
-            ->get()
-            ->map(function($teller) {
-                return [
-                    'id' => $teller->id,
-                    'name' => $teller->name,
-                ];
-            })->toArray();
-        array_unshift($this->tellerOptions, ['id' => 'all', 'name' => 'All Tellers']);
-        $this->selectedTellerId = 'all';
-    }
-
-    public function updatedSelectedDate(): void
-    {
-        // Reset pagination when date changes
-        $this->page = 1;
-    }
-
-    public function updatedSearch(): void
-    {
-        // Reset pagination when search changes
-        $this->page = 1;
+        $this->selectedDate = now()->toDateString();
     }
 
     #[Computed]
     public function winners()
     {
-        $date = $this->selectedDate ?? Carbon::today()->format('Y-m-d');
-        $winners = [];
-
-        // Fetch all bets for the selected bet_date, only those whose draw has a result
-        $betsQuery = Bet::with(['gameType', 'teller', 'draw', 'draw.result'])
-            ->whereDate('bet_date', $date)
-            ->where('is_rejected', false)
-            ->whereHas('draw.result');
-        if ($this->selectedTellerId !== 'all') {
-            $betsQuery->where('teller_id', $this->selectedTellerId);
-        }
-        $bets = $betsQuery->get();
-
-        foreach ($bets as $bet) {
-            // Defensive: skip if bet is null or draw/result missing
-            if (!$bet || !$bet->draw || !$bet->draw->result) continue;
-
-            try {
-                if (method_exists($bet, 'isHit') && $bet->isHit()) {
-                    $result = $bet->draw->result;
-                    $claimStatus = $bet->is_claimed ? 'Claimed' : 'Pending';
-                    $claimedAt = $bet->claim_at ? Carbon::parse($bet->claim_at)->format('Y-m-d g:i A') : '-';
-                    $drawDate = $bet->draw->draw_date instanceof Carbon ? $bet->draw->draw_date->format('Y-m-d') : (is_string($bet->draw->draw_date) ? $bet->draw->draw_date : '');
-                    $drawTime = $bet->draw->draw_time ? (Carbon::hasFormat($bet->draw->draw_time, 'H:i:s') ? Carbon::createFromFormat('H:i:s', $bet->draw->draw_time)->format('g:i A') : $bet->draw->draw_time) : '';
-                    $gameTypeName = $bet->gameType->name ?? '';
-                    $winningNumber = $bet->gameType->code === 'S2' ? $result->s2_winning_number : ($bet->gameType->code === 'S3' ? $result->s3_winning_number : ($bet->gameType->code === 'D4' ? $result->d4_winning_number : ''));
-                    $winAmount = $bet->winning_amount ?? 0;
-                    $tellerName = $bet->teller->name ?? '';
-                    $winners[] = [
-                        'id' => $bet->id,
-                        'ticket_id' => $bet->ticket_id ?? '',
-                        'draw_date' => $drawDate,
-                        'draw_time' => $drawTime,
-                        'game_type' => $gameTypeName,
-                        'winning_number' => $winningNumber,
-                        'bet_number' => $bet->bet_number ?? '',
-                        'win_amount' => $winAmount,
-                        'is_low_win' => $bet->is_low_win ?? false,
-                        'claim_status' => $claimStatus,
-                        'claimed_at' => $claimedAt,
-                        'teller_name' => $tellerName,
-                        'd4_sub_selection' => $bet->d4_sub_selection ?? null,
-                    ];
-                }
-            } catch (\Throwable $e) {
-                continue;
-            }
-        }
-
-        // Sort winners by draw time and date descending
-        usort($winners, function($a, $b) {
-            return strcmp(($b['draw_date'] ?? '') . ($b['draw_time'] ?? ''), ($a['draw_date'] ?? '') . ($a['draw_time'] ?? ''));
-        });
-
-        // Apply search filter if search term is provided
-        if (!empty($this->search)) {
-            $search = strtolower($this->search);
-            $winners = array_filter($winners, function($winner) use ($search) {
-                return (isset($winner['ticket_id']) && str_contains(strtolower($winner['ticket_id']), $search)) ||
-                       (isset($winner['bet_number']) && str_contains(strtolower($winner['bet_number']), $search)) ||
-                       (isset($winner['winning_number']) && str_contains(strtolower($winner['winning_number']), $search));
+        $query = Bet::with([
+            'draw.result', 'gameType', 'teller.coordinator', 'location', 'customer'
+        ])
+        ->whereHas('draw.result')
+        ->whereDate('bet_date', $this->selectedDate)
+        ->where('is_rejected', false)
+        // Filter by teller
+        ->when($this->selectedTeller, function($q) {
+            $q->where('teller_id', $this->selectedTeller);
+        })
+        // Filter by location
+        ->when($this->selectedLocation, function($q) {
+            $q->where('location_id', $this->selectedLocation);
+        })
+        // Filter by coordinator (filter tellers by coordinator)
+        ->when($this->selectedCoordinator, function($q) {
+            $q->whereHas('teller', function($sub) {
+                $sub->where('coordinator_id', $this->selectedCoordinator);
             });
-        }
+        })
+        // Filter by game type
+        ->when($this->selectedGameType, function($q) {
+            $q->whereHas('gameType', function($sub) {
+                $sub->where('code', $this->selectedGameType);
+            });
+        })
+        // Filter by D4 sub-selection
+        ->when($this->selectedD4SubSelection, function($q) {
+            $q->where('d4_sub_selection', $this->selectedD4SubSelection);
+        })
+        // Filter by claimed status
+        ->when($this->selectedClaimedStatus !== '', function($q) {
+            $q->where('is_claimed', $this->selectedClaimedStatus === '1');
+        })
+        // Search
+        ->when($this->search, function($q) {
+            $q->where(function($sub) {
+                $sub->where('ticket_id', 'like', "%{$this->search}%")
+                    ->orWhere('bet_number', 'like', "%{$this->search}%");
+            });
+        })
+        ->latest();
 
-        // Apply pagination
+        // Get all bets for the page, then filter by isHit (winner logic)
+        $bets = $query->get()->filter(function($bet) {
+            return $bet->isHit();
+        });
+        $this->totalWinners = $bets->count();
+        $this->totalWinAmount = $bets->sum('winning_amount');
+
+        // Paginate manually
         $page = $this->page;
         $perPage = $this->perPage;
-        $total = count($winners);
-        $items = array_slice($winners, ($page - 1) * $perPage, $perPage);
-        $paginator = new LengthAwarePaginator(
-            $items,
-            $total,
+        $paginated = new LengthAwarePaginator(
+            $bets->forPage($page, $perPage)->values(),
+            $bets->count(),
             $perPage,
             $page,
             ['path' => request()->url(), 'query' => request()->query()]
         );
-        $this->totalWinAmount = array_sum(array_column($winners, 'win_amount'));
-        $this->totalWinners = count($winners);
-        return $paginator;
+        return $paginated;
+    }
+
+    public function updated($property)
+    {
+        if (in_array($property, [
+            'selectedDate', 'search', 'selectedTeller', 'selectedLocation', 'selectedCoordinator', 'selectedGameType', 'selectedD4SubSelection', 'selectedClaimedStatus', 'perPage'
+        ])) {
+            $this->page = 1;
+        }
     }
 
     public function testAction(): Action
@@ -166,5 +136,4 @@ class WinnersReport extends Page
                 'date' => $this->selectedDate,
             ]);
     }
-    //
 }

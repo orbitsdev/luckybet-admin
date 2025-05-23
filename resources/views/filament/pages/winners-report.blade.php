@@ -17,213 +17,139 @@
             document.body.innerHTML = originalContents;
         }
     </script>
-    @php(dump($this->winners))
-
     <div id="winners-report" class="p-6 space-y-4 w-full">
-        <!-- Print Button - Positioned at the top right -->
-        <div class="flex justify-end mb-4">
-            <button
-                onclick="printDiv('report-content')"
-                class="filament-button"
-                style="background-color: #f59e0b; color: white; font-weight: bold; padding: 0.75rem 1.5rem; border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); display: inline-flex; align-items: center; gap: 0.5rem; font-size: 1rem;"
-            >
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                </svg>
-                Print Report
-            </button>
-        </div>
-
-        <div class="flex items-center justify-between flex-wrap gap-4">
-
-            <div class="flex items-center space-x-2">
-            <label for="selectedDate" class="text-sm font-medium">Select Date:</label>
-            <input
-                type="date"
-                wire:model="selectedDate"
-                id="selectedDate"
-                class="border rounded px-2 py-1 text-sm focus:ring-amber-500 focus:border-amber-500"
-                value="{{ $selectedDate }}"
-            />
-            <label for="selectedTellerId" class="text-sm font-medium ml-4">Teller:</label>
-            <select
-                wire:model="selectedTellerId"
-                id="selectedTellerId"
-                class="border rounded px-2 py-1 text-sm focus:ring-amber-500 focus:border-amber-500"
-            >
-                @foreach ($tellerOptions as $teller)
-                    <option value="{{ $teller['id'] }}">{{ $teller['name'] }}</option>
-                @endforeach
-            </select>
-        </div>
-
-            <!-- Search Box -->
-            <div class="relative">
-                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <svg class="w-4 h-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
-                    </svg>
-                </div>
-                <input
-                    type="search"
-                    wire:model.debounce.300ms="search"
-                    class="block w-full p-2 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-amber-500 focus:border-amber-500"
-                    placeholder="Search ticket ID or number..."
-                />
-            </div>
-        </div>
-
-        <div id="report-content" class="bg-white rounded-lg shadow overflow-hidden">
-            <div class="p-4 bg-amber-50 border-b border-amber-100">
-                <h2 class="text-lg font-medium text-amber-800">Winners for {{ \Carbon\Carbon::parse($selectedDate)->format('F j, Y') }}</h2>
-            </div>
-
-            <div class="overflow-x-auto">
-                <table class="w-full divide-y divide-gray-200 border text-sm">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <!-- Identification columns first -->
-                            <th class="px-4 py-2 text-left font-medium text-gray-600">Ticket ID</th>
-                            <th class="px-4 py-2 text-left font-medium text-gray-600">Draw Date & Time</th>
-
-                            <!-- Game details -->
-                            <th class="px-4 py-2 text-left font-medium text-gray-600">Bet Type</th>
-                            <th class="px-4 py-2 text-left font-medium text-gray-600">Bet Number</th>
-                            <th class="px-4 py-2 text-left font-medium text-gray-600">Winning Number</th>
-
-                            <!-- Financial/Status information -->
-                            <th class="px-4 py-2 text-left font-medium text-gray-600">Win Amount</th>
-                            <th class="px-4 py-2 text-left font-medium text-gray-600">Claim Status</th>
-                            <th class="px-4 py-2 text-left font-medium text-gray-600">Claimed At</th>
-
-                            <!-- Additional information -->
-                            <th class="px-4 py-2 text-left font-medium text-gray-600">Teller</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($this->winners as $winner)
-                            <tr class="border-t hover:bg-gray-50">
-                                <!-- Identification columns first -->
-                                <td class="px-4 py-2 font-medium">{{ $winner['ticket_id'] ?? '-' }}</td>
-                                <td class="px-4 py-2">
-                                    @php
-                                        $drawDate = $winner['draw_date'] ?? null;
-                                        $drawTime = $winner['draw_time'] ?? null;
-                                    @endphp
-                                    @if($drawDate)
-                                        {{ \Carbon\Carbon::hasFormat($drawDate, 'Y-m-d') ? \Carbon\Carbon::parse($drawDate)->format('F j, Y') : $drawDate }}
-                                    @else
-                                        -
-                                    @endif
-                                    @if($drawTime)
-                                        at {{ $drawTime }}
-                                    @endif
-                                </td>
-
-                                <!-- Game details -->
-                                <td class="px-4 py-2">
-    {{ $winner['game_type'] ?? '-' }}
-    @if(isset($winner['d4_sub_selection']) && $winner['d4_sub_selection'])
-        <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-700 border border-amber-300">
-            D4-{{ strtoupper($winner['d4_sub_selection']) }}
-        </span>
-    @endif
-</td>
-                                <td class="px-4 py-2 font-medium">{{ $winner['bet_number'] ?? '-' }}</td>
-                                <td class="px-4 py-2 font-medium text-amber-600">{{ $winner['winning_number'] ?? '-' }}</td>
-
-                                <!-- Financial/Status information -->
-                                <td class="px-4 py-2 font-medium text-green-600">
-                                    @php $amount = $winner['win_amount'] ?? 0; @endphp
-                                    ₱{{ is_numeric($amount) ? number_format($amount, 2) : '0.00' }}
-                                </td>
-                                <td class="px-4 py-2">
-                                    @if(($winner['claim_status'] ?? '') === 'Claimed')
-                                        <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Claimed</span>
-                                    @else
-                                        <span class="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">Pending</span>
-                                    @endif
-                                </td>
-                                <td class="px-4 py-2">{{ $winner['claimed_at'] ?? '-' }}</td>
-
-                                <!-- Additional information -->
-                                <td class="px-4 py-2">{{ $winner['teller_name'] ?? '-' }}</td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="9" class="text-center py-4">No winners found for selected date.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-
-                <!-- Breakdown Summary -->
-                <div class="flex flex-col sm:flex-row justify-between items-center gap-4 px-4 py-3 bg-amber-50 border-t border-amber-100">
-                    <div class="text-sm text-gray-700">
-                        <span class="font-medium">Total Winners:</span> {{ $totalWinners }}
-                    </div>
-                    <div class="text-sm text-gray-700">
-                        <span class="font-medium">Total Payout:</span> <span class="text-green-700 font-bold">₱{{ number_format($totalWinAmount, 2) }}</span>
-                    </div>
-                </div>
-
-                <!-- Pagination Controls - Hidden when printing -->
-                <div class="px-4 py-3 bg-white border-t border-gray-200 sm:px-6 print:hidden">
-                    <div class="flex items-center justify-between">
-                        <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                            <div>
-                                <p class="text-sm text-gray-700">
-                                    Showing
-                                    <span class="font-medium">{{ $this->winners->firstItem() ?? 0 }}</span>
-                                    to
-                                    <span class="font-medium">{{ $this->winners->lastItem() ?? 0 }}</span>
-                                    of
-                                    <span class="font-medium">{{ $this->winners->total() }}</span>
-                                    results
-                                </p>
-                            </div>
-                            <div>
-                                <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                                    <!-- Previous Page Link -->
-                                    <button
-                                        wire:click="$set('page', {{ max($this->winners->currentPage() - 1, 1) }})"
-                                        @if ($this->winners->onFirstPage()) disabled @endif
-                                        class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-                                    >
-                                        <span class="sr-only">Previous</span>
-                                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                            <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
-                                        </svg>
-                                    </button>
-
-                                    <!-- Page Number Links -->
-                                    @for ($i = 1; $i <= $this->winners->lastPage(); $i++)
-                                        <button
-                                            wire:click="$set('page', {{ $i }})"
-                                            class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium {{ $i === $this->winners->currentPage() ? 'text-amber-600 bg-amber-50' : 'text-gray-700 hover:bg-gray-50' }}"
-                                        >
-                                            {{ $i }}
-                                        </button>
-                                    @endfor
-
-                                    <!-- Next Page Link -->
-                                    <button
-                                        wire:click="$set('page', {{ min($this->winners->currentPage() + 1, $this->winners->lastPage()) }})"
-                                        @if (!$this->winners->hasMorePages()) disabled @endif
-                                        class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-                                    >
-                                        <span class="sr-only">Next</span>
-                                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                                        </svg>
-                                    </button>
-                                </nav>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <!-- Print Button - Positioned at the top right -->
+    <div class="flex justify-end mb-4">
+        <button
+            onclick="printDiv('winners-report')"
+            class="filament-button"
+            style="background-color: #f59e0b; color: white; font-weight: bold; padding: 0.75rem 1.5rem; border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); display: inline-flex; align-items: center; gap: 0.5rem; font-size: 1rem;"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            </svg>
+            Print Report
+        </button>
     </div>
+
+    <!-- Filters -->
+    <form wire:submit.prevent class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div>
+            <x-filament::input type="date" wire:model.live="selectedDate" label="Date" class="w-full" />
+        </div>
+        <div>
+            <x-filament::input type="text" wire:model.live="search" placeholder="Search Ticket or Bet Number" class="w-full" />
+        </div>
+        <div>
+            <x-filament::select wire:model.live="selectedTeller" class="w-full">
+                <option value="">All Tellers</option>
+                @foreach (\App\Models\User::where('role', 'teller')->get() as $teller)
+                    <option value="{{ $teller->id }}">{{ $teller->name }}</option>
+                @endforeach
+            </x-filament::select>
+        </div>
+        <div>
+            <x-filament::select wire:model.live="selectedCoordinator" class="w-full">
+                <option value="">All Coordinators</option>
+                @foreach (\App\Models\User::where('role', 'coordinator')->get() as $coord)
+                    <option value="{{ $coord->id }}">{{ $coord->name }}</option>
+                @endforeach
+            </x-filament::select>
+        </div>
+        <div>
+            <x-filament::select wire:model.live="selectedLocation" class="w-full">
+                <option value="">All Locations</option>
+                @foreach (\App\Models\Location::all() as $loc)
+                    <option value="{{ $loc->id }}">{{ $loc->name }}</option>
+                @endforeach
+            </x-filament::select>
+        </div>
+        <div>
+            <x-filament::select wire:model.live="selectedGameType" class="w-full">
+                <option value="">All Game Types</option>
+                @foreach (\App\Models\GameType::all() as $gt)
+                    <option value="{{ $gt->code }}">{{ $gt->name }}</option>
+                @endforeach
+            </x-filament::select>
+        </div>
+        <div>
+            <x-filament::select wire:model.live="selectedD4SubSelection" class="w-full">
+                <option value="">D4 Sub-Selection</option>
+                <option value="S2">S2</option>
+                <option value="S3">S3</option>
+            </x-filament::select>
+        </div>
+        <div>
+            <x-filament::select wire:model.live="selectedClaimedStatus" class="w-full">
+                <option value="">All Status</option>
+                <option value="1">Claimed</option>
+                <option value="0">Unclaimed</option>
+            </x-filament::select>
+        </div>
+        <div>
+            <x-filament::select wire:model.live="perPage" class="w-full">
+                <option value="20">20</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </x-filament::select>
+        </div>
+    </form>
+
+    <!-- Totals -->
+    <div class="flex gap-6 mb-2">
+        <div><span class="font-bold">Total Winners:</span> {{ $this->totalWinners }}</div>
+        <div><span class="font-bold">Total Win Amount:</span> ₱{{ number_format($this->totalWinAmount, 2) }}</div>
+    </div>
+
+    <!-- Winners Table -->
+    <div class="overflow-x-auto">
+        <table class="min-w-full bg-white border border-gray-200">
+            <thead>
+                <tr class="bg-gray-100 text-xs uppercase">
+                    <th class="px-2 py-2 border">Ticket ID</th>
+                    <th class="px-2 py-2 border">Bet Number</th>
+                    <th class="px-2 py-2 border">Amount</th>
+                    <th class="px-2 py-2 border">Winning Amount</th>
+                    <th class="px-2 py-2 border">Game Type</th>
+                    <th class="px-2 py-2 border">D4 Sub</th>
+                    <th class="px-2 py-2 border">Draw Date</th>
+                    <th class="px-2 py-2 border">Draw Time</th>
+                    <th class="px-2 py-2 border">Teller</th>
+                    <th class="px-2 py-2 border">Location</th>
+                    <th class="px-2 py-2 border">Coordinator</th>
+                    <th class="px-2 py-2 border">Claimed</th>
+                    <th class="px-2 py-2 border">Claimed At</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse ($this->winners as $bet)
+                    <tr class="text-sm">
+                        <td class="px-2 py-1 border">{{ $bet->ticket_id }}</td>
+                        <td class="px-2 py-1 border">{{ $bet->bet_number }}</td>
+                        <td class="px-2 py-1 border">₱{{ number_format($bet->amount, 2) }}</td>
+                        <td class="px-2 py-1 border">₱{{ number_format($bet->winning_amount, 2) }}</td>
+                        <td class="px-2 py-1 border">{{ $bet->gameType->code ?? '' }}</td>
+                        <td class="px-2 py-1 border">{{ $bet->d4_sub_selection ?? '-' }}</td>
+                        <td class="px-2 py-1 border">{{ $bet->draw->draw_date ?? '' }}</td>
+                        <td class="px-2 py-1 border">{{ $bet->draw->draw_time ?? '' }}</td>
+                        <td class="px-2 py-1 border">{{ $bet->teller->name ?? '' }}</td>
+                        <td class="px-2 py-1 border">{{ $bet->location->name ?? '' }}</td>
+                        <td class="px-2 py-1 border">{{ $bet->teller->coordinator->name ?? '-' }}</td>
+                        <td class="px-2 py-1 border">{{ $bet->is_claimed ? 'Yes' : 'No' }}</td>
+                        <td class="px-2 py-1 border">{{ $bet->claimed_at ? \Carbon\Carbon::parse($bet->claimed_at)->format('Y-m-d H:i') : '-' }}</td>
+                    </tr>
+                @empty
+                    <tr><td colspan="13" class="text-center py-4">No winners found.</td></tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="mt-4">
+        {{ $this->winners->links() }}
+    </div>
+</div>
+
 
 </x-filament-panels::page>
