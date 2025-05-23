@@ -20,11 +20,11 @@ class LowWinNumber extends Model
         'winning_amount',
         'reason',
         'user_id',
-        'locations_id',
+        'location_id',
     ];
 
+    // No casts needed; removed 'amount' as it does not exist in this table.
     protected $casts = [
-        'amount' => 'decimal:2',
     ];
 
     /**
