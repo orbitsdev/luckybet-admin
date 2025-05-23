@@ -79,7 +79,7 @@ class DrawResource extends Resource
                                                 ->required(),
                                         ])
                                 ])
-                                ->defaultItems(1)
+                                ->defaultItems(0)
                                 ->columnSpanFull()
                         ]),
                     Forms\Components\Wizard\Step::make('Low Win Numbers')

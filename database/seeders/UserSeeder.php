@@ -48,7 +48,7 @@ class UserSeeder extends Seeder
         ]);
 
         // Create Teller with coordinator relationship
-        User::create([
+        $tellerJane = User::create([
             'name' => 'Teller Jane',
             'username' => 'tellerjane',
             'email' => 'teller@example.com',
@@ -59,9 +59,13 @@ class UserSeeder extends Seeder
             'coordinator_id' => $coordinator->id, // Link to coordinator
             'location_id' => $location->id,
         ]);
+        \App\Models\Commission::create([
+            'teller_id' => $tellerJane->id,
+            'rate' => 0.15
+        ]);
 
         // Add Teller Joe
-        User::create([
+        $tellerJoe = User::create([
             'name' => 'Teller Joe',
             'username' => 'tellerjoe',
             'email' => 'joe@gmail.com',
@@ -72,9 +76,13 @@ class UserSeeder extends Seeder
             'coordinator_id' => $coordinator->id,
             'location_id' => $location->id,
         ]);
+        \App\Models\Commission::create([
+            'teller_id' => $tellerJoe->id,
+            'rate' => 0.15
+        ]);
 
         // Add Teller Kristine
-        User::create([
+        $tellerKristine = User::create([
             'name' => 'Teller Kristine',
             'username' => 'tellerkristine',
             'email' => 'kristine@gmail.com',
@@ -84,6 +92,10 @@ class UserSeeder extends Seeder
             'is_active' => true,
             'coordinator_id' => $coordinator->id,
             'location_id' => $location->id,
+        ]);
+        \App\Models\Commission::create([
+            'teller_id' => $tellerKristine->id,
+            'rate' => 0.15
         ]);
     }
 }

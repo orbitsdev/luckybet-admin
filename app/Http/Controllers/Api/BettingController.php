@@ -65,13 +65,16 @@ class BettingController extends Controller
             $ticketId = strtoupper(Str::random(6));
 
             
+            // 1. BET RATIO (CAP/SOLD OUT) CHECK - must include location_id
             $totalBetForNumber = Bet::where('draw_id', $data['draw_id'])
                 ->where('game_type_id', $data['game_type_id'])
+                ->where('location_id', $user->location_id)
                 ->where('bet_number', $data['bet_number'])
                 ->sum('amount');
 
             $cap = BetRatio::where('draw_id', $data['draw_id'])
                 ->where('game_type_id', $data['game_type_id'])
+                ->where('location_id', $user->location_id)
                 ->where('bet_number', $data['bet_number'])
                 ->value('max_amount');
 
@@ -80,14 +83,17 @@ class BettingController extends Controller
                 return ApiResponse::error('Sold Out', 422);
             }
 
+            // 2. LOW WIN OVERRIDE / WINNING AMOUNT LOGIC - must include location_id
             $lowWin = LowWinNumber::where('draw_id', $data['draw_id'])
                 ->where('game_type_id', $data['game_type_id'])
+                ->where('location_id', $user->location_id)
                 ->where('bet_number', $data['bet_number'])
                 ->first();
 
-            $winningAmount = $lowWin && isset($lowWin->winning_amount)
+            $winningAmount = $lowWin
                 ? $lowWin->winning_amount
                 : (WinningAmount::where('game_type_id', $data['game_type_id'])
+                    ->where('location_id', $user->location_id)
                     ->where('amount', $data['amount'])
                     ->value('winning_amount'));
 
@@ -99,19 +105,25 @@ class BettingController extends Controller
                 );
             }
 
+            // 3. COMMISSION LOGIC
+            $commissionRate = $user->commission->rate ?? 0.15; // default 15% if not set
+            $commissionAmount = $data['amount'] * $commissionRate;
+
             $bet = Bet::create([
-                'bet_number' => $data['bet_number'],
-                'amount' => $data['amount'],
-                'winning_amount' => $winningAmount,
-                'draw_id' => $data['draw_id'],
-                'game_type_id' => $data['game_type_id'],
-                'teller_id' => $user->id,
-                'customer_id' => $data['customer_id'] ?? null,
-                'location_id' => $user->location_id,
-                'bet_date' => today(),
-                'ticket_id' => $ticketId,
-                'is_combination' => $data['is_combination'] ?? false,
-                'd4_sub_selection' => $data['d4_sub_selection'] ?? null
+                'bet_number'       => $data['bet_number'],
+                'amount'           => $data['amount'],
+                'winning_amount'   => $winningAmount,
+                'draw_id'          => $data['draw_id'],
+                'game_type_id'     => $data['game_type_id'],
+                'teller_id'        => $user->id,
+                'customer_id'      => $data['customer_id'] ?? null,
+                'location_id'      => $user->location_id,
+                'bet_date'         => today(),
+                'ticket_id'        => $ticketId,
+                'is_combination'   => $data['is_combination'] ?? false,
+                'd4_sub_selection' => $data['d4_sub_selection'] ?? null,
+                'commission_rate'  => $commissionRate,
+                'commission_amount'=> $commissionAmount,
             ]);
 
         DB::commit();
