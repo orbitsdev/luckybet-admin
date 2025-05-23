@@ -369,6 +369,12 @@ class BetResource extends Resource
                     ->indicator('Teller')
                     ->preload()
                     ->searchable(),
+                Tables\Filters\SelectFilter::make('location_id')
+                    ->relationship('location', 'name')
+                    ->label('Location')
+                    ->indicator('Location')
+                    ->preload()
+                    ->searchable(),
 
                 // Date range filter
                 Tables\Filters\Filter::make('bet_date')
