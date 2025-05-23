@@ -64,8 +64,12 @@ class DrawResource extends Resource
                                 ->label('Bet Ratios')
                                 ->relationship('betRatios')
                                 ->schema([
-                                    Forms\Components\Grid::make(3)
+                                    Forms\Components\Grid::make(4)
                                         ->schema([
+                                            Forms\Components\Select::make('location_id')
+                                                ->label('Location')
+                                                ->relationship('location', 'name')
+                                                ->required(),
                                             Forms\Components\Select::make('game_type_id')
                                                 ->label('Game Type')
                                                 ->relationship('gameType', 'name')
@@ -89,8 +93,12 @@ class DrawResource extends Resource
                                 ->label('Low Win Numbers')
                                 ->relationship('lowWinNumbers')
                                 ->schema([
-                                    Forms\Components\Grid::make(4)
+                                    Forms\Components\Grid::make(5)
                                         ->schema([
+                                            Forms\Components\Select::make('location_id')
+                                                ->label('Location')
+                                                ->relationship('location', 'name')
+                                                ->required(),
                                             Forms\Components\Select::make('game_type_id')
                                                 ->label('Game Type')
                                                 ->relationship('gameType', 'name')
