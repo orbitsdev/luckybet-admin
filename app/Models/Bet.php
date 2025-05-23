@@ -166,8 +166,7 @@ class Bet extends Model
         }
         // Otherwise, fallback to config logic (legacy/old bets)
         $lowWin = \App\Models\LowWinNumber::where('game_type_id', $this->game_type_id)
-            ->where('amount', $this->amount)
-            ->where(function($q) {
+                        ->where(function($q) {
                 $q->whereNull('bet_number')
                   ->orWhere('bet_number', $this->bet_number);
             })
@@ -178,8 +177,7 @@ class Bet extends Model
         }
 
         $winningAmount = \App\Models\WinningAmount::where('game_type_id', $this->game_type_id)
-            ->where('amount', $this->amount)
-            ->value('winning_amount');
+                        ->value('winning_amount');
 
         return $winningAmount; // null if not set
     }
@@ -190,8 +188,7 @@ class Bet extends Model
     public function getIsLowWinAttribute()
     {
         $lowWin = \App\Models\LowWinNumber::where('game_type_id', $this->game_type_id)
-            ->where('amount', $this->amount)
-            ->where(function($q) {
+                        ->where(function($q) {
                 $q->whereNull('bet_number')
                   ->orWhere('bet_number', $this->bet_number);
             })
