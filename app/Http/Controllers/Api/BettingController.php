@@ -90,6 +90,17 @@ class BettingController extends Controller
                 ->where('bet_number', $data['bet_number'])
                 ->first();
 
+            // Fallback: try global low win (bet_number is null or empty)
+            if (!$lowWin) {
+                $lowWin = LowWinNumber::where('draw_id', $data['draw_id'])
+                    ->where('game_type_id', $data['game_type_id'])
+                    ->where('location_id', $user->location_id)
+                    ->where(function ($query) {
+                        $query->whereNull('bet_number')->orWhere('bet_number', '');
+                    })
+                    ->first();
+            }
+
             $winningAmount = $lowWin
                 ? $lowWin->winning_amount
                 : (WinningAmount::where('game_type_id', $data['game_type_id'])
