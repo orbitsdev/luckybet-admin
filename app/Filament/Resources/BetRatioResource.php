@@ -55,16 +55,7 @@ class BetRatioResource extends Resource
                     ->label('Location')
                     ->searchable()
                     ->nullable(),
-            ]);
-                                    ->numeric()
-                                    ->step(0.01)
-                                    ->prefix('₱'),
-                                Forms\Components\TextInput::make('s3_low_win_amount')
-                                    ->label('Low Win Amount')
-                                    ->numeric()
-                                    ->step(0.01)
-                                    ->prefix('₱'),
-                            ]),
+            
                         Forms\Components\Section::make('D4 (4-Digit) Settings')
                             ->schema([
                                 Forms\Components\TextInput::make('d4_limit')
@@ -83,6 +74,8 @@ class BetRatioResource extends Resource
                                     ->step(0.01)
                                     ->prefix('₱'),
                             ]),
+
+       ]   );
                 
             
     }

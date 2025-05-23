@@ -219,11 +219,19 @@ class BetResource extends Resource
     {
         return $table
             ->groups([
+                Tables\Grouping\Group::make('draw.draw_date')
+                    ->label('Draw Date')
+                    ->getTitleFromRecordUsing(fn ($record) =>
+                        $record->draw?->draw_date
+                            ? \Illuminate\Support\Carbon::parse($record->draw->draw_date)->format('M d, Y')
+                            : 'No Draw'
+                    )
+                    ->collapsible(),
                 Tables\Grouping\Group::make('location.name')
                     ->label('Location')
                     ->collapsible(),
             ])
-            ->defaultGroup('location.name')
+            ->defaultGroup('draw.draw_date')
             ->columns([
                 // Primary information - most important columns first
                 Tables\Columns\TextColumn::make('bet_number')
@@ -357,6 +365,18 @@ class BetResource extends Resource
                     }),
 
                 // Bet information filters
+                Tables\Filters\SelectFilter::make('draw_id')
+                    ->relationship('draw', 'draw_date')
+                    ->label('Draw Date')
+                    ->indicator('Draw Date')
+                    ->preload()
+                    ->searchable(),
+                Tables\Filters\SelectFilter::make('location_id')
+                    ->relationship('location', 'name')
+                    ->label('Location')
+                    ->indicator('Location')
+                    ->preload()
+                    ->searchable(),
                 Tables\Filters\SelectFilter::make('game_type_id')
                     ->relationship('gameType', 'name')
                     ->label('Game Type')
@@ -367,12 +387,6 @@ class BetResource extends Resource
                     ->relationship('teller', 'name')
                     ->label('Teller')
                     ->indicator('Teller')
-                    ->preload()
-                    ->searchable(),
-                Tables\Filters\SelectFilter::make('location_id')
-                    ->relationship('location', 'name')
-                    ->label('Location')
-                    ->indicator('Location')
                     ->preload()
                     ->searchable(),
 
