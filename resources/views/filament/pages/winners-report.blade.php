@@ -17,9 +17,9 @@
             document.body.innerHTML = originalContents;
         }
     </script>
-    <div id="winners-report" class="w-full max-w-7xl mx-auto px-4 py-6 space-y-6">
+    <div id="winners-report" class="w-full max-w-7xl mx-auto px-4 py-6 space-y-6 print:mt-0 print:mb-0">
     <!-- Print Button - Positioned at the top right -->
-    <div class="flex justify-end mb-4">
+    <div class="flex justify-end mb-4 print:hidden">
         <button
             onclick="printDiv('winners-report')"
             class="filament-button"
@@ -112,8 +112,8 @@
     </div>
 
     <!-- Winners Table -->
-    <div class="overflow-x-auto w-full">
-        <table class="w-full min-w-max bg-white border border-gray-200">
+    <div class="overflow-x-auto w-full print:overflow-visible">
+        <table class="w-full min-w-max bg-white border border-gray-200 print:w-full print:min-w-0">
             <thead>
                 <tr class="bg-gray-100 text-xs uppercase">
                     <th class="px-2 py-2 border">Ticket ID</th>
