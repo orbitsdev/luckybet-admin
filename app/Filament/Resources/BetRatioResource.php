@@ -136,8 +136,14 @@ class BetRatioResource extends Resource
                     ->searchable(),
                 Tables\Filters\SelectFilter::make('draw_id')
                     ->relationship('draw', 'id')
-                    ->label('Draw')
-                    ->indicator('Draw')
+                    ->label('Draw Date & Time')
+                    ->indicator('Draw Date & Time')
+                    ->getOptionLabelFromRecordUsing(function ($record) {
+                        if (!$record->draw_date || !$record->draw_time) return 'Unknown';
+                        $date = \Illuminate\Support\Carbon::parse($record->draw_date)->format('M d, Y');
+                        $time = \Illuminate\Support\Carbon::createFromFormat('H:i:s', $record->draw_time)->format('g:i A');
+                        return "$date ($time)";
+                    })
                     ->preload()
                     ->searchable(),
             ], layout: \Filament\Tables\Enums\FiltersLayout::AboveContent)
