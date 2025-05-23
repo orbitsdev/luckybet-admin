@@ -39,14 +39,14 @@
             <label for="selectedDate" class="text-sm font-medium">Select Date:</label>
             <input
                 type="date"
-                wire:model.live="selectedDate"
+                wire:model="selectedDate"
                 id="selectedDate"
                 class="border rounded px-2 py-1 text-sm focus:ring-amber-500 focus:border-amber-500"
                 value="{{ $selectedDate }}"
             />
             <label for="selectedTellerId" class="text-sm font-medium ml-4">Teller:</label>
             <select
-                wire:model.live="selectedTellerId"
+                wire:model="selectedTellerId"
                 id="selectedTellerId"
                 class="border rounded px-2 py-1 text-sm focus:ring-amber-500 focus:border-amber-500"
             >
@@ -65,7 +65,7 @@
                 </div>
                 <input
                     type="search"
-                    wire:model.live.debounce.300ms="search"
+                    wire:model.debounce.300ms="search"
                     class="block w-full p-2 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-amber-500 focus:border-amber-500"
                     placeholder="Search ticket ID or number..."
                 />
