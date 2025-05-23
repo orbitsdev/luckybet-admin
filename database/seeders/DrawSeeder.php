@@ -63,61 +63,14 @@ class DrawSeeder extends Seeder
         // Get all game types
         $gameTypes = GameType::where('is_active', true)->get();
 
-        // Create draws for yesterday (closed with results)
-        $yesterday = now()->subDay()->format('Y-m-d');
-        foreach ($schedules as $schedule) {
-            Draw::create([
-                'draw_date' => $yesterday,
-                'draw_time' => $schedule->draw_time,
-                'is_open' => false, // Closed because it's in the past
-            ]);
-        }
-
-        // Create draws for today (mix of open and closed)
+        // Create draws for today only, using all active schedules
         $today = now()->format('Y-m-d');
-        $currentTime = now()->format('H:i:s');
-
-        // Get all schedules in order of draw time
-        $todaySchedules = Schedule::orderBy('draw_time')->get();
-
-        // Create draws for each schedule for today
-        foreach ($todaySchedules as $index => $schedule) {
-            $scheduleTime = $schedule->draw_time;
-            $isPastTime = $scheduleTime < $currentTime;
-
-            // First schedule is always closed (morning draw with results)
-            // Middle schedules depend on current time
-            // Last schedule is always open (evening draw)
-            $isOpen = false;
-            if ($index === 0) {
-                $isOpen = false; // Morning draw - already closed
-            } elseif ($index === count($todaySchedules) - 1) {
-                $isOpen = true; // Evening draw - still open
-            } else {
-                $isOpen = !$isPastTime; // Afternoon draws - depends on time
-            }
-
-            // Create a draw for this schedule
+        $schedules = Schedule::where('is_active', true)->orderBy('draw_time')->get();
+        foreach ($schedules as $schedule) {
             Draw::create([
                 'draw_date' => $today,
                 'draw_time' => $schedule->draw_time,
-                'is_open' => $isOpen,
-            ]);
-        }
-
-        // Create draws for tomorrow (all open)
-        $tomorrow = now()->addDay()->format('Y-m-d');
-
-        // Get all schedules in order of draw time
-        $tomorrowSchedules = Schedule::orderBy('draw_time')->get();
-
-        // Create draws for each schedule for tomorrow (all open)
-        foreach ($tomorrowSchedules as $schedule) {
-            // Create a draw for this schedule
-            Draw::create([
-                'draw_date' => $tomorrow,
-                'draw_time' => $schedule->draw_time,
-                'is_open' => true, // All tomorrow's draws are open
+                'is_open' => true,
             ]);
         }
     }

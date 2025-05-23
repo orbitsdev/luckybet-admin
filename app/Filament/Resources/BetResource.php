@@ -205,6 +205,12 @@ class BetResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->groups([
+                Tables\Grouping\Group::make('location.name')
+                    ->label('Location')
+                    ->collapsible(),
+            ])
+            ->defaultGroup('location.name')
             ->columns([
                 // Primary information - most important columns first
                 Tables\Columns\TextColumn::make('bet_number')
@@ -212,6 +218,10 @@ class BetResource extends Resource
                     ->searchable()
                     ->sortable()
                     ->weight('bold'),
+                Tables\Columns\TextColumn::make('location.name')
+                    ->label('Location')
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('gameType.name')
                     ->label('Game Type')
                     ->sortable()

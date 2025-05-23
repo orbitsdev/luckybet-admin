@@ -21,12 +21,20 @@ class LowWinNumberSeeder extends Seeder
             // D4: all numbers, amount 1, low win 8000
             ['game_type_id' => 3, 'bet_number' => '2', 'winning_amount' => 8000, 'reason' => 'All numbers low win for D4-1'],
         ];
+        $location = \App\Models\Location::first();
+        if (!$location) {
+            $location = \App\Models\Location::create([
+                'name' => 'Main Branch',
+                'address' => 'Default Address',
+                'is_active' => true,
+            ]);
+        }
         foreach ($lowWinNumbers as $data) {
             \App\Models\LowWinNumber::updateOrCreate(
                 [
                     'game_type_id' => $data['game_type_id'],
-                  
-                    'bet_number' => $data['bet_number']
+                    'bet_number' => $data['bet_number'],
+                    'location_id' => $location->id
                 ],
                 [
                     'winning_amount' => $data['winning_amount'],

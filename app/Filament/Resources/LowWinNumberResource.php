@@ -26,6 +26,12 @@ class LowWinNumberResource extends Resource
     {
         return $form
             ->schema([
+                Forms\Components\Select::make('location_id')
+                    ->relationship('location', 'name')
+                    ->required()
+                    ->searchable()
+                    ->preload()
+                    ->label('Location'),
                 Forms\Components\Select::make('game_type_id')
                     ->relationship('gameType', 'name')
                     ->required()
@@ -50,13 +56,26 @@ class LowWinNumberResource extends Resource
                     ->maxLength(255)
                     ->nullable()
                     ->columnSpanFull(),
-            ]);
+            ];
     }
 
     public static function table(Table $table): Table
     {
         return $table
+            ->groups([
+                Tables\Grouping\Group::make('location.name')
+                    ->label('Location')
+                    ->collapsible(),
+                Tables\Grouping\Group::make('gameType.name')
+                    ->label('Game Type')
+                    ->collapsible(),
+            ])
+            ->defaultGroup('location.name')
             ->columns([
+                Tables\Columns\TextColumn::make('location.name')
+                    ->label('Location')
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('gameType.name')
                     ->label('Game Type')
                     ->sortable()

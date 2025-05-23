@@ -26,6 +26,12 @@ class WinningAmountResource extends Resource
     {
         return $form
             ->schema([
+                Forms\Components\Select::make('location_id')
+                    ->relationship('location', 'name')
+                    ->required()
+                    ->searchable()
+                    ->preload()
+                    ->label('Location'),
                 Forms\Components\Select::make('game_type_id')
                     ->relationship('gameType', 'name')
                     ->required()
@@ -45,13 +51,16 @@ class WinningAmountResource extends Resource
                     ->step(0.01)
                     ->label('Winning Amount')
                     ->helperText('The amount to be paid out if the bet wins'),
-            ]);
+            ];
     }
 
     public static function table(Table $table): Table
     {
         return $table
             ->groups([
+                Tables\Grouping\Group::make('location.name')
+                    ->label('Location')
+                    ->collapsible(),
                 Tables\Grouping\Group::make('gameType.name')
                     ->label('Game Type')
                     ->collapsible(),
@@ -59,8 +68,12 @@ class WinningAmountResource extends Resource
                     ->label('Game Code')
                     ->collapsible(),
             ])
-            ->defaultGroup('gameType.name')
+            ->defaultGroup('location.name')
             ->columns([
+                Tables\Columns\TextColumn::make('location.name')
+                    ->label('Location')
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('gameType.name')
                     ->label('Game Type')
                     ->sortable()
