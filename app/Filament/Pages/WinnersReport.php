@@ -27,6 +27,8 @@ class WinnersReport extends Page
     protected static string $view = 'filament.pages.winners-report';
 
     public $selectedDate;
+    public $selectedTellerId = 'all';
+    public $tellerOptions = [];
 
     #[Url]
     public $search = '';
@@ -38,6 +40,18 @@ class WinnersReport extends Page
     {
         // Set default to today's date
         $this->selectedDate = Carbon::today()->format('Y-m-d');
+        // Populate teller options
+        $this->tellerOptions = \App\Models\User::where('role', 'teller')
+            ->orderBy('name')
+            ->get()
+            ->map(function($teller) {
+                return [
+                    'id' => $teller->id,
+                    'name' => $teller->name,
+                ];
+            })->toArray();
+        array_unshift($this->tellerOptions, ['id' => 'all', 'name' => 'All Tellers']);
+        $this->selectedTellerId = 'all';
     }
 
     public function updatedSelectedDate(): void
@@ -59,11 +73,14 @@ class WinnersReport extends Page
         $winners = [];
 
         // Fetch all bets for the selected bet_date, only those whose draw has a result
-        $bets = Bet::with(['gameType', 'teller', 'draw', 'draw.result'])
+        $betsQuery = Bet::with(['gameType', 'teller', 'draw', 'draw.result'])
             ->whereDate('bet_date', $date)
             ->where('is_rejected', false)
-            ->whereHas('draw.result')
-            ->get();
+            ->whereHas('draw.result');
+        if ($this->selectedTellerId !== 'all') {
+            $betsQuery->where('teller_id', $this->selectedTellerId);
+        }
+        $bets = $betsQuery->get();
 
         foreach ($bets as $bet) {
             // Defensive: skip if bet is null or draw/result missing
