@@ -152,7 +152,7 @@ class TellerResource extends Resource
     public static function getRelations(): array
     {
         return [
-            RelationManagers\CommissionRelationManager::class,
+           
         ];
     }
 
