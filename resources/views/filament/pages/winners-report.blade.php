@@ -34,6 +34,76 @@
 
     <!-- Filters -->
     <form wire:submit.prevent class="flex flex-wrap gap-4 mb-8 bg-white p-4 rounded-lg shadow items-end justify-between">
+        <div class="flex-1 min-w-[180px] max-w-xs flex flex-col">
+            <label class="mb-1 text-sm font-semibold text-gray-700">Date</label>
+            <input type="date" wire:model.live="selectedDate" class="w-full" />
+        </div>
+        <div class="flex-1 min-w-[180px] max-w-xs flex flex-col">
+            <label class="mb-1 text-sm font-semibold text-gray-700">Search Ticket/Bet</label>
+            <input type="text" wire:model.live="search" placeholder="Search Ticket or Bet Number" class="w-full" />
+        </div>
+        <div class="flex-1 min-w-[180px] max-w-xs flex flex-col">
+            <label class="mb-1 text-sm font-semibold text-gray-700">Teller</label>
+            <select wire:model.live="selectedTeller" class="w-full">
+                <option value="">All Tellers</option>
+                @foreach (\App\Models\User::where('role', 'teller')->get() as $teller)
+                    <option value="{{ $teller->id }}">{{ $teller->name }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="flex-1 min-w-[180px] max-w-xs flex flex-col">
+            <label class="mb-1 text-sm font-semibold text-gray-700">Coordinator</label>
+            <select wire:model.live="selectedCoordinator" class="w-full">
+                <option value="">All Coordinators</option>
+                @foreach (\App\Models\User::where('role', 'coordinator')->get() as $coord)
+                    <option value="{{ $coord->id }}">{{ $coord->name }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="flex-1 min-w-[180px] max-w-xs flex flex-col">
+            <label class="mb-1 text-sm font-semibold text-gray-700">Location</label>
+            <select wire:model.live="selectedLocation" class="w-full">
+                <option value="">All Locations</option>
+                @foreach (\App\Models\Location::all() as $loc)
+                    <option value="{{ $loc->id }}">{{ $loc->name }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="flex-1 min-w-[180px] max-w-xs flex flex-col">
+            <label class="mb-1 text-sm font-semibold text-gray-700">Game Type</label>
+            <select wire:model.live="selectedGameType" class="w-full">
+                <option value="">All Game Types</option>
+                @foreach (\App\Models\GameType::all() as $gt)
+                    <option value="{{ $gt->code }}">{{ $gt->name }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="flex-1 min-w-[180px] max-w-xs flex flex-col">
+            <label class="mb-1 text-sm font-semibold text-gray-700">D4 Sub-Selection</label>
+            <select wire:model.live="selectedD4SubSelection" class="w-full">
+                <option value="">D4 Sub-Selection</option>
+                <option value="S2">S2</option>
+                <option value="S3">S3</option>
+            </select>
+        </div>
+        <div class="flex-1 min-w-[180px] max-w-xs flex flex-col">
+            <label class="mb-1 text-sm font-semibold text-gray-700">Claimed Status</label>
+            <select wire:model.live="selectedClaimedStatus" class="w-full">
+                <option value="">All Status</option>
+                <option value="1">Claimed</option>
+                <option value="0">Unclaimed</option>
+            </select>
+        </div>
+        <div class="flex-1 min-w-[100px] max-w-[100px] flex flex-col">
+            <label class="mb-1 text-sm font-semibold text-gray-700">Per Page</label>
+            <select wire:model.live="perPage" class="w-full">
+                <option value="20">20</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select>
+        </div>
+    </form>
+    <div wire:loading.flex class="w-full justify-center items-center py-6"><span class="text-gray-600 text-lg">Loading...</span></div>
         <div class="flex-1 min-w-[180px] max-w-xs">
             <input type="date" wire:model.live="selectedDate" class="w-full" />
         </div>
@@ -101,8 +171,8 @@
 
     <!-- Totals (always updated) -->
     <div class="flex flex-wrap gap-8 mb-4 p-4 bg-gray-50 rounded shadow">
-        <div><span class="font-bold">Total Winners:</span> {{ $this->totalWinners }}</div>
-        <div><span class="font-bold">Total Win Amount:</span> ₱{{ number_format($this->totalWinAmount, 2) }}</div>
+        <div><span class="font-bold">Total Winners:</span> {{ $this->winners->total() }}</div>
+        <div><span class="font-bold">Total Win Amount:</span> ₱{{ number_format($this->winners->sum('winning_amount'), 2) }}</div>
     </div>
 
     <!-- Winners Table -->
