@@ -94,6 +94,19 @@ class BetResource extends Resource
                                     ->required()
                                     ->numeric()
                                     ->prefix('₱'),
+                                Forms\Components\TextInput::make('commission_rate')
+                                    ->label('Commission Rate (%)')
+                                    ->numeric()
+                                    ->step(0.0001)
+                                    ->minValue(0)
+                                    ->maxValue(1)
+                                    ->helperText('Enter as a decimal, e.g. 0.15 for 15%')
+                                    ->nullable(),
+                                Forms\Components\TextInput::make('commission_amount')
+                                    ->label('Commission Amount')
+                                    ->numeric()
+                                    ->prefix('₱')
+                                    ->nullable(),
                             ]),
                         // Forms\Components\Toggle::make('format_bet_number')
                         //     ->label('Format Number')
@@ -228,6 +241,16 @@ class BetResource extends Resource
                     ->badge(),
                 Tables\Columns\TextColumn::make('amount')
                     ->label('Amount')
+                    ->money('PHP')
+                    ->sortable()
+                    ->alignRight(),
+                Tables\Columns\TextColumn::make('commission_rate')
+                    ->label('Commission Rate')
+                    ->formatStateUsing(fn ($state) => is_null($state) ? '-' : ((float)$state * 100) . '%')
+                    ->sortable()
+                    ->alignRight(),
+                Tables\Columns\TextColumn::make('commission_amount')
+                    ->label('Commission Amount')
                     ->money('PHP')
                     ->sortable()
                     ->alignRight(),

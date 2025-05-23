@@ -51,7 +51,8 @@ class WinningAmountResource extends Resource
                     ->step(0.01)
                     ->label('Winning Amount')
                     ->helperText('The amount to be paid out if the bet wins'),
-            ];
+
+            ]);
     }
 
     public static function table(Table $table): Table
