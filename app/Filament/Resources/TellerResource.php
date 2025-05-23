@@ -32,6 +32,21 @@ class TellerResource extends Resource
     {
         return $form
             ->schema([
+                Forms\Components\Group::make([
+                    Forms\Components\TextInput::make('commission.rate')
+                        ->label('Commission Rate')
+                        ->numeric()
+                        ->minValue(0)
+                        ->maxValue(1)
+                        ->step(0.01)
+                        ->default(0.15)
+                        ->helperText('Enter as decimal (e.g. 0.15 for 15%)'),
+                    Forms\Components\TextInput::make('commission.amount')
+                        ->label('Commission Amount')
+                        ->numeric()
+                        ->nullable()
+                        ->helperText('Optional: set a fixed commission amount'),
+                ])->relationship('commission'),
                 Forms\Components\TextInput::make('name')
                     ->required()
                     ->maxLength(255),
@@ -80,7 +95,15 @@ class TellerResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name')
+                Tables\Columns\TextColumn::make('name'),
+                Tables\Columns\TextColumn::make('commission.rate')
+                    ->label('Commission Rate')
+                    ->formatStateUsing(fn($state) => $state !== null ? ($state * 100) . '%' : '-')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('commission.amount')
+                    ->label('Commission Amount')
+                    ->money('PHP')
+                    ->sortable(),
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('username')
