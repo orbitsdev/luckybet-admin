@@ -131,7 +131,9 @@
                         <td class="px-2 py-1 border">{{ $bet->gameType->code ?? '' }}</td>
                         <td class="px-2 py-1 border">{{ $bet->d4_sub_selection ?? '-' }}</td>
                         <td class="px-2 py-1 border">{{ $bet->draw->draw_date ?? '' }}</td>
-                        <td class="px-2 py-1 border">{{ $bet->draw->draw_time ?? '' }}</td>
+                        <td class="px-2 py-1 border">
+    {{ $bet->draw && $bet->draw->draw_time ? \Carbon\Carbon::parse($bet->draw->draw_time)->format('g:i A') : '-' }}
+</td>
                         <td class="px-2 py-1 border">{{ $bet->teller->name ?? '' }}</td>
                         <td class="px-2 py-1 border">{{ $bet->location->name ?? '' }}</td>
                         <td class="px-2 py-1 border">{{ $bet->teller->coordinator->name ?? '-' }}</td>
