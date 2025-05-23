@@ -43,8 +43,5 @@ class Result extends Model
     /**
      * Get the claims associated with this result
      */
-    public function claims()
-    {
-        return $this->hasMany(Claim::class);
-    }
+   
 }

@@ -56,7 +56,7 @@ class LowWinNumberResource extends Resource
                     ->maxLength(255)
                     ->nullable()
                     ->columnSpanFull(),
-            ];
+            ]);
     }
 
 
