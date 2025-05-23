@@ -98,7 +98,7 @@ class DrawResource extends Resource
                                             Forms\Components\TextInput::make('bet_number')
                                                 ->label('Bet Number')
                                                 ->required(),
-                                            Forms\Components\TextInput::make('amount')
+                                            Forms\Components\TextInput::make('winning_amount')
                                                 ->label('Override Amount')
                                                 ->numeric()
                                                 ->required(),
