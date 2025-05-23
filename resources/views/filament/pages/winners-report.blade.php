@@ -99,7 +99,7 @@
 
     </form>
 
-    <!-- Totals -->
+    <!-- Totals (always updated) -->
     <div class="flex flex-wrap gap-8 mb-4 p-4 bg-gray-50 rounded shadow">
         <div><span class="font-bold">Total Winners:</span> {{ $this->totalWinners }}</div>
         <div><span class="font-bold">Total Win Amount:</span> ₱{{ number_format($this->totalWinAmount, 2) }}</div>
