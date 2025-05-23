@@ -33,7 +33,7 @@
     </div>
 
     <!-- Filters -->
-    <form wire:submit.prevent class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <form wire:submit.prevent class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8 bg-white p-4 rounded-lg shadow flex-wrap">
         <div>
             <input type="date" wire:model.live="selectedDate" class="w-full" />
         </div>
@@ -96,14 +96,14 @@
     </form>
 
     <!-- Totals -->
-    <div class="flex gap-6 mb-2">
+    <div class="flex flex-wrap gap-8 mb-4 p-4 bg-gray-50 rounded shadow">
         <div><span class="font-bold">Total Winners:</span> {{ $this->totalWinners }}</div>
         <div><span class="font-bold">Total Win Amount:</span> ₱{{ number_format($this->totalWinAmount, 2) }}</div>
     </div>
 
     <!-- Winners Table -->
-    <div class="overflow-x-auto">
-        <table class="min-w-full bg-white border border-gray-200">
+    <div class="overflow-x-auto w-full">
+        <table class="w-full min-w-max bg-white border border-gray-200">
             <thead>
                 <tr class="bg-gray-100 text-xs uppercase">
                     <th class="px-2 py-2 border">Ticket ID</th>
