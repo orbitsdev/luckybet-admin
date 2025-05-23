@@ -9,7 +9,7 @@ use App\Helpers\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\ClaimResource;
+
 
 class ClaimController extends Controller
 {
@@ -77,7 +77,7 @@ class ClaimController extends Controller
             
             DB::commit();
 
-            return ApiResponse::success(new ClaimResource($claim), 'Claim processed successfully');
+            return ApiResponse::success($claim, 'Claim processed successfully');
         } catch (\Exception $e) {
             return $this->handleClaimException($e);
         }
@@ -114,7 +114,7 @@ class ClaimController extends Controller
 
         $claims = $query->paginate($request->get('per_page', 20));
 
-        return ApiResponse::paginated($claims, 'Claims retrieved', ClaimResource::class);
+        return ApiResponse::paginated($claims, 'Claims retrieved');
     }
     
     /**
