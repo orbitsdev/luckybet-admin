@@ -164,22 +164,33 @@ class Bet extends Model
         if (!is_null($this->attributes['winning_amount'] ?? null)) {
             return $this->attributes['winning_amount'];
         }
-        // Otherwise, fallback to config logic (legacy/old bets)
-        $lowWin = \App\Models\LowWinNumber::where('game_type_id', $this->game_type_id)
-                        ->where(function($q) {
-                $q->whereNull('bet_number')
-                  ->orWhere('bet_number', $this->bet_number);
-            })
+        // Otherwise, match controller logic: draw, game type, location, bet number
+        $lowWin = \App\Models\LowWinNumber::where('draw_id', $this->draw_id)
+            ->where('game_type_id', $this->game_type_id)
+            ->where('location_id', $this->location_id)
+            ->where('bet_number', $this->bet_number)
             ->first();
+
+        // Fallback: try global low win (bet_number is null or empty)
+        if (!$lowWin) {
+            $lowWin = \App\Models\LowWinNumber::where('draw_id', $this->draw_id)
+                ->where('game_type_id', $this->game_type_id)
+                ->where('location_id', $this->location_id)
+                ->where(function ($query) {
+                    $query->whereNull('bet_number')->orWhere('bet_number', '');
+                })
+                ->first();
+        }
 
         if ($lowWin && isset($lowWin->winning_amount)) {
             return $lowWin->winning_amount;
         }
 
-        $winningAmount = \App\Models\WinningAmount::where('game_type_id', $this->game_type_id)
-                        ->value('winning_amount');
-
-        return $winningAmount; // null if not set
+        // Default payout
+        return \App\Models\WinningAmount::where('game_type_id', $this->game_type_id)
+            ->where('location_id', $this->location_id)
+            ->where('amount', $this->amount)
+            ->value('winning_amount');
     }
 
     /**
