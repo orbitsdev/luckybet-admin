@@ -39,13 +39,13 @@ class CoordinatorReport extends Page
 
     public function mount(): void
     {
-        // Get all unique result dates
-        $this->dateOptions = Result::select('draw_date')
+        // Get all unique bet dates (using bet_date from bets)
+        $this->dateOptions = Bet::selectRaw('DATE(bet_date) as date')
             ->distinct()
-            ->orderByDesc('draw_date')
+            ->orderByDesc('date')
             ->get()
-            ->map(function($result) {
-                $date = $result->draw_date ? $result->draw_date->format('Y-m-d') : '';
+            ->map(function($bet) {
+                $date = $bet->date ?? '';
                 return [
                     'date' => $date,
                     'label' => $date ? Carbon::parse($date)->format('F j, Y') : 'Unknown Date',
@@ -95,40 +95,20 @@ class CoordinatorReport extends Page
             
             // For each teller, calculate their sales for the selected date
             foreach ($tellers as $teller) {
-                // Get draws for the selected date
-                $draws = Draw::whereDate('draw_date', $this->selectedDate)->get();
-                $tellerSales = 0;
-                $tellerHits = 0;
+                // Get bets for this teller for the selected bet_date
+                $tellerBets = Bet::with(['draw.result'])
+                    ->where('teller_id', $teller->id)
+                    ->whereDate('bet_date', $this->selectedDate)
+                    ->where('is_rejected', false)
+                    ->get();
                 
-                foreach ($draws as $draw) {
-                    // Get bets for this teller and draw
-                    $tellerBets = Bet::where('teller_id', $teller->id)
-                        ->where('draw_id', $draw->id)
-                        ->where('is_rejected', false)
-                        ->get();
-                    
-                    // Calculate sales
-                    $drawSales = $tellerBets->sum('amount');
-                    $tellerSales += $drawSales;
-                    
-                    // Calculate hits using the same logic as DrawReportService
-                    $drawHits = 0;
-                    foreach ($tellerBets as $bet) {
-                        $result = $bet->draw->result;
-                        if (!$result) continue;
-                        
-                        // Check if bet number matches winning number based on game type
-                        if (
-                            ($bet->game_type_id == 1 && $bet->bet_number == $result->s2_winning_number) ||
-                            ($bet->game_type_id == 2 && $bet->bet_number == $result->s3_winning_number) ||
-                            ($bet->game_type_id == 3 && $bet->bet_number == $result->d4_winning_number)
-                        ) {
-                            $drawHits += $bet->amount;
-                        }
-                    }
-                    
-                    $tellerHits += $drawHits;
-                }
+                $tellerSales = $tellerBets->sum('amount');
+
+                // Calculate hits using isHit() method for consistency
+                $tellerHits = $tellerBets->filter(function($bet) {
+                    // Only count as hit if the draw has a result and bet is a winner
+                    return $bet->draw && $bet->draw->result && $bet->isHit();
+                })->sum('amount');
                 
                 // Calculate gross (sales minus hits)
                 $tellerGross = $tellerSales - $tellerHits;
