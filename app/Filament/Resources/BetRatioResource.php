@@ -90,8 +90,13 @@ class BetRatioResource extends Resource
             ])
             ->defaultGroup('location.name')
             ->columns([
-                Tables\Columns\TextColumn::make('draw.id')
-                    ->label('Draw ID')
+                Tables\Columns\TextColumn::make('draw.draw_date')
+                    ->label('Draw Date')
+                    ->date('M d, Y')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('draw.draw_time')
+                    ->label('Draw Time')
+                    ->time('h:i A')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('gameType.name')
                     ->label('Game Type')
