@@ -47,6 +47,7 @@ class TellerResource extends Resource
                         ->nullable()
                         ->helperText('Optional: set a fixed commission amount'),
                 ])->relationship('commission'),
+
                 Forms\Components\TextInput::make('name')
                     ->required()
                     ->maxLength(255),
@@ -150,7 +151,7 @@ class TellerResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\CommissionRelationManager::class,
         ];
     }
 
