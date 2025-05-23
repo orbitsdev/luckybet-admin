@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('commissions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('teller_id')->constrained('users')->onDelete('cascade');
-            $table->decimal('rate', 5, 4);
+            $table->decimal('rate', 5, 4)->default(0.15);
             $table->timestamps();
         });
     }

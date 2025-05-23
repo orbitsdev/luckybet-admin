@@ -112,7 +112,7 @@ _Last updated: 2025-05-22 16:01:07 (UTC+8)_
 ```
 
 **Relationships:**
-- belongsTo: Draw, GameType, User, Location
+- belongsTo: Draw, GameType, User, Location\
 - hasMany: BetRatioAudit
 
 ---
@@ -261,13 +261,13 @@ _Last updated: 2025-05-22 16:01:07 (UTC+8)_
 | bet_number   | string  |                        |
 | winning_amount| decimal| (18,2)                 |
 | user_id      | bigint  | Nullable, FK to users  |
-| locations_id | bigint  | Nullable, FK to locations |
+| location_id  | bigint  | Nullable, FK to locations |
 | reason       | string  | Nullable               |
 | created_at/updated_at| timestamp|             |
 
 **Model $fillable:**
 ```
-['draw_id','game_type_id','bet_number','winning_amount','reason','user_id','locations_id']
+['draw_id','game_type_id','bet_number','winning_amount','reason','user_id','location_id']
 ```
 
 **Relationships:**
