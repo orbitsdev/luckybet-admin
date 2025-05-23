@@ -96,35 +96,7 @@
     </form>
     <div wire:loading.flex class="w-full justify-center items-center py-6"><span class="text-gray-600 text-lg">Loading...</span></div>
 
-        <div>
-            <select wire:model.live="selectedGameType" class="w-full">
-    <option value="">All Game Types</option>
-    @foreach (\App\Models\GameType::all() as $gt)
-        <option value="{{ $gt->code }}">{{ $gt->name }}</option>
-    @endforeach
-</select>
-        </div>
-        <div>
-            <select wire:model.live="selectedD4SubSelection" class="w-full">
-    <option value="">D4 Sub-Selection</option>
-    <option value="S2">S2</option>
-    <option value="S3">S3</option>
-</select>
-        </div>
-        <div>
-            <select wire:model.live="selectedClaimedStatus" class="w-full">
-    <option value="">All Status</option>
-    <option value="1">Claimed</option>
-    <option value="0">Unclaimed</option>
-</select>
-        </div>
-        <div>
-            <select wire:model.live="perPage" class="w-full">
-    <option value="20">20</option>
-    <option value="50">50</option>
-    <option value="100">100</option>
-</select>
-        </div>
+
     </form>
 
     <!-- Totals -->
