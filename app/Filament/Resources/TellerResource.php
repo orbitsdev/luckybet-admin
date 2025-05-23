@@ -33,7 +33,7 @@ class TellerResource extends Resource
         return $form
             ->schema([
                 Forms\Components\Group::make([
-                    Forms\Components\TextInput::make('commission.rate')
+                    Forms\Components\TextInput::make('rate')
                         ->label('Commission Rate')
                         ->numeric()
                         ->minValue(0)
@@ -41,13 +41,13 @@ class TellerResource extends Resource
                         ->step(0.01)
                         ->default(0.15)
                         ->helperText('Enter as decimal (e.g. 0.15 for 15%)'),
-                    Forms\Components\TextInput::make('commission.amount')
-                        ->label('Commission Amount')
-                        ->numeric()
-                        ->nullable()
-                        ->helperText('Optional: set a fixed commission amount'),
-                ])->relationship('commission')
-                  ->hidden(fn (string $operation) => $operation !== 'edit'),
+                    // Uncomment below if you add amount to the commissions table
+                    // Forms\Components\TextInput::make('amount')
+                    //     ->label('Commission Amount')
+                    //     ->numeric()
+                    //     ->nullable()
+                    //     ->helperText('Optional: set a fixed commission amount'),
+                ])->hidden(fn (string $operation) => $operation !== 'edit'),
 
                 Forms\Components\TextInput::make('name')
                     ->required()
@@ -98,6 +98,10 @@ class TellerResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name'),
+                Tables\Columns\TextColumn::make('rate')
+                    ->label('Commission Rate')
+                    ->formatStateUsing(fn($state) => $state !== null ? ($state * 100) . '%' : '-')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('commission.rate')
                     ->label('Commission Rate')
                     ->formatStateUsing(fn($state) => $state !== null ? ($state * 100) . '%' : '-')
