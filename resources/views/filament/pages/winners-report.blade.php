@@ -33,7 +33,7 @@
     </div>
 
     <!-- Filters -->
-    <form wire:submit.prevent class="flex flex-wrap gap-4 mb-8 bg-white p-4 rounded-lg shadow items-end justify-between">
+    <form wire:submit.prevent class="flex flex-col md:flex-row flex-wrap gap-x-4 gap-y-4 py-2 mb-8 bg-white p-4 rounded-lg shadow items-end justify-between print:hidden">
         <div class="flex-1 min-w-[180px] max-w-xs flex flex-col">
             <label class="mb-1 text-sm font-semibold text-gray-700">Date</label>
             <input type="date" wire:model.live="selectedDate" class="w-full" />
