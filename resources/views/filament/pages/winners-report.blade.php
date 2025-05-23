@@ -95,36 +95,7 @@
         </div>
     </form>
     <div wire:loading.flex class="w-full justify-center items-center py-6"><span class="text-gray-600 text-lg">Loading...</span></div>
-        <div>
-            <input type="date" wire:model.live="selectedDate" class="w-full" />
-        </div>
-        <div>
-            <input type="text" wire:model.live="search" placeholder="Search Ticket or Bet Number" class="w-full" />
-        </div>
-        <div>
-            <select wire:model.live="selectedTeller" class="w-full">
-    <option value="">All Tellers</option>
-    @foreach (\App\Models\User::where('role', 'teller')->get() as $teller)
-        <option value="{{ $teller->id }}">{{ $teller->name }}</option>
-    @endforeach
-</select>
-        </div>
-        <div>
-            <select wire:model.live="selectedCoordinator" class="w-full">
-    <option value="">All Coordinators</option>
-    @foreach (\App\Models\User::where('role', 'coordinator')->get() as $coord)
-        <option value="{{ $coord->id }}">{{ $coord->name }}</option>
-    @endforeach
-</select>
-        </div>
-        <div>
-            <select wire:model.live="selectedLocation" class="w-full">
-    <option value="">All Locations</option>
-    @foreach (\App\Models\Location::all() as $loc)
-        <option value="{{ $loc->id }}">{{ $loc->name }}</option>
-    @endforeach
-</select>
-        </div>
+
         <div>
             <select wire:model.live="selectedGameType" class="w-full">
     <option value="">All Game Types</option>
