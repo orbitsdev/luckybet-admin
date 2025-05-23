@@ -103,9 +103,9 @@ class TellerResource extends Resource
                 Tables\Columns\TextColumn::make('commission.amount')
                     ->label('Commission Amount')
                     ->money('PHP')
-                    ->sortable(),
+                    ->sortable()
                     ->searchable()
-                    ->sortable(),
+                   ,
                 Tables\Columns\TextColumn::make('username')
                     ->searchable()
                     ->sortable(),
