@@ -44,7 +44,7 @@ class DrawReportService
         $draws = $query->get();
 
         return $draws->map(function ($draw) {
-            $bets = Bet::with(['draw.result'])->where('draw_id', $draw->id)->get()->groupBy('teller_id');
+            $bets = Bet::with(['draw.result', 'teller'])->where('draw_id', $draw->id)->get()->groupBy('teller_id');
             $tellerSummaries = [];
 
             foreach ($bets as $tellerId => $tellerBets) {
