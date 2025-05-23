@@ -14,7 +14,7 @@ class ResultSeeder extends Seeder
     public function run(): void
     {
         // Get all closed draws that should have results
-        $closedDraws = \App\Models\Draw::where('is_open', false)->get();
+        $closedDraws = \App\Models\Draw::where('is_open', false)->with('gameType')->get();
         if ($closedDraws->isEmpty()) {
             return; // No closed draws to create results for
         }

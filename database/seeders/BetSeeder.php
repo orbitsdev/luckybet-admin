@@ -14,7 +14,7 @@ class BetSeeder extends Seeder
     public function run(): void
     {
         // Get all draws
-        $draws = \App\Models\Draw::all();
+        $draws = \App\Models\Draw::with('gameType')->get();
         if ($draws->isEmpty()) {
             return; // No draws to create bets for
         }
@@ -36,19 +36,10 @@ class BetSeeder extends Seeder
             $betCount = rand(5, 15); // Random number of bets per draw
             $drawDate = $draw->draw_date;
             
-            // Get the game type for this draw
-            $gameType = $draw->gameType;
-            if (!$gameType) {
-                continue; // Skip if no game type
-            }
-            
-            // Determine max digits based on game type code
+            // For now, assign a default game_type_id for each bet (e.g., S3)
+            $defaultGameTypeId = 1; // You may want to randomize or assign properly
             $maxDigits = 3; // Default to 3 digits (S3)
-            if ($gameType->code === 'S2') {
-                $maxDigits = 2;
-            } elseif ($gameType->code === 'D4') {
-                $maxDigits = 4;
-            }
+            // If you want to randomize, you can fetch game types and select one here
             
             // Create bets for this draw
             for ($i = 1; $i <= $betCount; $i++) {

@@ -48,6 +48,7 @@ class Draw extends Model
         return $this->hasMany(BetRatio::class);
     }
 
+
     /**
      * Get all low win numbers for this draw
      */

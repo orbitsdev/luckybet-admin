@@ -42,10 +42,10 @@ class DatabaseSeeder extends Seeder
             DrawSeeder::class,
             
             // 7. Create bets for all draws
-            BetSeeder::class,
+            // BetSeeder::class,
             
-            // 8. Create results for closed draws and update bet statuses
-            ResultSeeder::class,
+            // // 8. Create results for closed draws and update bet statuses
+            // ResultSeeder::class,
             
           
         ]);
