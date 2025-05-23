@@ -36,15 +36,25 @@
         <div class="flex items-center justify-between flex-wrap gap-4">
 
             <div class="flex items-center space-x-2">
-                <label for="selectedDate" class="text-sm font-medium">Select Date:</label>
-                <input
-                    type="date"
-                    wire:model.live="selectedDate"
-                    id="selectedDate"
-                    class="border rounded px-2 py-1 text-sm focus:ring-amber-500 focus:border-amber-500"
-                    value="{{ $selectedDate }}"
-                />
-            </div>
+            <label for="selectedDate" class="text-sm font-medium">Select Date:</label>
+            <input
+                type="date"
+                wire:model.live="selectedDate"
+                id="selectedDate"
+                class="border rounded px-2 py-1 text-sm focus:ring-amber-500 focus:border-amber-500"
+                value="{{ $selectedDate }}"
+            />
+            <label for="selectedTellerId" class="text-sm font-medium ml-4">Teller:</label>
+            <select
+                wire:model.live="selectedTellerId"
+                id="selectedTellerId"
+                class="border rounded px-2 py-1 text-sm focus:ring-amber-500 focus:border-amber-500"
+            >
+                @foreach ($tellerOptions as $teller)
+                    <option value="{{ $teller['id'] }}">{{ $teller['name'] }}</option>
+                @endforeach
+            </select>
+        </div>
 
             <!-- Search Box -->
             <div class="relative">
