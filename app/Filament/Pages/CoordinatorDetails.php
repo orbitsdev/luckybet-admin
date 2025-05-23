@@ -87,8 +87,8 @@ class CoordinatorDetails extends Page
             $sales = 0;
             $hits = 0;
 
-            // Get all draws for the selected date
-            $draws = \App\Models\Draw::whereDate('draw_date', $this->date)->get();
+            // Get all draws for the selected date, eager load result
+            $draws = \App\Models\Draw::with('result')->whereDate('draw_date', $this->date)->get();
 
             foreach ($draws as $draw) {
                 // Get all bets for this teller and draw

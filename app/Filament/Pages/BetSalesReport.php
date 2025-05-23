@@ -125,7 +125,7 @@ class BetSalesReport extends Page
                     $status = 'Cancelled';
                 } elseif ($bet->is_claimed) {
                     $status = 'Claimed';
-                } elseif ($bet->claim) {
+                } elseif ($bet->isHit()) {
                     $status = 'Won';
                 }
 

@@ -103,7 +103,7 @@
                                 <td class="px-4 py-2">₱{{ number_format($coordinator['total_hits'], 2) }}</td>
                                 <td class="px-4 py-2">₱{{ number_format($coordinator['total_gross'], 2) }}</td>
                                 <td class="px-4 py-2">
-                                    <div class="flex space-x-2">
+                                    <div class="flex gap-3">
                                         {{ $this->getCoordinatorDetailsAction()->arguments([
                                             'coordinatorId' => $coordinator['id'],
                                             'date' => $selectedDate,
