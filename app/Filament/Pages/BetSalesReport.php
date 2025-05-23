@@ -96,7 +96,7 @@ class BetSalesReport extends Page
         logger('Selected Date: ' . $this->selectedDate);
         
         // Get all bets for the selected date, handling both date and datetime formats
-        $query = Bet::with(['draw', 'gameType', 'teller', 'location'])
+        $query = Bet::with(['draw.result', 'gameType', 'teller', 'location'])
             ->whereDate('bet_date', $this->selectedDate);
 
         if ($this->selectedTellerId !== 'all') {
