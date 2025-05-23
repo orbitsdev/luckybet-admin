@@ -1,0 +1,17 @@
+@media print {
+  /* Hide scrollbars in print for all elements */
+  * {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+  *::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    background: transparent !important;
+  }
+  /* Ensure table wrapper and table expand fully */
+  .print\:overflow-visible, .overflow-x-auto {
+    overflow: visible !important;
+    max-width: 100vw !important;
+  }
+}

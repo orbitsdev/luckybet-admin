@@ -1,3 +1,6 @@
+@push('styles')
+    <link rel="stylesheet" href="/print.css" media="print">
+@endpush
 <x-filament-panels::page>
     <!-- Print script -->
     <script>
