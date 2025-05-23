@@ -63,7 +63,7 @@ class WinnersReport extends Page
             // Defensive: skip if result or draw_id is missing
             if (!$result || !$result->draw_id) continue;
 
-            $bets = Bet::with(['gameType', 'teller', 'draw', 'claim'])
+            $bets = Bet::with(['gameType', 'teller', 'draw'])
                 ->where('draw_id', $result->draw_id)
                 ->where('is_rejected', false)
                 ->get();
@@ -75,9 +75,8 @@ class WinnersReport extends Page
                 // Use the model's isHit() method for robust winner logic
                 try {
                     if (method_exists($bet, 'isHit') && $bet->isHit()) {
-                        $claim = $bet->claim ?? null;
                         $claimStatus = $bet->is_claimed ? 'Claimed' : 'Pending';
-                        $claimedAt = ($claim && $claim->claim_at) ? Carbon::parse($claim->claim_at)->format('Y-m-d g:i A') : '-';
+                        $claimedAt = $bet->claim_at ? Carbon::parse($bet->claim_at)->format('Y-m-d g:i A') : '-';
                         $drawDate = $result->draw_date instanceof Carbon ? $result->draw_date->format('Y-m-d') : (is_string($result->draw_date) ? $result->draw_date : '');
                         $drawTime = $result->draw_time ? (Carbon::hasFormat($result->draw_time, 'H:i:s') ? Carbon::createFromFormat('H:i:s', $result->draw_time)->format('g:i A') : $result->draw_time) : '';
                         $gameTypeName = $bet->gameType->name ?? '';
