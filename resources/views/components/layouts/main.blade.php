@@ -25,7 +25,7 @@
                 --bg-light: #f8f9fa;
                 --border-color: #e5e7eb;
             }
-            
+
             [x-cloak] {
                 display: none !important;
             }

@@ -74,16 +74,16 @@
                :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
                class="fixed inset-y-0 left-0 z-30 w-80 overflow-y-auto bg-white lg:static lg:inset-auto lg:translate-x-0 transform transition duration-300 ease-in-out shadow-lg">
 
-            <nav class="px-3  border-t-4 border-red-400 py-8">
+            <nav class="px-3  border-t-4 border-red-400 py-4 ">
                 <a href="#" class="group flex items-center px-5 py-3.5 rounded-lg font-bold text-base text-gray-700 nav-item active">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-3">
                         <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
                     </svg>
                     <span>Dashboard</span>
                 </a>
-           
+
                 <!-- Users Dropdown -->
-                <div class="space-y-1">
+                <div class="space-y-1 mt-4">
                     <button @click="usersOpen = !usersOpen" class="group w-full flex items-center justify-between px-5 py-3.5 rounded-lg text-base text-gray-700 nav-item">
                         <div class="flex items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-3">
@@ -95,7 +95,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
                         </svg>
                     </button>
-                    <div x-cloak x-show="usersOpen" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-2" class="pl-6 mt-1 space-y-1">
+                    <div x-cloak x-show="usersOpen" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform -translate-y-4" x-transition:enter-end="opacity-100 transform translate-y-0" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 transform translate-y-0" x-transition:leave-end="opacity-0 transform -translate-y-4" class="pl-6 mt-1 space-y-1">
                         <a href="#" class="group flex items-center px-4 py-2.5 text-sm text-gray-600 rounded-md nav-item hover:pl-5 transition-all duration-200">
                             <span class="w-1.5 h-1.5 rounded-full opacity-0 group-hover:opacity-100 bg-primary-500 mr-3 transition-all duration-200"></span>
                             <span class="font-medium">Coordinators</span>
@@ -112,7 +112,7 @@
                 </div>
 
                 <!-- Reports Dropdown -->
-                <div class="space-y-1">
+                <div class="space-y-1 mt-4">
                     <button @click="reportsOpen = !reportsOpen" class="group w-full flex items-center justify-between px-5 py-3.5 rounded-lg text-base text-gray-700 nav-item">
                         <div class="flex items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-3">
@@ -124,7 +124,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
                         </svg>
                     </button>
-                    <div x-cloak x-show="reportsOpen" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-2" class="pl-6 mt-1 space-y-1">
+                    <div x-cloak x-show="reportsOpen" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform -translate-y-4" x-transition:enter-end="opacity-100 transform translate-y-0" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 transform translate-y-0" x-transition:leave-end="opacity-0 transform -translate-y-4" class="pl-6 mt-1 space-y-1">
                         <a href="#" class="group flex items-center px-4 py-2.5 text-sm text-gray-600 rounded-md nav-item hover:pl-5 transition-all duration-200">
                             <span class="w-1.5 h-1.5 rounded-full opacity-0 group-hover:opacity-100 bg-primary-500 mr-3 transition-all duration-200"></span>
                             <span class="font-medium">Coordinator Report</span>
