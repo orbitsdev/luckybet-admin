@@ -4,59 +4,59 @@
   :root {
     --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;
-  
+
     --card: 0 0% 100%;
     --card-foreground: 240 10% 3.9%;
-  
+
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
-  
+
     --primary: 346.8 77.2% 49.8%;
     --primary-foreground: 355.7 100% 97.3%;
-  
+
     --secondary: 240 4.8% 95.9%;
     --secondary-foreground: 240 5.9% 10%;
-  
+
     --muted: 240 4.8% 95.9%;
     --muted-foreground: 240 3.8% 46.1%;
-  
+
     --accent: 240 4.8% 95.9%;
     --accent-foreground: 240 5.9% 10%;
-  
+
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-  
+
     --border:240 5.9% 90%;
     --input:240 5.9% 90%;
     --ring:346.8 77.2% 49.8%;
     --radius: 0.5rem;
   }
-   
+
   .dark {
     --background:20 14.3% 4.1%;
     --foreground:0 0% 95%;
-  
+
     --card:24 9.8% 10%;
     --card-foreground:0 0% 95%;
-  
+
     --popover:0 0% 9%;
     --popover-foreground:0 0% 95%;
-  
+
     --primary:346.8 77.2% 49.8%;
     --primary-foreground:355.7 100% 97.3%;
-  
+
     --secondary:240 3.7% 15.9%;
     --secondary-foreground:0 0% 98%;
-  
+
     --muted:0 0% 15%;
     --muted-foreground:240 5% 64.9%;
-  
+
     --accent:12 6.5% 15.1%;
     --accent-foreground:0 0% 98%;
-  
+
     --destructive:0 62.8% 30.6%;
     --destructive-foreground:0 85.7% 97.3%;
-  
+
     --border:240 3.7% 15.9%;
     --input:240 3.7% 15.9%;
     --ring:346.8 77.2% 49.8%;
@@ -81,6 +81,83 @@
     background-position: right center;
     box-shadow: 0 2px 20px 0 rgba(252,2,4,0.3), 0 1.5px 8px 0 rgba(252,2,4,0.2);
     filter: brightness(1.1) saturate(1.2);
+}
+
+/* Navigation item hover effect with fill animation */
+.nav-item {
+    position: relative;
+    color: #374151; /* Default text color */
+    transition: all 0.3s ease;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.nav-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0; /* Start with 0 width */
+    height: 100%;
+    background: linear-gradient(to right, #FC0204, #ff367a);
+    transition: width 0.25s cubic-bezier(0.42, 0, 0.58, 1); /* Faster transition */
+    z-index: -1;
+}
+
+.nav-item:hover::before, .nav-item.active::before {
+    width: 100%; /* Fill to 100% width on hover */
+}
+
+.nav-item:hover, .nav-item.active {
+    color: white !important;
+    transform: translateX(5px);
+    box-shadow: 0 4px 12px rgba(252, 2, 4, 0.3);
+}
+
+.nav-item:hover svg, .nav-item.active svg,
+.nav-item:hover span, .nav-item.active span {
+    color: white !important;
+    position: relative;
+    z-index: 2;
+}
+
+/* Special animation for active item */
+.nav-item.active {
+    transform: translateX(0) !important; /* No translation for active items */
+    font-weight: bold;
+    box-shadow: 0 4px 15px rgba(252, 2, 4, 0.4);
+}
+
+.nav-item.active::before {
+    width: 100%; /* Always filled */
+    background: linear-gradient(45deg, #FC0204, #ff367a, #FC0204); /* Different gradient angle */
+    background-size: 200% 100%;
+    animation: gradientMove 2s ease infinite; /* Faster animation */
+    border-left: 3px solid white; /* White border on the left */
+}
+
+@keyframes gradientMove {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Header button hover effects */
+.header-btn {
+    position: relative;
+    transition: all 0.25s ease;
+    z-index: 1;
+}
+
+.header-btn:hover {
+    background: linear-gradient(to right, #FC0204, #ff367a);
+    color: white !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(252, 2, 4, 0.3);
+}
+
+.header-btn:hover svg {
+    color: white !important;
 }
 
 /* Animated gradient border for cards */
@@ -112,4 +189,42 @@
 .chip-animate:hover {
     box-shadow: 0 0 0 4px #ff367a33, 0 0 16px 4px #FC0204;
     transform: scale(1.08) rotate(-2deg);
+}
+
+
+.audiowide-regular {
+    font-family: "Audiowide", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+}
+
+/* Custom wider sidebar */
+.sidebar-wider {
+    width: 280px !important;
+}
+
+/* Larger navigation items */
+.nav-item-larger {
+    padding: 0.875rem 1.25rem;
+    font-size: 1.05rem;
+}
+
+/* Cool gradient effect for navigation items */
+.nav-item-gradient {
+    transition: all 0.3s ease;
+}
+
+.nav-item-gradient:hover, .nav-item-gradient.active {
+    background: linear-gradient(135deg, #FC0204, #ff367a);
+    color: white;
+    box-shadow: 0 4px 12px rgba(252, 2, 4, 0.3);
+    transform: translateX(0.25rem);
+}
+
+.nav-item-gradient:hover svg, .nav-item-gradient.active svg {
+    color: white;
+}
+
+.nav-item-gradient:hover .nav-text, .nav-item-gradient.active .nav-text {
+    color: white;
 }

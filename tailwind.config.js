@@ -8,13 +8,13 @@ const colors = require('tailwindcss/colors')
 export default {
      presets: [
         preset,
-       
+
 
 
     ],
     content: [
 
-        
+
         './app/Filament/**/*.php',
         './resources/views/filament/**/*.blade.php',
         './vendor/filament/**/*.blade.php',
@@ -28,7 +28,7 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                sans: ['Figtree', ...defaultTheme.fontFamily.sans],
+                // sans: ['Figtree', ...defaultTheme.fontFamily.sans],
             },
             colors: {
                 primary: {

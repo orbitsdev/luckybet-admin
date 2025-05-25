@@ -11,10 +11,10 @@
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Rubik:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+        {{-- <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Rubik:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet"> --}}
 
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-        <style>
+       <style>
             [x-cloak] {
                 display: none !important;
             }
@@ -25,12 +25,48 @@
         <!-- Styles -->
         @livewireStyles
 
-    <wireui:scripts />
+
+        <script>
+            document.addEventListener('alpine:init', () => {
+                Alpine.data('adminDashboard', () => ({
+                    sidebarOpen: window.innerWidth >= 1024,
+                    profileDropdownOpen: false,
+                    usersOpen: true,
+                    reportsOpen: true,
+                    init() {
+                        this.$nextTick(() => {
+                            window.addEventListener('resize', () => {
+                                if (window.innerWidth >= 1024) {
+                                    this.sidebarOpen = true;
+                                } else if (window.innerWidth < 1024 && this.sidebarOpen) {
+                                    this.sidebarOpen = false;
+                                }
+                            });
+
+                            window.addEventListener('keydown', e => {
+                                if (e.key === 'Escape' && this.sidebarOpen && window.innerWidth < 1024) {
+                                    this.sidebarOpen = false;
+                                }
+                            });
+
+                            document.addEventListener('click', e => {
+                                if (window.innerWidth < 1024 && 
+                                    this.sidebarOpen && 
+                                    !e.target.closest('#sidebar') && 
+                                    !e.target.closest('button[aria-controls="sidebar"]')) {
+                                    this.sidebarOpen = false;
+                                }
+                            }, { capture: true });
+                        });
+                    }
+                }));
+            });
+        </script>
     </head>
     <body class="font-sans antialiased bg-white">
 
         {{ $slot }}
 
-      
+
     </body>
 </html>
