@@ -225,15 +225,18 @@ h1, h2, h3, h4, h5, h6, .heading-font {
 
 /* Nested menu items */
 .pl-6 a {
-    background-color: rgba(51, 122, 183, 0.05);
-    margin-bottom: 2px;
-    border-left: 2px solid rgba(51, 122, 183, 0.15);
+    background-color: rgba(252, 2, 4, 0.03);
+    margin-bottom: 3px;
+    border-left: 3px solid rgba(252, 2, 4, 0.2);
     padding-left: 12px !important;
+    border-radius: 0.375rem;
+    transition: all 0.2s ease;
 }
 
 .pl-6 a:hover {
-    background-color: rgba(51, 122, 183, 0.1);
-    border-left: 2px solid rgba(51, 122, 183, 0.3);
+    background-color: rgba(252, 2, 4, 0.08);
+    border-left: 3px solid rgba(252, 2, 4, 0.5);
+    transform: translateX(4px);
 }
 
 /* Larger navigation items */
@@ -244,15 +247,16 @@ h1, h2, h3, h4, h5, h6, .heading-font {
 
 /* Custom navigation styling */
 .nav-item {
-    transition: all 0.2s ease-in-out;
+    transition: all 0.25s ease-in-out;
+    position: relative;
+    overflow: hidden;
 }
 
 .nav-item:hover {
     background-color: rgba(252, 2, 4, 0.08);
     border-radius: 0.5rem;
-    box-shadow: none;
+    box-shadow: 0 2px 10px rgba(252, 2, 4, 0.1);
     transform: translateX(0.25rem);
-    transition: all 0.3s ease;
 }
 
 .nav-item:hover svg {
@@ -263,13 +267,23 @@ h1, h2, h3, h4, h5, h6, .heading-font {
 .nav-item.active {
     background-color: rgba(252, 2, 4, 0.1);
     border-radius: 0.5rem;
-    box-shadow: 0 2px 8px rgba(252, 2, 4, 0.2);
-    transform: translateX(0.25rem);
-    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(252, 2, 4, 0.15);
+    transform: translateX(0);
 }
 
 .nav-item.active svg {
     color: #FC0204;
+}
+
+/* Subtle animation for nested items */
+.nav-item.border-l-4 {
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-item.border-l-4:hover {
+    background-color: rgba(252, 2, 4, 0.05);
+    transform: translateX(0.15rem);
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
 }
 
 /* Cool gradient effect for navigation items */
@@ -290,4 +304,25 @@ h1, h2, h3, h4, h5, h6, .heading-font {
 
 .nav-item-gradient:hover .nav-text, .nav-item-gradient.active .nav-text {
     color: white;
+}
+
+/* Custom scrollbar styling */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #d1d5db; /* Gray-300 */
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af; /* Gray-400 */
 }
