@@ -10,7 +10,7 @@
         init() {
             console.log('Dashboard initialized');
             if (window.innerWidth < 1024) {
-                this.sidebarOpen = true;
+                this.sidebarOpen = false;
             }
             window.addEventListener('resize', () => {
                 if (window.innerWidth >= 1024) {
@@ -19,7 +19,7 @@
             });
         }
     }"
-    class="min-h-screen flex flex-col bg-white"
+    class="min-h-screen flex flex-col"
 >
     <!-- Header -->
     <header class="flex items-center justify-between px-6 py-3 bg-white shadow-lg z-40">
