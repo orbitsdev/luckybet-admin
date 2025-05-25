@@ -1,8 +1,8 @@
 <div
     x-data="{
         sidebarOpen: true,
-        usersOpen: false,
-        reportsOpen: false,
+        usersOpen: true,
+        reportsOpen: true,
         toggleSidebar() {
             this.sidebarOpen = !this.sidebarOpen;
             console.log('Sidebar toggled:', this.sidebarOpen);
@@ -84,11 +84,11 @@
     <!-- Sidebar and Main Content -->
     <div class="flex flex-1 overflow-hidden bg-white relative w-full">
         <!-- Sidebar with Alpine.js for interactivity -->
-        <!-- Mobile backdrop overlay -->
-        <div x-show="sidebarOpen && window.innerWidth < 1024"
+        <!-- Backdrop overlay for all screen sizes -->
+        <div x-show="sidebarOpen"
              x-cloak
              @click="sidebarOpen = false"
-             class="fixed inset-0 z-20 bg-gray-700 bg-opacity-70 backdrop-blur-sm"></div>
+             class="fixed inset-0 z-20 bg-gray-700 bg-opacity-70 backdrop-blur-sm lg:bg-opacity-0"></div>
 
         <!-- Sidebar navigation -->
         <aside
