@@ -22,13 +22,14 @@
     class="min-h-screen flex flex-col bg-white"
 >
     <!-- Header -->
-    <header class="flex items-center justify-between px-6 py-3 bg-white shadow-lg z-40">
-        <div class="flex items-center space-x-4">
-            <button @click="toggleSidebar()" aria-controls="sidebar" class="p-2 rounded-lg text-gray-700 header-btn hover:bg-red-100 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-                </svg>
-            </button>
+    <header class="bg-white shadow-sm h-16 fixed top-0 left-0 right-0 z-50">
+        <div class="flex items-center justify-between h-full px-6">
+            <div class="flex items-center space-x-4">
+                <button @click="toggleSidebar()" aria-controls="sidebar" class="p-2 rounded-lg text-gray-700 header-btn hover:bg-red-100 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                    </svg>
+                </button>
         </div>
         <div class="flex items-center gap-4">
             <!-- Notifications -->
@@ -82,7 +83,7 @@
         </div>
     </header>
     <!-- Sidebar and Main Content -->
-    <div class="flex flex-1 overflow-hidden bg-white" @click.self="sidebarOpen = false">
+    <div class="flex flex-1 overflow-hidden bg-white pt-16" @click.self="sidebarOpen = false">
         <!-- Mobile backdrop overlay -->
         <div x-show="sidebarOpen && window.innerWidth < 1024"
              x-cloak
@@ -289,6 +290,30 @@
                     </a>
 
                     <!-- Low Win Link -->
+                    <a href="#" class="group flex items-center px-5 py-3.5 rounded-lg text-base nav-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-3">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14" />
+                        </svg>
+                        <span>Low Win Numbers</span>
+                    </a>
+                    <a href="#" class="group flex items-center px-5 py-3.5 rounded-lg text-base nav-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-3">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14" />
+                        </svg>
+                        <span>Low Win Numbers</span>
+                    </a>
+                    <a href="#" class="group flex items-center px-5 py-3.5 rounded-lg text-base nav-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-3">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14" />
+                        </svg>
+                        <span>Low Win Numbers</span>
+                    </a>
+                    <a href="#" class="group flex items-center px-5 py-3.5 rounded-lg text-base nav-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-3">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14" />
+                        </svg>
+                        <span>Low Win Numbers</span>
+                    </a>
                     <a href="#" class="group flex items-center px-5 py-3.5 rounded-lg text-base nav-item">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-3">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14" />
