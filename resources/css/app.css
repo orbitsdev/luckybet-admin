@@ -306,23 +306,23 @@ h1, h2, h3, h4, h5, h6, .heading-font {
     color: white;
 }
 
-/* Custom scrollbar styling */
-::-webkit-scrollbar {
+/* Custom scrollbar styling for sidebar only */
+aside::-webkit-scrollbar {
     width: 6px;
     height: 6px;
 }
 
-::-webkit-scrollbar-track {
+aside::-webkit-scrollbar-track {
     background: #f1f1f1;
     border-radius: 8px;
 }
 
-::-webkit-scrollbar-thumb {
+aside::-webkit-scrollbar-thumb {
     background: #d1d5db; /* Gray-300 */
     border-radius: 8px;
     transition: all 0.3s ease;
 }
 
-::-webkit-scrollbar-thumb:hover {
+aside::-webkit-scrollbar-thumb:hover {
     background: #9ca3af; /* Gray-400 */
 }
