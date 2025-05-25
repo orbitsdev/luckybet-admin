@@ -140,7 +140,7 @@
                     </a>
 
                     <!-- Users Dropdown -->
-                    <div class="space-y-1 mt-4">
+                    <div class="space-y-1 mt-4 mb-4">
                         <button @click="usersOpen = !usersOpen; console.log('Users dropdown toggled:', usersOpen)"
                             class="group w-full flex items-center justify-between px-5 py-3.5 rounded-lg text-base text-gray-700 nav-item hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-200">
                             <div class="flex items-center">
@@ -277,12 +277,12 @@
                 '-translate-x-full': !sidebarOpen || window
                     .innerWidth < 1024
             }">
-            <aside class="h-full w-72 overflow-y-auto bg-white shadow-xl">
+            <aside class="h-full w-72 overflow-y-auto bg-white shadow-xl ">
                 <!-- Sidebar Title Section -->
                 {{-- <div class="flex items-center justify-center py-4 border-b border-gray-100">
                     <span class="text-2xl font-bold text-red-600 audiowide-regular">LUCKY<span class="text-gray-800">BET</span></span>
                 </div> --}}
-                <nav class="px-3 border-red-400 py-4 border-t-4">
+                <nav class="px-3 border-red-400 py-4 border-t-4 ">
                     <!-- Dashboard Link -->
                     <a href="#"
                         class="group flex items-center px-6 py-4 rounded-lg font-bold text-base text-gray-700 nav-item active relative bg-red-50">
@@ -295,7 +295,7 @@
                     </a>
 
                     <!-- Users Dropdown -->
-                    <div class="space-y-1">
+                    <div class="space-y-1 mt-4">
                         <button @click="usersOpen = !usersOpen"
                             class="group w-full flex items-center justify-between px-6 py-4 rounded-lg text-base text-gray-700 nav-item focus:outline-none focus:ring-2 focus:ring-red-200">
                             <div class="flex items-center">
