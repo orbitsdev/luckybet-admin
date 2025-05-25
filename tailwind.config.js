@@ -45,6 +45,15 @@ export default {
             '900': '#910b0c',
             '950': '#500001',
         },
+
+                        green: colors.green, // Default green palette
+              indigo: colors.indigo, // Default indigo palette
+              gray: colors.gray, // Default gray palette
+              secondary: colors.gray,
+              positive: colors.emerald,
+              negative: colors.red,
+              warning: colors.amber,
+              info: colors.blue,
                 red: {
                     '50': '#fff0f0',
                     '100': '#ffdddd',

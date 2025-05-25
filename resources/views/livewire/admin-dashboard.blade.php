@@ -122,7 +122,7 @@
                 <nav class="px-3 border-t-4 border-red-400 py-4">
                     <a href="#"
                         class="group flex items-center px-5 py-3.5 rounded-lg font-bold text-base text-gray-700 nav-item active">
-                        
+
                         <span>Dashboard</span>
                     </a>
 
@@ -268,7 +268,7 @@
                 <nav class="px-3 border-t-4 border-red-400 py-4">
                     <!-- Dashboard Link -->
                     <a href="#"
-                        class="group flex items-center px-6 py-4 rounded-lg font-bold text-base text-gray-700 nav-item active relative border-l-4 border-red-500 bg-red-50">
+                        class="group flex items-center px-6 py-4 rounded-lg font-bold text-base text-gray-700 nav-item active relative bg-red-50">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                             stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-3">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -298,15 +298,15 @@
                         </button>
                         <div x-show="usersOpen" x-collapse class=" rounded-lg mt-2 mb-2 p-2 space-y-2">
                             <a href="#"
-                                class="block pl-12 pr-5 py-3.5 text-gray-600 rounded-lg nav-item border-l-2 border-red-100 bg-red-50/30 bg-red-50/30">
+                                class="block pl-12 pr-5 py-2.5 text-gray-600 rounded-lg nav-item border-l-4 border-primary-400 bg-gray-50">
                                 Coordinators
                             </a>
                             <a href="#"
-                                class="block pl-12 pr-5 py-3.5 text-gray-600 rounded-lg nav-item border-l-2 border-red-100 bg-red-50/30bg-red-50/30">
+                                class="block pl-12 pr-5 py-2.5 text-gray-600 rounded-lg nav-item border-l-4 border-primary-400 bg-gray-50">
                                 Tellers
                             </a>
                             <a href="#"
-                                class="block pl-12 pr-5 py-3.5 text-gray-600 rounded-lg nav-item border-l-2 border-red-100 bg-red-50/30bg-red-50/30">
+                                class="block pl-12 pr-5 py-2.5 text-gray-600 rounded-lg nav-item border-l-4 border-primary-400 bg-gray-50">
                                 Customers
                             </a>
                         </div>
@@ -333,15 +333,15 @@
                         </button>
                         <div x-show="reportsOpen" x-collapse class=" rounded-lg mt-2 mb-2 p-2 space-y-2">
                             <a href="#"
-                                class="block pl-12 pr-5 py-3.5 text-gray-600 rounded-lg nav-item border-l-2 border-red-100 bg-red-50/30">
+                                class="block pl-12 pr-5 py-2.5 text-gray-600 rounded-lg nav-item border-l-4 border-primary-400 bg-gray-50">
                                 Coordinator Report
                             </a>
                             <a href="#"
-                                class="block pl-12 pr-5 py-3.5 text-gray-600 rounded-lg nav-item border-l-2 border-red-100 bg-red-50/30">
+                                class="block pl-12 pr-5 py-2.5 text-gray-600 rounded-lg nav-item border-l-4 border-primary-400 bg-gray-50">
                                 Teller Report
                             </a>
                             <a href="#"
-                                class="block pl-12 pr-5 py-3.5 text-gray-600 rounded-lg nav-item border-l-2 border-red-100 bg-red-50/30">
+                                class="block pl-12 pr-5 py-2.5 text-gray-600 rounded-lg nav-item border-l-4 border-primary-400 bg-gray-50">
                                 Sales Summary
                             </a>
                         </div>
