@@ -10,7 +10,7 @@
         init() {
             console.log('Dashboard initialized');
             if (window.innerWidth < 1024) {
-                this.sidebarOpen = false;
+                this.sidebarOpen = true;
             }
             window.addEventListener('resize', () => {
                 if (window.innerWidth >= 1024) {
@@ -19,7 +19,7 @@
             });
         }
     }"
-    class="min-h-screen bg-gradient-to-br from-[#FC0204] via-[#ff3848] to-[#ff7075] flex flex-col"
+    class="min-h-screen flex flex-col bg-white"
 >
     <!-- Header -->
     <header class="flex items-center justify-between px-6 py-3 bg-white shadow-lg z-40">
@@ -82,18 +82,24 @@
         </div>
     </header>
     <!-- Sidebar and Main Content -->
-    <div class="flex flex-1 overflow-hidden">
+    <div class="flex flex-1 overflow-hidden bg-white relative w-full">
         <!-- Sidebar with Alpine.js for interactivity -->
         <!-- Mobile backdrop overlay -->
-        <div x-show="sidebarOpen && window.innerWidth < 1024" 
+        <div x-show="sidebarOpen && window.innerWidth < 1024"
              x-cloak
              @click="sidebarOpen = false"
              class="fixed inset-0 z-20 bg-gray-700 bg-opacity-70 backdrop-blur-sm"></div>
 
         <!-- Sidebar navigation -->
-        <aside 
-               x-bind:class="{'md:-translate-x-full': !sidebarOpen}"
-               class="fixed inset-y-0 left-0 z-50 w-64 overflow-y-auto bg-white lg:static lg:inset-auto transform transition-all duration-300 ease-in-out shadow-lg">
+        <aside
+               x-show="sidebarOpen"
+               x-transition:enter="transition ease-out duration-300"
+               x-transition:enter-start="opacity-0 -translate-x-full"
+               x-transition:enter-end="opacity-100 translate-x-0"
+               x-transition:leave="transition ease-in duration-300"
+               x-transition:leave-start="opacity-100 translate-x-0"
+               x-transition:leave-end="opacity-0 -translate-x-full"
+               class="fixed inset-y-0 left-0 z-50 w-64 overflow-y-auto bg-white lg:static lg:inset-auto shadow-lg">
 
             <nav class="px-3  border-t-4 border-red-400 py-4 ">
                 <a href="#" class="group flex items-center px-5 py-3.5 rounded-lg font-bold text-base text-gray-700 nav-item active">
@@ -199,7 +205,7 @@
             </nav>
         </aside>
         <!-- Main Content -->
-        <main class="flex-1 p-8 bg-gradient-to-br from-white via-red-50 to-white overflow-y-auto">
+        <main class="flex-1 p-8 bg-white overflow-y-auto transition-all duration-300" :class="{'ml-0 w-full': !sidebarOpen, 'ml-0 lg:ml-64 w-full': sidebarOpen}">
 
         </main>
     </div>
