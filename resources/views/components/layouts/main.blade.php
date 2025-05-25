@@ -14,7 +14,18 @@
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
 
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-       <style>
+        <style>
+            :root {
+                --primary-color: #FC0204;
+                --primary-hover: #e00203;
+                --secondary-color: #ff3848;
+                --text-dark: #4a4a4a;
+                --text-medium: #6e6e6e;
+                --text-light: #8a8a8a;
+                --bg-light: #f8f9fa;
+                --border-color: #e5e7eb;
+            }
+            
             [x-cloak] {
                 display: none !important;
             }

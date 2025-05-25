@@ -214,10 +214,49 @@ h1, h2, h3, h4, h5, h6, .heading-font {
     width: 280px !important;
 }
 
+/* Text color classes */
+.text-soft {
+    color: var(--text-medium);
+}
+
+.text-softer {
+    color: var(--text-light);
+}
+
 /* Larger navigation items */
 .nav-item-larger {
     padding: 0.875rem 1.25rem;
     font-size: 1.05rem;
+}
+
+/* Custom navigation styling */
+.nav-item {
+    transition: all 0.2s ease-in-out;
+}
+
+.nav-item:hover {
+    background-color: rgba(252, 2, 4, 0.08);
+    border-radius: 0.5rem;
+    box-shadow: none;
+    transform: translateX(0.25rem);
+    transition: all 0.3s ease;
+}
+
+.nav-item:hover svg {
+    color: #FC0204;
+    transition: color 0.2s ease-in-out;
+}
+
+.nav-item.active {
+    background-color: rgba(252, 2, 4, 0.1);
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 8px rgba(252, 2, 4, 0.2);
+    transform: translateX(0.25rem);
+    transition: all 0.3s ease;
+}
+
+.nav-item.active svg {
+    color: #FC0204;
 }
 
 /* Cool gradient effect for navigation items */

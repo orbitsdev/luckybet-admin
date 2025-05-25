@@ -49,7 +49,7 @@
                             <span>Settings</span>
                         </div>
                     </a>
-                    <div class="border-t border-gray-100 my-1"></div>
+                    <div class="border-t-2 border-[#FC0204] my-2 opacity-80 mx-2 rounded-full"></div>
                     <a href="#" class="block px-4 py-2 text-gray-700 rounded-md transition-colors duration-300 ease-in-out hover:bg-gradient-to-r hover:from-[#FC0204] hover:to-[#ff367a] hover:text-white hover:shadow-md">
                         <div class="flex items-center space-x-2">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
@@ -77,7 +77,7 @@
                 <img src="{{ asset('assets/logo.png') }}" alt="Lucky Bet Logo" class="h-40">
             </div>
             <nav class="px-3 space-y-2">
-                <a href="#" class="group flex items-center px-5 py-3.5 rounded-lg font-bold text-base nav-item active">
+                <a href="#" class="group flex items-center px-5 py-3.5 rounded-lg font-bold text-base text-gray-700 nav-item active">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-3">
                         <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
                     </svg>
@@ -86,7 +86,7 @@
 
                 <!-- Users Dropdown -->
                 <div class="space-y-1">
-                    <button @click="usersOpen = !usersOpen" class="group w-full flex items-center justify-between px-5 py-3.5 rounded-lg text-base nav-item">
+                    <button @click="usersOpen = !usersOpen" class="group w-full flex items-center justify-between px-5 py-3.5 rounded-lg text-base text-gray-700 nav-item">
                         <div class="flex items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-3">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
@@ -98,15 +98,15 @@
                         </svg>
                     </button>
                     <div x-cloak x-show="usersOpen" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-2" class="pl-6 mt-1 space-y-1">
-                        <a href="#" class="group flex items-center px-4 py-2.5 text-sm rounded-md nav-item hover:pl-5 transition-all duration-200">
+                        <a href="#" class="group flex items-center px-4 py-2.5 text-sm text-gray-600 rounded-md nav-item hover:pl-5 transition-all duration-200">
                             <span class="w-1.5 h-1.5 rounded-full bg-gray-400 mr-3 group-hover:bg-[#FC0204] transition-colors duration-200"></span>
                             <span class="font-medium">Coordinators</span>
                         </a>
-                        <a href="#" class="group flex items-center px-4 py-2.5 text-sm rounded-md nav-item hover:pl-5 transition-all duration-200">
+                        <a href="#" class="group flex items-center px-4 py-2.5 text-sm text-gray-600 rounded-md nav-item hover:pl-5 transition-all duration-200">
                             <span class="w-1.5 h-1.5 rounded-full bg-gray-400 mr-3 group-hover:bg-[#FC0204] transition-colors duration-200"></span>
                             <span class="font-medium">Tellers</span>
                         </a>
-                        <a href="#" class="group flex items-center px-4 py-2.5 text-sm rounded-md nav-item hover:pl-5 transition-all duration-200">
+                        <a href="#" class="group flex items-center px-4 py-2.5 text-sm text-gray-600 rounded-md nav-item hover:pl-5 transition-all duration-200">
                             <span class="w-1.5 h-1.5 rounded-full bg-gray-400 mr-3 group-hover:bg-[#FC0204] transition-colors duration-200"></span>
                             <span class="font-medium">Customers</span>
                         </a>
@@ -115,7 +115,7 @@
 
                 <!-- Reports Dropdown -->
                 <div class="space-y-1">
-                    <button @click="reportsOpen = !reportsOpen" class="group w-full flex items-center justify-between px-5 py-3.5 rounded-lg text-base nav-item">
+                    <button @click="reportsOpen = !reportsOpen" class="group w-full flex items-center justify-between px-5 py-3.5 rounded-lg text-base text-gray-700 nav-item">
                         <div class="flex items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-3">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
@@ -127,15 +127,15 @@
                         </svg>
                     </button>
                     <div x-cloak x-show="reportsOpen" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-2" class="pl-6 mt-1 space-y-1">
-                        <a href="#" class="group flex items-center px-4 py-2.5 text-sm rounded-md nav-item hover:pl-5 transition-all duration-200">
+                        <a href="#" class="group flex items-center px-4 py-2.5 text-sm text-gray-600 rounded-md nav-item hover:pl-5 transition-all duration-200">
                             <span class="w-1.5 h-1.5 rounded-full bg-gray-400 mr-3 group-hover:bg-[#FC0204] transition-colors duration-200"></span>
                             <span class="font-medium">Coordinator Report</span>
                         </a>
-                        <a href="#" class="group flex items-center px-4 py-2.5 text-sm rounded-md nav-item hover:pl-5 transition-all duration-200">
+                        <a href="#" class="group flex items-center px-4 py-2.5 text-sm text-gray-600 rounded-md nav-item hover:pl-5 transition-all duration-200">
                             <span class="w-1.5 h-1.5 rounded-full bg-gray-400 mr-3 group-hover:bg-[#FC0204] transition-colors duration-200"></span>
                             <span class="font-medium">Teller Report</span>
                         </a>
-                        <a href="#" class="group flex items-center px-4 py-2.5 text-sm rounded-md nav-item hover:pl-5 transition-all duration-200">
+                        <a href="#" class="group flex items-center px-4 py-2.5 text-sm text-gray-600 rounded-md nav-item hover:pl-5 transition-all duration-200">
                             <span class="w-1.5 h-1.5 rounded-full bg-gray-400 mr-3 group-hover:bg-[#FC0204] transition-colors duration-200"></span>
                             <span class="font-medium">Sales Summary</span>
                         </a>
