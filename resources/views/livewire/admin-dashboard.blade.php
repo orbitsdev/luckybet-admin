@@ -99,15 +99,15 @@
                     </button>
                     <div x-cloak x-show="usersOpen" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-2" class="pl-6 mt-1 space-y-1">
                         <a href="#" class="group flex items-center px-4 py-2.5 text-sm text-gray-600 rounded-md nav-item hover:pl-5 transition-all duration-200">
-                            <span class="w-1.5 h-1.5 rounded-full bg-gray-400 mr-3 group-hover:bg-[#FC0204] transition-colors duration-200"></span>
+                            <span class="w-1.5 h-1.5 rounded-full bg-gray-400 mr-3 group-hover:bg-primary-500 transition-colors duration-200"></span>
                             <span class="font-medium">Coordinators</span>
                         </a>
                         <a href="#" class="group flex items-center px-4 py-2.5 text-sm text-gray-600 rounded-md nav-item hover:pl-5 transition-all duration-200">
-                            <span class="w-1.5 h-1.5 rounded-full bg-gray-400 mr-3 group-hover:bg-[#FC0204] transition-colors duration-200"></span>
+                            <span class="w-1.5 h-1.5 rounded-full bg-gray-400 mr-3 group-hover:bg-primary-500 transition-colors duration-200"></span>
                             <span class="font-medium">Tellers</span>
                         </a>
                         <a href="#" class="group flex items-center px-4 py-2.5 text-sm text-gray-600 rounded-md nav-item hover:pl-5 transition-all duration-200">
-                            <span class="w-1.5 h-1.5 rounded-full bg-gray-400 mr-3 group-hover:bg-[#FC0204] transition-colors duration-200"></span>
+                            <span class="w-1.5 h-1.5 rounded-full bg-gray-400 mr-3 group-hover:bg-primary-500 transition-colors duration-200"></span>
                             <span class="font-medium">Customers</span>
                         </a>
                     </div>
@@ -128,15 +128,15 @@
                     </button>
                     <div x-cloak x-show="reportsOpen" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-2" class="pl-6 mt-1 space-y-1">
                         <a href="#" class="group flex items-center px-4 py-2.5 text-sm text-gray-600 rounded-md nav-item hover:pl-5 transition-all duration-200">
-                            <span class="w-1.5 h-1.5 rounded-full bg-gray-400 mr-3 group-hover:bg-[#FC0204] transition-colors duration-200"></span>
+                            <span class="w-1.5 h-1.5 rounded-full bg-gray-400 mr-3 group-hover:bg-primary-500 transition-colors duration-200"></span>
                             <span class="font-medium">Coordinator Report</span>
                         </a>
                         <a href="#" class="group flex items-center px-4 py-2.5 text-sm text-gray-600 rounded-md nav-item hover:pl-5 transition-all duration-200">
-                            <span class="w-1.5 h-1.5 rounded-full bg-gray-400 mr-3 group-hover:bg-[#FC0204] transition-colors duration-200"></span>
+                            <span class="w-1.5 h-1.5 rounded-full bg-gray-400 mr-3 group-hover:bg-primary-500 transition-colors duration-200"></span>
                             <span class="font-medium">Teller Report</span>
                         </a>
                         <a href="#" class="group flex items-center px-4 py-2.5 text-sm text-gray-600 rounded-md nav-item hover:pl-5 transition-all duration-200">
-                            <span class="w-1.5 h-1.5 rounded-full bg-gray-400 mr-3 group-hover:bg-[#FC0204] transition-colors duration-200"></span>
+                            <span class="w-1.5 h-1.5 rounded-full bg-gray-400 mr-3 group-hover:bg-primary-500 transition-colors duration-200"></span>
                             <span class="font-medium">Sales Summary</span>
                         </a>
                     </div>

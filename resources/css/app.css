@@ -223,6 +223,19 @@ h1, h2, h3, h4, h5, h6, .heading-font {
     color: var(--text-light);
 }
 
+/* Nested menu items */
+.pl-6 a {
+    background-color: rgba(51, 122, 183, 0.05);
+    margin-bottom: 2px;
+    border-left: 2px solid rgba(51, 122, 183, 0.15);
+    padding-left: 12px !important;
+}
+
+.pl-6 a:hover {
+    background-color: rgba(51, 122, 183, 0.1);
+    border-left: 2px solid rgba(51, 122, 183, 0.3);
+}
+
 /* Larger navigation items */
 .nav-item-larger {
     padding: 0.875rem 1.25rem;
