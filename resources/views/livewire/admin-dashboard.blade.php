@@ -73,15 +73,10 @@
         <aside id="sidebar" x-cloak
                :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
                class="fixed inset-y-0 left-0 z-30 w-80 overflow-y-auto bg-white lg:static lg:inset-auto lg:translate-x-0 transform transition duration-300 ease-in-out shadow-lg">
-
-            <!-- Logo area -->
             <div class="flex flex-col items-center justify-center  bg-white">
                 <img src="{{ asset('assets/logo.png') }}" alt="Lucky Bet Logo" class="h-40">
             </div>
-
-            <!-- Navigation Menu -->
             <nav class="px-3 space-y-2">
-                <!-- Dashboard Link -->
                 <a href="#" class="group flex items-center px-5 py-3.5 rounded-lg font-bold text-base nav-item active">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-3">
                         <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
@@ -103,17 +98,17 @@
                         </svg>
                     </button>
                     <div x-cloak x-show="usersOpen" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-2" class="pl-6 mt-1 space-y-1">
-                        <a href="#" class="group flex items-center px-4 py-2 text-sm rounded-md nav-item">
-                            <span class="w-1 h-1 rounded-full bg-gray-300 mr-3 group-hover:bg-white transition-colors duration-200"></span>
-                            <span>Coordinators</span>
+                        <a href="#" class="group flex items-center px-4 py-2.5 text-sm rounded-md nav-item hover:pl-5 transition-all duration-200">
+                            <span class="w-1.5 h-1.5 rounded-full bg-gray-400 mr-3 group-hover:bg-[#FC0204] transition-colors duration-200"></span>
+                            <span class="font-medium">Coordinators</span>
                         </a>
-                        <a href="#" class="group flex items-center px-4 py-2 text-sm rounded-md nav-item">
-                            <span class="w-1 h-1 rounded-full bg-gray-300 mr-3 group-hover:bg-white transition-colors duration-200"></span>
-                            <span>Tellers</span>
+                        <a href="#" class="group flex items-center px-4 py-2.5 text-sm rounded-md nav-item hover:pl-5 transition-all duration-200">
+                            <span class="w-1.5 h-1.5 rounded-full bg-gray-400 mr-3 group-hover:bg-[#FC0204] transition-colors duration-200"></span>
+                            <span class="font-medium">Tellers</span>
                         </a>
-                        <a href="#" class="group flex items-center px-4 py-2 text-sm rounded-md nav-item">
-                            <span class="w-1 h-1 rounded-full bg-gray-300 mr-3 group-hover:bg-white transition-colors duration-200"></span>
-                            <span>Customers</span>
+                        <a href="#" class="group flex items-center px-4 py-2.5 text-sm rounded-md nav-item hover:pl-5 transition-all duration-200">
+                            <span class="w-1.5 h-1.5 rounded-full bg-gray-400 mr-3 group-hover:bg-[#FC0204] transition-colors duration-200"></span>
+                            <span class="font-medium">Customers</span>
                         </a>
                     </div>
                 </div>
@@ -132,25 +127,24 @@
                         </svg>
                     </button>
                     <div x-cloak x-show="reportsOpen" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-2" class="pl-6 mt-1 space-y-1">
-                        <a href="#" class="group flex items-center px-4 py-2 text-sm rounded-md nav-item">
-                            <span class="w-1 h-1 rounded-full bg-gray-300 mr-3 group-hover:bg-white transition-colors duration-200"></span>
-                            <span>Coordinator Report</span>
+                        <a href="#" class="group flex items-center px-4 py-2.5 text-sm rounded-md nav-item hover:pl-5 transition-all duration-200">
+                            <span class="w-1.5 h-1.5 rounded-full bg-gray-400 mr-3 group-hover:bg-[#FC0204] transition-colors duration-200"></span>
+                            <span class="font-medium">Coordinator Report</span>
                         </a>
-                        <a href="#" class="group flex items-center px-4 py-2 text-sm rounded-md nav-item">
-                            <span class="w-1 h-1 rounded-full bg-gray-300 mr-3 group-hover:bg-white transition-colors duration-200"></span>
-                            <span>Teller Report</span>
+                        <a href="#" class="group flex items-center px-4 py-2.5 text-sm rounded-md nav-item hover:pl-5 transition-all duration-200">
+                            <span class="w-1.5 h-1.5 rounded-full bg-gray-400 mr-3 group-hover:bg-[#FC0204] transition-colors duration-200"></span>
+                            <span class="font-medium">Teller Report</span>
                         </a>
-                        <a href="#" class="group flex items-center px-4 py-2 text-sm rounded-md nav-item">
-                            <span class="w-1 h-1 rounded-full bg-gray-300 mr-3 group-hover:bg-white transition-colors duration-200"></span>
-                            <span>Sales Summary</span>
+                        <a href="#" class="group flex items-center px-4 py-2.5 text-sm rounded-md nav-item hover:pl-5 transition-all duration-200">
+                            <span class="w-1.5 h-1.5 rounded-full bg-gray-400 mr-3 group-hover:bg-[#FC0204] transition-colors duration-200"></span>
+                            <span class="font-medium">Sales Summary</span>
                         </a>
                     </div>
                 </div>
 
                 <!-- Game Management Section -->
-                <div class="pt-2 mt-2 border-t border-gray-200">
-                    <h3 class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider audiowide-regular">Game Management</h3>
-                </div>
+                <div class="px-4 py-2 text-xs font-heading font-semibold uppercase tracking-wider text-gray-400 mt-6 mb-1">Game Management</div>
+                <div class="pt-1"></div>
 
                 <!-- Draw Link -->
                 <a href="#" class="group flex items-center px-5 py-3.5 rounded-lg text-base nav-item">
