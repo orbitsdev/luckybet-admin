@@ -37,42 +37,7 @@
         @livewireStyles
 
 
-        <script>
-            document.addEventListener('alpine:init', () => {
-                Alpine.data('adminDashboard', () => ({
-                    sidebarOpen: window.innerWidth >= 1024,
-                    profileDropdownOpen: false,
-                    usersOpen: true,
-                    reportsOpen: true,
-                    init() {
-                        this.$nextTick(() => {
-                            window.addEventListener('resize', () => {
-                                if (window.innerWidth >= 1024) {
-                                    this.sidebarOpen = true;
-                                } else if (window.innerWidth < 1024 && this.sidebarOpen) {
-                                    this.sidebarOpen = false;
-                                }
-                            });
-
-                            window.addEventListener('keydown', e => {
-                                if (e.key === 'Escape' && this.sidebarOpen && window.innerWidth < 1024) {
-                                    this.sidebarOpen = false;
-                                }
-                            });
-
-                            document.addEventListener('click', e => {
-                                if (window.innerWidth < 1024 &&
-                                    this.sidebarOpen &&
-                                    !e.target.closest('#sidebar') &&
-                                    !e.target.closest('button[aria-controls="sidebar"]')) {
-                                    this.sidebarOpen = false;
-                                }
-                            }, { capture: true });
-                        });
-                    }
-                }));
-            });
-        </script>
+        <!-- Alpine.js is now loaded and initialized in app.js -->
     </head>
     <body class="font-sans antialiased bg-white">
 

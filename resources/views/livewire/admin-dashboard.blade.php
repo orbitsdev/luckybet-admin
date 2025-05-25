@@ -1,11 +1,25 @@
 <div
-    x-data="adminDashboard"
+    x-data="{
+        sidebarOpen: window.innerWidth >= 1024,
+        usersOpen: true,
+        reportsOpen: true,
+        init() {
+            console.log('Dashboard initialized');
+            window.addEventListener('resize', () => {
+                if (window.innerWidth >= 1024) {
+                    this.sidebarOpen = true;
+                } else if (window.innerWidth < 1024 && this.sidebarOpen) {
+                    this.sidebarOpen = false;
+                }
+            });
+        }
+    }"
     class="min-h-screen bg-gradient-to-br from-[#FC0204] via-[#ff3848] to-[#ff7075] flex flex-col"
 >
     <!-- Header -->
     <header class="flex items-center justify-between px-6 py-3 bg-white shadow-lg z-20">
         <div class="flex items-center space-x-4">
-            <button @click="sidebarOpen = !sidebarOpen" aria-controls="sidebar" class="p-2 rounded-lg text-gray-700 header-btn">
+            <button @click="sidebarOpen = !sidebarOpen; console.log('Sidebar toggled:', sidebarOpen)" aria-controls="sidebar" class="p-2 rounded-lg text-gray-700 header-btn">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
                 </svg>
@@ -65,14 +79,16 @@
     <!-- Sidebar and Main Content -->
     <div class="flex flex-1 overflow-hidden">
         <!-- Sidebar with Alpine.js for interactivity -->
+        <!-- Mobile backdrop overlay -->
         <div x-cloak
-             :class="sidebarOpen ? 'block' : 'hidden'"
+             :class="{'block': sidebarOpen, 'hidden': !sidebarOpen}"
              @click="sidebarOpen = false"
-             class="fixed inset-0 z-20 transition-opacity bg-gray-700 bg-opacity-70 backdrop-blur-sm lg:hidden"></div>
+             class="fixed inset-0 z-20 bg-gray-700 bg-opacity-70 backdrop-blur-sm lg:hidden transition-all duration-300"></div>
 
-        <aside id="sidebar" x-cloak
-               :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
-               class="fixed inset-y-0 left-0 z-30 w-80 overflow-y-auto bg-white lg:static lg:inset-auto lg:translate-x-0 transform transition duration-300 ease-in-out shadow-lg">
+        <!-- Sidebar navigation -->
+        <aside id="sidebar"
+               :class="{'translate-x-0': sidebarOpen, '-translate-x-full': !sidebarOpen, 'lg:translate-x-0': true}"
+               class="fixed inset-y-0 left-0 z-30 w-80 overflow-y-auto bg-white lg:static lg:inset-auto transform transition-transform duration-300 ease-in-out shadow-lg">
 
             <nav class="px-3  border-t-4 border-red-400 py-4 ">
                 <a href="#" class="group flex items-center px-5 py-3.5 rounded-lg font-bold text-base text-gray-700 nav-item active">
@@ -84,7 +100,7 @@
 
                 <!-- Users Dropdown -->
                 <div class="space-y-1 mt-4">
-                    <button @click="usersOpen = !usersOpen" class="group w-full flex items-center justify-between px-5 py-3.5 rounded-lg text-base text-gray-700 nav-item">
+                    <button @click="usersOpen = !usersOpen; console.log('Users dropdown toggled:', usersOpen)" class="group w-full flex items-center justify-between px-5 py-3.5 rounded-lg text-base text-gray-700 nav-item">
                         <div class="flex items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-3">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
@@ -95,7 +111,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
                         </svg>
                     </button>
-                    <div x-cloak x-show="usersOpen" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform -translate-y-4" x-transition:enter-end="opacity-100 transform translate-y-0" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 transform translate-y-0" x-transition:leave-end="opacity-0 transform -translate-y-4" class="pl-6 mt-1 space-y-1">
+                    <div x-cloak x-show="usersOpen" class="pl-6 mt-1 space-y-1">
                         <a href="#" class="group flex items-center px-4 py-2.5 text-sm text-gray-600 rounded-md nav-item hover:pl-5 transition-all duration-200">
                             <span class="w-1.5 h-1.5 rounded-full opacity-0 group-hover:opacity-100 bg-primary-500 mr-3 transition-all duration-200"></span>
                             <span class="font-medium">Coordinators</span>
@@ -113,7 +129,7 @@
 
                 <!-- Reports Dropdown -->
                 <div class="space-y-1 mt-4">
-                    <button @click="reportsOpen = !reportsOpen" class="group w-full flex items-center justify-between px-5 py-3.5 rounded-lg text-base text-gray-700 nav-item">
+                    <button @click="reportsOpen = !reportsOpen; console.log('Reports dropdown toggled:', reportsOpen)" class="group w-full flex items-center justify-between px-5 py-3.5 rounded-lg text-base text-gray-700 nav-item">
                         <div class="flex items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-3">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
@@ -124,7 +140,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
                         </svg>
                     </button>
-                    <div x-cloak x-show="reportsOpen" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform -translate-y-4" x-transition:enter-end="opacity-100 transform translate-y-0" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 transform translate-y-0" x-transition:leave-end="opacity-0 transform -translate-y-4" class="pl-6 mt-1 space-y-1">
+                    <div x-cloak x-show="reportsOpen" class="pl-6 mt-1 space-y-1">
                         <a href="#" class="group flex items-center px-4 py-2.5 text-sm text-gray-600 rounded-md nav-item hover:pl-5 transition-all duration-200">
                             <span class="w-1.5 h-1.5 rounded-full opacity-0 group-hover:opacity-100 bg-primary-500 mr-3 transition-all duration-200"></span>
                             <span class="font-medium">Coordinator Report</span>
