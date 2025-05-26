@@ -4,7 +4,7 @@ use App\Livewire\AdminDashboard;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    return route('dashboard');
 });
 
 Route::middleware([
