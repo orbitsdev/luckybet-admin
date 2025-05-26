@@ -19,6 +19,19 @@ class ListUsers extends Component implements HasForms, HasTable
     use InteractsWithForms;
     use InteractsWithTable;
 
+    public array $userStats = [];
+
+    public function mount()
+    {
+        $this->userStats = [
+            'total' => User::whereIn('role', ['coordinator', 'teller'])->count(),
+            'active' => User::whereIn('role', ['coordinator', 'teller'])->where('is_active', true)->count(),
+            'inactive' => User::whereIn('role', ['coordinator', 'teller'])->where('is_active', false)->count(),
+            'coordinators' => User::where('role', 'coordinator')->count(),
+            'tellers' => User::where('role', 'teller')->count(),
+        ];
+    }
+
     public function table(Table $table): Table
     {
         return $table
@@ -70,7 +83,7 @@ class ListUsers extends Component implements HasForms, HasTable
                 Tables\Filters\SelectFilter::make('role')
                     ->label('User Role')
                     ->options([
-                        'admin' => 'Admin',
+                        // 'admin' => 'Admin',
                         'coordinator' => 'Coordinator',
                         'teller' => 'Teller',
                         'customer' => 'Customer',
@@ -80,19 +93,37 @@ class ListUsers extends Component implements HasForms, HasTable
                 Tables\Filters\SelectFilter::make('location_id')
                     ->label('Location')
                     ->relationship('location', 'name'),
-                ],layout: FiltersLayout::AboveContent)
+                ],
+                // layout: FiltersLayout::AboveContent
+                )
             ->actions([
-                Tables\Actions\Action::make('edit')
-                    ->label('Edit')
-                    ->icon('heroicon-o-pencil')
-                    ->url(fn($record) => route('manage.users.edit', ['user' => $record->id])),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\Action::make('view')
+                        ->color('success')
+                        ->icon('heroicon-m-eye')
+                        ->label('View')
+                        ->modalContent(function ($record) {
+                            return view('livewire.users.view-user-details', ['record' => $record]);
+                        })
+                        ->modalWidth('7xl')
+                        ->modalHeading('User Details')
+                        ->modalSubmitAction(false)
+                        ->modalCancelAction(fn ($action) => $action->label('Close'))
+                        ->disabledForm()
+                        // ->slideOver()
+                        ->closeModalByClickingAway(true),
+                    Tables\Actions\Action::make('edit')
+                        ->label('Edit')
+                        ->icon('heroicon-o-pencil')
+                        ->url(fn($record) => route('manage.users.edit', ['user' => $record->id])),
+                    Tables\Actions\DeleteAction::make(),
+                ])
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])->modifyQueryUsing(fn (Builder $query) => $query->where('role', '!=', 'admin'));
            
     }
 
