@@ -1,14 +1,13 @@
 <?php
 
 use App\Livewire\AdminDashboard;
-use Illuminate\Support\Facades\Route;
-use App\Livewire\Locations\ListLocations;
+use App\Livewire\Users\EditUser;
 use App\Livewire\Users\ListUsers;
 use App\Livewire\Users\CreateUser;
-use App\Livewire\Users\EditUser;
-// use App\Livewire\Tellers\ListTellers;
-// use App\Livewire\Tellers\CreateTeller;
-// use App\Livewire\Tellers\EditTeller;
+use App\Livewire\Draws\ManageDraws;
+use Illuminate\Support\Facades\Route;
+use App\Livewire\Locations\ListLocations;
+
 
 Route::get('/', function () {
     return route('dashboard');
@@ -30,10 +29,7 @@ Route::middleware([
         Route::get('users/create', CreateUser::class)->name('users.create');
         Route::get('users/{user}/edit', EditUser::class)->name('users.edit');
 
-        // // teller management 
-        // Route::get('tellers', ListTellers::class)->name('tellers');
-        // Route::get('tellers/create', CreateTeller::class)->name('tellers.create');
-        // Route::get('tellers/{teller}/edit', EditTeller::class)->name('tellers.edit');
+        Route::get('draws', ManageDraws::class)->name('draws');
     });
    
 
