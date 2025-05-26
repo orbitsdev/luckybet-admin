@@ -400,9 +400,15 @@ class TellerReportController extends Controller
             $totalCommission = 0;
             $commissionRates = [];
             foreach ($bets as $bet) {
-                $rate = $bet->commission_rate ?? 0.15;
+                // Handles both Eloquent models and arrays
+                $rate = isset($bet->commission_rate) ? $bet->commission_rate : (isset($bet['commission_rate']) ? $bet['commission_rate'] : 0.15);
                 $commissionRates[] = $rate;
-                $totalCommission += $bet->commission_amount ?? ($bet->amount * $rate);
+                $commissionAmount = isset($bet->commission_amount) 
+                    ? $bet->commission_amount 
+                    : (isset($bet['commission_amount']) 
+                        ? $bet['commission_amount'] 
+                        : (($bet->amount ?? ($bet['amount'] ?? 0)) * $rate));
+                $totalCommission += $commissionAmount;
             }
             $averageCommissionRate = count($commissionRates) ? array_sum($commissionRates) / count($commissionRates) : 0.15;
 
@@ -430,6 +436,8 @@ class TellerReportController extends Controller
                 'total_commission_formatted' => $formatNumber($totalCommission),
                 'average_commission_rate' => $averageCommissionRate,
                 'average_commission_rate_formatted' => ($averageCommissionRate * 100) . '%',
+                'commission_rate' => $averageCommissionRate, // for resource compatibility
+                'commission_rate_formatted' => ($averageCommissionRate * 100) . '%',
                 'cancellations' => $cancellations,
                 'cancellations_formatted' => (string) $cancellations,
             ];
@@ -605,9 +613,14 @@ class TellerReportController extends Controller
         $totalCommission = 0;
         $commissionRates = [];
         foreach ($bets as $bet) {
-            $rate = $bet->commission_rate ?? 0.15;
+            $rate = isset($bet->commission_rate) ? $bet->commission_rate : (isset($bet['commission_rate']) ? $bet['commission_rate'] : 0.15);
             $commissionRates[] = $rate;
-            $totalCommission += $bet->commission_amount ?? ($bet->amount * $rate);
+            $commissionAmount = isset($bet->commission_amount) 
+                ? $bet->commission_amount 
+                : (isset($bet['commission_amount']) 
+                    ? $bet['commission_amount'] 
+                    : (($bet->amount ?? ($bet['amount'] ?? 0)) * $rate));
+            $totalCommission += $commissionAmount;
         }
         $averageCommissionRate = count($commissionRates) ? array_sum($commissionRates) / count($commissionRates) : 0.15;
 
