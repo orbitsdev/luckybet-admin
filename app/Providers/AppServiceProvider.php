@@ -48,11 +48,11 @@ class AppServiceProvider extends ServiceProvider
     }
 
     public function configureFilament(){
-        FilamentColor::register([
+        FilamentColor::register([  
             'danger' => Color::Red,
             'gray' => Color::Zinc,
             'info' => Color::Blue,
-            'primary' => Color::Amber,
+            'primary' => '#FC0204',
             'success' => Color::Green,
             'warning' => Color::Amber,
         ]);

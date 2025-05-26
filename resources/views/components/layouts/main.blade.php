@@ -7,7 +7,6 @@
 
         <title>{{ config('app.name', 'Laravel') }}</title>
 
-        <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -31,18 +30,23 @@
             }
         </style>
 
-        @vite(['resources/css/app.css', 'resources/js/app.js',])
+        @filamentStyles
+        @vite(['resources/css/app.css'])
 
-        <!-- Styles -->
+  
         @livewireStyles
 
-
-        <!-- Alpine.js is now loaded and initialized in app.js -->
+  
     </head>
-    <body class="font-sans antialiased bg-white">
+    <body class="font-sans  bg-white antialiased">
 
         {{ $slot }}
 
-
+        @livewire('notifications')
+        @stack('modals')
+        @livewireScripts
+        @filamentScripts
+        @vite('resources/js/app.js')
+      
     </body>
 </html>
