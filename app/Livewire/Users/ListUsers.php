@@ -70,6 +70,10 @@ class ListUsers extends Component implements HasForms, HasTable
                 Tables\Columns\TextColumn::make('location.name')
                     ->label('Location')
                     ->sortable(),
+                Tables\Columns\TextColumn::make('commission.rate')
+                    ->label('Commission Rate')
+                    ->formatStateUsing(fn($state, $record) => $record->role === 'teller' && $state !== null ? $state . '%' : '-')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -86,7 +90,7 @@ class ListUsers extends Component implements HasForms, HasTable
                         // 'admin' => 'Admin',
                         'coordinator' => 'Coordinator',
                         'teller' => 'Teller',
-                        'customer' => 'Customer',
+                        // 'customer' => 'Customer',
                     ]),
                 Tables\Filters\TernaryFilter::make('is_active')
                     ->label('Active Status'),
