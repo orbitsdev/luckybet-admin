@@ -11,7 +11,7 @@ use App\Livewire\Draws\ManageDraws;
 use Illuminate\Support\Facades\Route;
 use App\Livewire\Locations\ListLocations;
 use App\Livewire\Commissions\ListCommission;
-
+use App\Livewire\LowWinNumbers\ListLowWinNumbers;
 
 Route::get('/', function () {
     return route('dashboard');
@@ -41,6 +41,8 @@ Route::middleware([
         //
         Route::get('bets', ListBets::class)->name('bets');
         Route::get('commissions', ListCommission::class)->name('commissions');
+        Route::get('low-win-numbers', ListLowWinNumbers::class)->name('low-win-numbers');
+    
 
 
 

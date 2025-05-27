@@ -555,7 +555,10 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
                                                     DatePicker::make('draw_date')
                                                         ->label('Draw Date')
                                                         ->required()
-                                                        ->default($record->draw_date),
+                                                        ->default($record->draw_date)
+                                                        ->disabled()
+                                                        ->dehydrated()
+                                                        ->helperText('Draw date cannot be modified after creation'),
                                                     Select::make('draw_time')
                                                         ->label('Draw Time')
                                                         ->options(function() {
@@ -567,7 +570,11 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
                                                             return $options;
                                                         })
                                                         ->searchable()
-                                                        ->required(),
+                                                        ->required()
+                                                        ->disabled()
+                                                        ->dehydrated()
+                                                        ->default($record->draw_time)
+                                                        ->helperText('Draw time cannot be modified after creation'),
                                                 ]),
                                                 Toggle::make('is_open')
                                                     ->required()
