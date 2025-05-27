@@ -44,37 +44,57 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
     use InteractsWithForms;
     use InteractsWithActions;
 
+    /**
+     * The currently selected filter date
+     *
+     * @var string|null
+     */
     public $filterDate;
+
+    /**
+     * Statistics for the currently selected date
+     *
+     * @var array
+     */
     public array $drawStats = [];
 
 
+    /**
+     * Initialize component state
+     *
+     * @return void
+     */
     public function mount()
     {
+        // Set default filter date to today
+        if (!$this->filterDate) {
+            $this->filterDate = now()->format('Y-m-d');
+        }
+        
         $this->computeDrawStats();
     }
     
+    /**
+     * Compute draw statistics for the selected date
+     *
+     * @return void
+     */
     public function computeDrawStats()
     {
-        // Get the current filter value
-        $date = $this->filterDate;
+        // Use the current filter date or default to today
+        $date = $this->filterDate ?: now()->format('Y-m-d');
+        $this->filterDate = $date; // Ensure the property is set
         
-        // Default to today if no date is set
-        if (!$date) {
-            $date = now()->format('Y-m-d');
-            $this->filterDate = $date;
-        }
-        
-        $query = \App\Models\Draw::query();
-        $query->where('draw_date', $date);
-        
-        // Make sure we load all necessary relationships
-        $draws = $query->with([
-            'bets',
-            'bets.teller', 
-            'bets.gameType', 
-            'bets.location',
-            'result'
-        ])->get();
+        // Build optimized query with eager loading
+        $draws = \App\Models\Draw::query()
+            ->where('draw_date', $date)
+            ->with([
+                'bets' => function($query) {
+                    $query->with(['teller:id,name', 'gameType:id,code,name', 'location:id,name']);
+                },
+                'result'
+            ])
+            ->get();
 
         $totalBets = 0;
         $totalHits = 0;
@@ -117,23 +137,54 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
                 // Count total bets by teller
                 $tellerGameTypeStats[$teller]['total']++;
                 
-                // Check if bet is a hit
-                // First check if the draw has a result
-                if ($draw->result && method_exists($bet, 'isHit')) {
-                    $isHit = $bet->isHit();
-                    if ($isHit) {
-                    $totalHits++;
-                    $totalWinAmount += $bet->winning_amount;
+                // Check if this bet is a hit (only if draw has results)
+                $isHit = false;
+                if ($draw->result) {
+                    $gameTypeCode = $bet->gameType ? $bet->gameType->code : null;
+                    $result = $draw->result;
                     
-                    // Count hits by teller and game type
-                    $tellerGameTypeStats[$teller]['total_hits']++;
-                    
-                    // Convert gameType to lowercase for consistent array keys
-                    $gameTypeKey = strtolower($gameType);
-                    if (isset($tellerGameTypeStats[$teller]['game_types'][$gameTypeKey])) {
-                        $tellerGameTypeStats[$teller]['game_types'][$gameTypeKey]++;
+                    // Optimized hit detection logic
+                    switch ($gameTypeCode) {
+                        case 'S2':
+                            $isHit = $bet->bet_number === $result->s2_winning_number;
+                            break;
+                            
+                        case 'S3':
+                            $isHit = $bet->bet_number === $result->s3_winning_number;
+                            break;
+                            
+                        case 'D4':
+                            // First check exact D4 match
+                            if ($bet->bet_number === $result->d4_winning_number) {
+                                $isHit = true;
+                                break;
+                            }
+                            
+                            // Then check D4 sub-selections if applicable
+                            if ($bet->d4_sub_selection && $result->d4_winning_number) {
+                                $sub = strtoupper($bet->d4_sub_selection);
+                                if ($sub === 'S2') {
+                                    $isHit = substr($result->d4_winning_number, -2) === str_pad($bet->bet_number, 2, '0', STR_PAD_LEFT);
+                                } elseif ($sub === 'S3') {
+                                    $isHit = substr($result->d4_winning_number, -3) === str_pad($bet->bet_number, 3, '0', STR_PAD_LEFT);
+                                }
+                            }
+                            break;
                     }
-                  }
+                    
+                    if ($isHit) {
+                        $totalHits++;
+                        $totalWinAmount += $bet->winning_amount;
+                        
+                        // Count hits by teller and game type
+                        $tellerGameTypeStats[$teller]['total_hits']++;
+                        
+                        // Convert gameType to lowercase for consistent array keys
+                        $gameTypeKey = strtolower($gameType);
+                        if (isset($tellerGameTypeStats[$teller]['game_types'][$gameTypeKey])) {
+                            $tellerGameTypeStats[$teller]['game_types'][$gameTypeKey]++;
+                        }
+                    }
                 }
             }
         }
@@ -239,7 +290,8 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
                                 ->default(fn() => now()->toDateString()) // Default to today dynamically
                                 ->live()
                                 ->afterStateUpdated(function ($state, $livewire) {
-                                    $this->filterDate = $state;
+                                    $livewire->filterDate = $state;
+                                    $livewire->computeDrawStats();
                                 })
 
                         ])
