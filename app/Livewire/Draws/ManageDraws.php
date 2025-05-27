@@ -75,12 +75,13 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
     }
     
     // Hook into Filament's filter reset functionality
-    public function filterTableReset(): void
+    public function resetTableFilters(): void
     {
-        parent::filterTableReset();
+        // Get the actual filter value that Filament resets to (or default to today)
+        $drawDate = $this->tableFilters['draw_date']['value'] ?? now()->toDateString();
         
-        // Reset our filterDate to today and recompute stats
-        $this->filterDate = now()->toDateString();
+        // Update our filterDate and recompute stats
+        $this->filterDate = $drawDate;
         $this->computeDrawStats();
     }
     
@@ -114,13 +115,21 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
         // Enhanced stats tracking
         $tellerGameTypeStats = [];
         $locationStats = []; // Track stats by location
-        $gameTypes = [
-            's2' => 'S2',
-            's3' => 'S3',
-            'd4' => 'D4',
-            'd4-s2' => 'D4-S2',
-            'd4-s3' => 'D4-S3',
-        ];
+        
+        // Fetch game types dynamically from the database
+        $gameTypeModels = \App\Models\GameType::all();
+        $gameTypes = [];
+        
+        // Add standard game types
+        foreach ($gameTypeModels as $gameType) {
+            $gameTypes[strtolower($gameType->code)] = $gameType->code;
+        }
+        
+        // Add D4 sub-selections if D4 exists
+        if (isset($gameTypes['d4'])) {
+            $gameTypes['d4-s2'] = 'D4-S2';
+            $gameTypes['d4-s3'] = 'D4-S3';
+        }
 
         foreach ($draws as $draw) {
             foreach ($draw->bets as $bet) {
