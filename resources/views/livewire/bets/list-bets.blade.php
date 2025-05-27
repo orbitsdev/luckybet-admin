@@ -1,8 +1,8 @@
 <div>
     <x-admin>
         <div class="flex justify-between items-center mb-3">
-            <span class="text-sm font-medium text-gray-700">Bet Date: 
-                <span class="ml-2 inline-block bg-primary-100 text-primary-800 text-xs font-semibold px-2.5 py-0.5 rounded">
+            <span class="text-lg font-medium text-gray-700">Bet Date: 
+                <span class="ml-2 inline-block bg-primary-100 text-primary-800 text-lg font-semibold px-2.5 py-0.5 rounded">
                     {{ \Carbon\Carbon::parse($this->filterDate)->format('F j, Y') }}
                 </span>
             </span>
