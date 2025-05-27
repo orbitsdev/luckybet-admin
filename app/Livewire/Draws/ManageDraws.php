@@ -4,6 +4,7 @@ namespace App\Livewire\Draws;
 
 use App\Models\Draw;
 use Filament\Tables;
+use Livewire\Attributes\On;
 
 use Livewire\Component;
 
@@ -43,6 +44,44 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
     use InteractsWithTable;
     use InteractsWithForms;
     use InteractsWithActions;
+    
+    /**
+     * Register Livewire event listeners using Livewire 3 syntax
+     */
+    public function __construct()
+    {
+        // Register event listeners
+        $this->listeners = [
+            'compute-stats' => 'computeStatsListener',
+            'filament.table.filter' => 'handleFilterChange',
+            'filament.table.filters.reset' => 'handleFilterReset',
+        ];
+    }
+    
+    /**
+     * Handle Filament table filter changes
+     * 
+     * @return void
+     */
+    public function handleFilterChange(): void
+    {
+        // Get the current filter date or default to today
+        $drawDate = $this->tableFilters['draw_date']['value'] ?? now()->toDateString();
+        
+        // If the filter was cleared or reset, explicitly set to today
+        if (empty($drawDate) || $drawDate === null) {
+            $drawDate = now()->toDateString();
+            // Update the table filter value to today as well
+            $this->tableFilters['draw_date']['value'] = $drawDate;
+        }
+        
+        // Update filter date and recompute stats
+        $this->filterDate = $drawDate;
+        $this->computeDrawStats();
+        
+        // Force a refresh to ensure UI is updated
+        $this->dispatch('refresh');
+    }
 
     /**
      * The currently selected filter date
@@ -57,6 +96,20 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
      * @var array
      */
     public array $drawStats = [];
+    
+    /**
+     * Flag to track if stats computation is in progress
+     * 
+     * @var bool
+     */
+    protected $computingStats = false;
+    
+    /**
+     * Timestamp of the last stats computation
+     * 
+     * @var int
+     */
+    protected $lastStatsComputation = 0;
 
 
     /**
@@ -72,16 +125,81 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
         }
         
         $this->computeDrawStats();
+        
+    }
+    
+    /**
+     * Handle explicit filter reset events
+     * This is triggered when the user clicks the reset button
+     *
+     * @return void
+     */
+    public function handleFilterReset(): void
+    {
+        // Set filter date to today
+        $today = now()->toDateString();
+        $this->filterDate = $today;
+        
+        // Update the table filter value to today
+        if (isset($this->tableFilters['draw_date'])) {
+            $this->tableFilters['draw_date']['value'] = $today;
+        }
+        
+        // Recompute stats with today's date
+        $this->computeDrawStats();
+        
+        // Force a refresh of the component
+        $this->dispatch('refresh');
+        
     }
     
     // Hook into Filament's filter reset functionality
     public function resetTableFilters(): void
     {
+        // Call parent method to ensure proper Filament behavior
+        parent::resetTableFilters();
+        
         // Get the actual filter value that Filament resets to (or default to today)
         $drawDate = $this->tableFilters['draw_date']['value'] ?? now()->toDateString();
         
-        // Update our filterDate and recompute stats
-        $this->filterDate = $drawDate;
+        // Only update filterDate if it's changed
+        if ($this->filterDate !== $drawDate) {
+            $this->filterDate = $drawDate;
+            // Directly compute stats (no scheduling needed in Livewire 3)
+            $this->computeDrawStats();
+            
+            // Force a refresh of the component
+            $this->dispatch('refresh');
+        }
+    }
+    
+    // We'll handle filter resets through the resetTableFilters method instead
+    
+    /**
+     * Schedule stats computation with debounce to prevent multiple rapid calls
+     * 
+     * @return void
+     */
+    protected function scheduleStatsComputation(): void
+    {
+        // If we're already computing or computed very recently, don't trigger again
+        $now = microtime(true);
+        if ($this->computingStats || ($now - $this->lastStatsComputation < 0.5)) {
+            return;
+        }
+        
+        // In Livewire 3, we can directly call the method instead of dispatching an event
+        // This ensures immediate execution and avoids event handling issues
+        $this->computeDrawStats();
+    }
+    
+    /**
+     * Livewire listener for the compute-stats event
+     * 
+     * @return void
+     */
+    public function computeStatsListener(): void
+    {
         $this->computeDrawStats();
     }
     
@@ -92,6 +210,9 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
      */
     public function computeDrawStats()
     {
+        // Set computing flag to prevent multiple simultaneous computations
+        $this->computingStats = true;
+        $this->lastStatsComputation = microtime(true);
         // Use the current filter date or default to today
         $date = $this->filterDate ?: now()->format('Y-m-d');
         $this->filterDate = $date; // Ensure the property is set
@@ -255,6 +376,9 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
             'location_stats' => $locationStats,
             'game_types' => $gameTypes,
         ];
+        
+        // Reset computing flag
+        $this->computingStats = false;
     }
 
 
@@ -264,6 +388,7 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
     {
         return $table
             ->query(Draw::query()->with('result'))
+            ->striped()
             ->headerActions([
                 CreateAction::make('addDraw')
                     ->label('Add Draw')
@@ -347,12 +472,19 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
                                 ->nullable() // Allow clearing the filter
                                 ->default(fn() => now()->toDateString()) // Default to today dynamically
                                 ->live()
-                                ->afterStateUpdated(function ($state, $livewire) {
-                                    $livewire->filterDate = $state;
+                                ->afterStateUpdated(function ($state, $set, $get, $livewire) {
+                                    // Always update filterDate and recompute stats when date changes
+                                    $livewire->filterDate = $state ?? now()->toDateString();
                                     $livewire->computeDrawStats();
                                 })
-
                         ])
+                        ->indicateUsing(function (array $data): ?string {
+                            if (!$data['draw_date']) {
+                                return null;
+                            }
+                            
+                            return 'Date: ' . date('F j, Y', strtotime($data['draw_date']));
+                        })
                         ->query(fn($query, $data) => $query->when($data['draw_date'] ?? null, fn($q, $date) => $q->where('draw_date', $date))),
                 ],
                 layout: FiltersLayout::AboveContent
@@ -573,6 +705,29 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
     public function makeFilamentTranslatableContentDriver(): ?\Filament\Support\Contracts\TranslatableContentDriver
     {
         return null;
+    }
+
+    /**
+     * Refresh the table data
+     *
+     * @return void
+     */
+    public function refreshTable(): void
+    {
+        // This will force Filament to re-query the table data
+        $this->resetTable();
+    }
+    
+    /**
+     * Handle the refresh event
+     * 
+     * @return void
+     */
+    #[On('refresh')]
+    public function refresh(): void
+    {
+        // This method will be automatically called when the 'refresh' event is dispatched
+        // No need to do anything here as Livewire will automatically re-render the component
     }
 
     public function render(): View
