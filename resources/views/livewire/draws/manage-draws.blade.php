@@ -2,16 +2,16 @@
     <x-admin>
         <div class="flex justify-between items-center mb-3">
             <span class="text-sm font-medium text-gray-700">Draw Date: 
-                <span class="ml-2 inline-block bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded">
+                <span class="ml-2 inline-block bg-primary-100 text-primary-800 text-xs font-semibold px-2.5 py-0.5 rounded">
                     {{ \Carbon\Carbon::parse($this->filterDate)->format('F j, Y') }}
                 </span>
             </span>
         </div>
 
-        <!-- Main content in 2-column grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <!-- Main content in 3-column grid -->
+        <div class="grid grid-cols-3 gap-4">
             <!-- Left column: Statistics -->
-            <div class="mb-4 p-2 bg-white rounded shadow">
+            <div class="col-span-1 mb-4  bg-white rounded-xl">
                 @if(!empty($drawStats['location_stats']))
                     <!-- Grand Total Summary at the top -->
                     <div class="mb-3 p-1 bg-gray-50 rounded border border-gray-200">
@@ -120,9 +120,9 @@
                     <div class="text-center py-4 text-gray-500">No data available for the selected date.</div>
                 @endif
             </div>
-
+            
             <!-- Right column: Draw table -->
-            <div class="mb-4 bg-white rounded shadow overflow-hidden">
+            <div class="mb-4 bg-white rounded-xl overflow-hidden col-span-2">
                 {{ $this->table }}
             </div>
         </div>
