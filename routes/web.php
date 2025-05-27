@@ -10,6 +10,7 @@ use App\Livewire\Users\CreateUser;
 use App\Livewire\Draws\ManageDraws;
 use Illuminate\Support\Facades\Route;
 use App\Livewire\Locations\ListLocations;
+use App\Livewire\Commissions\ListCommission;
 
 
 Route::get('/', function () {
@@ -39,6 +40,7 @@ Route::middleware([
 
         //
         Route::get('bets', ListBets::class)->name('bets');
+        Route::get('commissions', ListCommission::class)->name('commissions');
 
 
 
