@@ -68,9 +68,19 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
     {
         // Set default filter date to today
         if (!$this->filterDate) {
-            $this->filterDate = now()->format('Y-m-d');
+            $this->filterDate = now()->toDateString();
         }
         
+        $this->computeDrawStats();
+    }
+    
+    // Hook into Filament's filter reset functionality
+    public function filterTableReset(): void
+    {
+        parent::filterTableReset();
+        
+        // Reset our filterDate to today and recompute stats
+        $this->filterDate = now()->toDateString();
         $this->computeDrawStats();
     }
     
