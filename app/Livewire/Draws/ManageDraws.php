@@ -103,6 +103,7 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
         
         // Enhanced stats tracking
         $tellerGameTypeStats = [];
+        $locationStats = []; // Track stats by location
         $gameTypes = [
             's2' => 'S2',
             's3' => 'S3',
@@ -117,6 +118,9 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
                 $totalBetAmount += $bet->amount;
                 
                 $teller = $bet->teller?->name ?? 'Unknown';
+                $tellerId = $bet->teller?->id ?? 0;
+                $locationName = $bet->location?->name ?? 'Unknown';
+                $locationId = $bet->location?->id ?? 0;
                 $gameType = $bet->gameType?->code ?? 'Unknown';
                 $subSelection = $bet->d4_sub_selection ?? '';
                 
@@ -125,9 +129,30 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
                     $gameType = "D4-{$subSelection}";
                 }
                 
+                // Initialize location stats if not exists
+                if (!isset($locationStats[$locationId])) {
+                    $locationStats[$locationId] = [
+                        'name' => $locationName,
+                        'total_hits' => 0,
+                        'game_types' => array_fill_keys(array_keys($gameTypes), 0),
+                        'tellers' => [],
+                    ];
+                }
+                
                 // Initialize teller stats if not exists
+                if (!isset($locationStats[$locationId]['tellers'][$tellerId])) {
+                    $locationStats[$locationId]['tellers'][$tellerId] = [
+                        'name' => $teller,
+                        'total' => 0,
+                        'total_hits' => 0,
+                        'game_types' => array_fill_keys(array_keys($gameTypes), 0),
+                    ];
+                }
+                
+                // Also maintain the flat teller stats for backward compatibility
                 if (!isset($tellerGameTypeStats[$teller])) {
                     $tellerGameTypeStats[$teller] = [
+                        'location' => $locationName,
                         'total' => 0,
                         'total_hits' => 0,
                         'game_types' => array_fill_keys(array_keys($gameTypes), 0),
@@ -135,6 +160,7 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
                 }
                 
                 // Count total bets by teller
+                $locationStats[$locationId]['tellers'][$tellerId]['total']++;
                 $tellerGameTypeStats[$teller]['total']++;
                 
                 // Check if this bet is a hit (only if draw has results)
@@ -176,11 +202,23 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
                         $totalHits++;
                         $totalWinAmount += $bet->winning_amount;
                         
-                        // Count hits by teller and game type
-                        $tellerGameTypeStats[$teller]['total_hits']++;
-                        
                         // Convert gameType to lowercase for consistent array keys
                         $gameTypeKey = strtolower($gameType);
+                        
+                        // Count hits by location
+                        $locationStats[$locationId]['total_hits']++;
+                        if (isset($locationStats[$locationId]['game_types'][$gameTypeKey])) {
+                            $locationStats[$locationId]['game_types'][$gameTypeKey]++;
+                        }
+                        
+                        // Count hits by teller within location
+                        $locationStats[$locationId]['tellers'][$tellerId]['total_hits']++;
+                        if (isset($locationStats[$locationId]['tellers'][$tellerId]['game_types'][$gameTypeKey])) {
+                            $locationStats[$locationId]['tellers'][$tellerId]['game_types'][$gameTypeKey]++;
+                        }
+                        
+                        // Count hits in flat teller array (for backward compatibility)
+                        $tellerGameTypeStats[$teller]['total_hits']++;
                         if (isset($tellerGameTypeStats[$teller]['game_types'][$gameTypeKey])) {
                             $tellerGameTypeStats[$teller]['game_types'][$gameTypeKey]++;
                         }
@@ -195,6 +233,7 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
             'total_bet_amount' => $totalBetAmount,
             'total_win_amount' => $totalWinAmount,
             'teller_game_stats' => $tellerGameTypeStats,
+            'location_stats' => $locationStats,
             'game_types' => $gameTypes,
         ];
     }
