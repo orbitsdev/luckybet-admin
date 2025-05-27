@@ -84,7 +84,7 @@
                     </div>
                     @if(!empty($drawStats['location_stats']))
                     <!-- Grand Total Summary at the top -->
-                    <div class="mb-4 p-3 bg-white rounded-lg shadow-sm border border-gray-100">
+                    <div class="mt-4 p-3 bg-white rounded-lg shadow-sm border border-gray-100">
                         <h3 class="text-sm font-bold text-gray-800 mb-2 border-b pb-2 px-1">Grand Total Summary</h3>
                         <div class="overflow-x-auto">
                             <table class="min-w-full divide-y divide-gray-200 text-sm">
