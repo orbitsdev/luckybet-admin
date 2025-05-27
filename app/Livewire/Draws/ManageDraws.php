@@ -388,7 +388,7 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
     {
         return $table
             ->query(Draw::query()->with('result'))
-            ->striped()
+            
             ->headerActions([
                 CreateAction::make('addDraw')
                     ->label('Add Draw')
