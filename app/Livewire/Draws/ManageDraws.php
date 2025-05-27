@@ -45,6 +45,7 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
     use InteractsWithActions;
 
     public $filterDate;
+    public array $drawStats = [];
 
 
     public function mount()
@@ -56,13 +57,24 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
     {
         // Get the current filter value
         $date = $this->filterDate;
-        $query = \App\Models\Draw::query();
         
-        if ($date) {
-            $query->where('draw_date', $date);
+        // Default to today if no date is set
+        if (!$date) {
+            $date = now()->format('Y-m-d');
+            $this->filterDate = $date;
         }
         
-        $draws = $query->with(['bets.teller', 'bets.gameType', 'result'])->get();
+        $query = \App\Models\Draw::query();
+        $query->where('draw_date', $date);
+        
+        // Make sure we load all necessary relationships
+        $draws = $query->with([
+            'bets',
+            'bets.teller', 
+            'bets.gameType', 
+            'bets.location',
+            'result'
+        ])->get();
 
         $totalBets = 0;
         $totalHits = 0;
@@ -106,7 +118,10 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
                 $tellerGameTypeStats[$teller]['total']++;
                 
                 // Check if bet is a hit
-                if (method_exists($bet, 'isHit') ? $bet->isHit() : $bet->is_winner) {
+                // First check if the draw has a result
+                if ($draw->result && method_exists($bet, 'isHit')) {
+                    $isHit = $bet->isHit();
+                    if ($isHit) {
                     $totalHits++;
                     $totalWinAmount += $bet->winning_amount;
                     
@@ -118,6 +133,7 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
                     if (isset($tellerGameTypeStats[$teller]['game_types'][$gameTypeKey])) {
                         $tellerGameTypeStats[$teller]['game_types'][$gameTypeKey]++;
                     }
+                  }
                 }
             }
         }
