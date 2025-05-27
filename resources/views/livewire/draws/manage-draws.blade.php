@@ -21,9 +21,9 @@
                                 <!-- Collapsible Header -->
                                 <div class="bg-gray-50 px-3 py-2 border-b border-gray-100 flex justify-between items-center cursor-pointer" 
                                      onclick="toggleBranchStats('branch-{{ $locationId }}')">
-                                    <h3 class="text-xs font-semibold text-gray-800">
+                                    <h3 class="text-sm font-semibold text-gray-800">
                                         {{ $locationData['name'] }} 
-                                        <span class="text-xs text-primary-600 ml-1 font-bold">
+                                        <span class="text-sm text-primary-600 ml-1 font-bold">
                                             ({{ $locationData['total_hits'] }} hits)
                                         </span>
                                     </h3>
@@ -85,7 +85,7 @@
                     @if(!empty($drawStats['location_stats']))
                     <!-- Grand Total Summary at the top -->
                     <div class="mt-4 p-3 bg-white rounded-lg shadow-sm border border-gray-100">
-                        <h3 class="text-xs font-bold text-gray-800 mb-2 border-b pb-2 px-1">Grand Total Summary</h3>
+                        <h3 class="text-sm font-bold text-gray-800 mb-2 border-b pb-2 px-1">Grand Total Summary</h3>
                         <div class="overflow-x-auto">
                             <table class="min-w-full divide-y divide-gray-200 text-xs">
                                 <thead class="bg-gray-50">

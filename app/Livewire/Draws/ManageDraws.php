@@ -540,9 +540,10 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
                 Tables\Actions\ActionGroup::make([
                     Action::make('edit')
                         ->icon('heroicon-o-pencil-square')
-                        ->label('Edit')
+                        ->label('Manage Draw')
+                        ->tooltip('Manage Draw, Bet Ratios, Low Winning Numbers & Result')
                         ->modalWidth(MaxWidth::SevenExtraLarge)
-                        ->modalHeading('Edit Draw')
+                        ->modalHeading('Manage Draw')
                         ->modalSubmitActionLabel('Save Changes')
                         ->form(fn(Draw $record) => [
                             Section::make('Draw Details')
@@ -638,29 +639,23 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
                                         Tabs\Tab::make('Winning Numbers')
                                             ->hidden(fn ($get) => $get('is_open') === true)
                                             ->schema([
-                                                Section::make('Add Winning Numbers')
-                                                    ->description('Enter the winning numbers for this draw')
-                                                    ->schema([
-                                                        Group::make()
-                                                            ->schema([
-                                                                TextInput::make('s2_winning_number')
-                                                                    ->label('2-Digit (S2)')
-                                                                    ->mask('99')
-                                                                    ->nullable()
-                                                                    ->default(optional($record->result)->s2_winning_number),
-                                                                TextInput::make('s3_winning_number')
-                                                                    ->label('3-Digit (S3)')
-                                                                    ->mask('999')
-                                                                    ->nullable()
-                                                                    ->default(optional($record->result)->s3_winning_number),
-                                                                TextInput::make('d4_winning_number')
-                                                                    ->label('4-Digit (D4)')
-                                                                    ->mask('9999')
-                                                                    ->nullable()
-                                                                    ->default(optional($record->result)->d4_winning_number),
-                                                            ])
-                                                            ->columns(3)
-                                                    ])
+                                                Grid::make(3)->schema([
+                                                    TextInput::make('s2_winning_number')
+                                                        ->label('2-Digit (S2)')
+                                                        ->mask('99')
+                                                        ->nullable()
+                                                        ->default(optional($record->result)->s2_winning_number),
+                                                    TextInput::make('s3_winning_number')
+                                                        ->label('3-Digit (S3)')
+                                                        ->mask('999')
+                                                        ->nullable()
+                                                        ->default(optional($record->result)->s3_winning_number),
+                                                    TextInput::make('d4_winning_number')
+                                                        ->label('4-Digit (D4)')
+                                                        ->mask('9999')
+                                                        ->nullable()
+                                                        ->default(optional($record->result)->d4_winning_number),
+                                                ])
                                             ])
                                     ])
                                 ])

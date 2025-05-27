@@ -1,12 +1,13 @@
 <?php
 
+use App\Livewire\Bets\ListBets;
 use App\Livewire\AdminDashboard;
+use App\Livewire\Draws\EditDraw;
 use App\Livewire\Users\EditUser;
 use App\Livewire\Users\ListUsers;
+use App\Livewire\Draws\CreateDraw;
 use App\Livewire\Users\CreateUser;
 use App\Livewire\Draws\ManageDraws;
-use App\Livewire\Draws\CreateDraw;
-use App\Livewire\Draws\EditDraw;
 use Illuminate\Support\Facades\Route;
 use App\Livewire\Locations\ListLocations;
 
@@ -34,6 +35,10 @@ Route::middleware([
         Route::get('draws', ManageDraws::class)->name('draws');
         Route::get('draws/create', CreateDraw::class)->name('draws.create');
         Route::get('draws/{draw}/edit', EditDraw::class)->name('draws.edit');
+
+
+        //
+        Route::get('bets', ListBets::class)->name('bets');
 
 
 

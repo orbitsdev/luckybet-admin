@@ -95,7 +95,8 @@ class Bet extends Model
     public function getIsWinnerAttribute($ignoreClaimStatus = false)
     {
         // Only claimed bets can be winners, unless we explicitly ignore claim status
-        if (!$ignoreClaimStatus && !$this->is_claimed) {
+        // Safely check if the is_claimed attribute exists and is true
+        if (!$ignoreClaimStatus && !(isset($this->attributes['is_claimed']) && $this->attributes['is_claimed'])) {
             return false;
         }
 
@@ -164,18 +165,30 @@ class Bet extends Model
         if (!is_null($this->attributes['winning_amount'] ?? null)) {
             return $this->attributes['winning_amount'];
         }
+        
+        // Safely get required attributes, return null if any are missing
+        $drawId = $this->attributes['draw_id'] ?? null;
+        $gameTypeId = $this->attributes['game_type_id'] ?? null;
+        $locationId = $this->attributes['location_id'] ?? null;
+        $betNumber = $this->attributes['bet_number'] ?? null;
+        
+        // If any required attributes are missing, return null
+        if ($drawId === null || $gameTypeId === null || $locationId === null || $betNumber === null) {
+            return null;
+        }
+        
         // Otherwise, match controller logic: draw, game type, location, bet number
-        $lowWin = \App\Models\LowWinNumber::where('draw_id', $this->draw_id)
-            ->where('game_type_id', $this->game_type_id)
-            ->where('location_id', $this->location_id)
-            ->where('bet_number', $this->bet_number)
+        $lowWin = \App\Models\LowWinNumber::where('draw_id', $drawId)
+            ->where('game_type_id', $gameTypeId)
+            ->where('location_id', $locationId)
+            ->where('bet_number', $betNumber)
             ->first();
 
         // Fallback: try global low win (bet_number is null or empty)
         if (!$lowWin) {
-            $lowWin = \App\Models\LowWinNumber::where('draw_id', $this->draw_id)
-                ->where('game_type_id', $this->game_type_id)
-                ->where('location_id', $this->location_id)
+            $lowWin = \App\Models\LowWinNumber::where('draw_id', $drawId)
+                ->where('game_type_id', $gameTypeId)
+                ->where('location_id', $locationId)
                 ->where(function ($query) {
                     $query->whereNull('bet_number')->orWhere('bet_number', '');
                 })
@@ -186,10 +199,16 @@ class Bet extends Model
             return $lowWin->winning_amount;
         }
 
+        // Get amount safely
+        $amount = $this->attributes['amount'] ?? null;
+        if ($amount === null) {
+            return null;
+        }
+
         // Default payout
-        return \App\Models\WinningAmount::where('game_type_id', $this->game_type_id)
-            ->where('location_id', $this->location_id)
-            ->where('amount', $this->amount)
+        return \App\Models\WinningAmount::where('game_type_id', $gameTypeId)
+            ->where('location_id', $locationId)
+            ->where('amount', $amount)
             ->value('winning_amount');
     }
 
@@ -198,10 +217,19 @@ class Bet extends Model
      */
     public function getIsLowWinAttribute()
     {
-        $lowWin = \App\Models\LowWinNumber::where('game_type_id', $this->game_type_id)
-                        ->where(function($q) {
+        // Safely get required attributes, return false if any are missing
+        $gameTypeId = $this->attributes['game_type_id'] ?? null;
+        $betNumber = $this->attributes['bet_number'] ?? null;
+        
+        // If any required attributes are missing, return false
+        if ($gameTypeId === null || $betNumber === null) {
+            return false;
+        }
+        
+        $lowWin = \App\Models\LowWinNumber::where('game_type_id', $gameTypeId)
+                        ->where(function($q) use ($betNumber) {
                 $q->whereNull('bet_number')
-                  ->orWhere('bet_number', $this->bet_number);
+                  ->orWhere('bet_number', $betNumber);
             })
             ->first();
         return $lowWin !== null;
