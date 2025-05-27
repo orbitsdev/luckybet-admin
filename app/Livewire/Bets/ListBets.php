@@ -288,7 +288,7 @@ class ListBets extends Component implements HasForms, HasTable
                     ->relationship('gameType', 'name'),
                 SelectFilter::make('teller_id')
                     ->label('Teller')
-                    ->relationship('teller', 'name'),
+                    ->relationship('teller', 'name', fn (Builder $query) => $query->where('role', 'teller'))->searchable()->preload(),
                 SelectFilter::make('location_id')
                     ->label('Location')
                     ->relationship('location', 'name'),
@@ -304,7 +304,21 @@ class ListBets extends Component implements HasForms, HasTable
                         '1' => 'Rejected',
                         '0' => 'Not Rejected',
                     ]),
-            ], layout: FiltersLayout::AboveContent)
+                Tables\Filters\SelectFilter::make('d4_sub_selection')
+                    ->label('D4 Sub-Selection')
+                    ->options([
+                        'S2' => 'D4-S2',
+                        'S3' => 'D4-S3',
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query->when($data['value'], function($q, $value) {
+                            return $q->where('d4_sub_selection', $value);
+                        });
+                    }),
+            ],
+             layout: FiltersLayout::AboveContent
+             
+             )
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
@@ -327,7 +341,10 @@ class ListBets extends Component implements HasForms, HasTable
                     ->label('Location')
                     ->titlePrefixedWithLabel(false)
                     ->getTitleFromRecordUsing(fn (Bet $record): string => $record->location?->name ?? 'Unknown'),
-            ]);
+            ])
+            //default group location
+            ->defaultGroup('location.name')
+            ;
     }
 
     public function render(): View

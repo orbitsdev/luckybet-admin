@@ -28,9 +28,9 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                sans: ['Poppins', ...defaultTheme.fontFamily.sans],
-                heading: ['Poppins', ...defaultTheme.fontFamily.sans],
-                body: ['Poppins', ...defaultTheme.fontFamily.sans],
+                sans: ['Rubik', ...defaultTheme.fontFamily.sans],
+                heading: ['Rubik', ...defaultTheme.fontFamily.sans],
+                body: ['Rubik', ...defaultTheme.fontFamily.sans],
             },
             colors: { primary: {
             '50': '#fff0f0',

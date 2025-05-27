@@ -11,7 +11,7 @@
         <!-- Main content in 3-column grid -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <!-- Left column: Statistics -->
-            <div class="col-span-1 mb-4 bg-gray-50 rounded-xl shadow-sm p-4">
+            <div class="col-span-1 mb-4 bg-gray-50 rounded-xl shadow-sm ">
                 <!-- Summary Statistics Cards -->
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
                     <!-- Total Bets -->
