@@ -5,13 +5,22 @@ namespace App\Livewire\Reports;
 use App\Models\Bet;
 use App\Models\Draw;
 use App\Models\User;
-use App\Models\GameType;
 use Livewire\Component;
+use App\Models\GameType;
+use Filament\Actions\Action;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Filament\Forms\Contracts\HasForms;
+use Filament\Actions\Concerns\InteractsWithActions;
+use Filament\Actions\Contracts\HasActions;
+use Filament\Forms\Concerns\InteractsWithForms;
 
-class ReportByCoordinator extends Component
+class ReportByCoordinator extends Component implements HasForms , HasActions
 {
+
+    use InteractsWithForms;
+    use InteractsWithActions;
+    
     public $selectedDate;
     public $selectedCoordinator;
     public $coordinators = [];
@@ -254,6 +263,56 @@ class ReportByCoordinator extends Component
             ]
         ];
     }
+
+    // Coordinator Sheet Action
+    public function coordinatorSheetAction(): Action
+    {
+        return Action::make('coordinatorSheet')
+            ->label('Coordinator Sheet')
+            ->color('success')
+            ->icon('heroicon-o-document-text')
+            ->url(function (array $arguments) {
+                $coordinatorId = $arguments['coordinator_id'] ?? null;
+                if (!$coordinatorId) return '#';
+                
+                // Generate URL for coordinator sheet
+                return route('report-by-coordinator', ['coordinator_id' => $coordinatorId]);
+            });
+    }
+
+    // Teller Sheet Action
+    public function tellerSheetAction(): Action
+    {
+        return Action::make('tellerSheet')
+            ->label('Teller Sheet')
+            ->color('primary')
+            ->icon('heroicon-o-user')
+            ->action(function (array $arguments) {
+                $tellerId = $arguments['teller_id'] ?? null;
+                if (!$tellerId) return;
+                
+                $this->viewTellerDetails($tellerId);
+            });
+    }
+
+    // Tally Sheet Action
+    public function tallySheetAction(): Action
+    {
+        return Action::make('tallySheet')
+            ->label('Tally Sheet')
+            ->color('info')
+            ->icon('heroicon-o-calculator')
+            ->url(function (array $arguments) {
+                $tellerId = $arguments['teller_id'] ?? null;
+                $date = $arguments['date'] ?? null;
+                
+                if (!$tellerId || !$date) return '#';
+                
+                // Generate URL for tally sheet
+                return route('reports.tally-sheet', ['teller_id' => $tellerId, 'date' => $date]);
+            });
+    }
+
     
     public function render()
     {
