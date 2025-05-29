@@ -100,9 +100,12 @@ class TellerBetsReport extends Component implements HasForms, HasActions
             });
         }
         
-        // Apply search term
+        // Apply search term for both ticket ID and bet number
         if (!empty($this->searchTerm)) {
-            $betsQuery->where('bet_number', 'like', '%' . $this->searchTerm . '%');
+            $betsQuery->where(function($query) {
+                $query->where('ticket_id', 'like', '%' . $this->searchTerm . '%')
+                      ->orWhere('bet_number', 'like', '%' . $this->searchTerm . '%');
+            });
         }
         
         // Get the bets without pagination first for grouping

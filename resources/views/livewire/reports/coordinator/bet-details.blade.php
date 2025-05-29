@@ -132,13 +132,6 @@
                             <span class="text-gray-600">Claimed At:</span>
                             <span class="font-medium">{{ $bet->claimed_at->format('F j, Y g:i A') }}</span>
                         </div>
-                        @if($bet->claimed_at)
-                            <div class="flex justify-between">
-                                <span class="text-gray-500">Claimed At:</span>
-                                <span class="font-medium">{{ $bet->claimed_at->format('F j, Y g:i A') }}</span>
-                            </div>
-                        @endif
-                  
                     @endif
                 </div>
             </div>
