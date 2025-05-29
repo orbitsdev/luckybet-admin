@@ -260,6 +260,8 @@ class CoordinatorTellerSalesSummary extends Component implements HasForms, HasAc
             ->closeModalByClickingAway(true);
     }
     
+
+    
     private function getTellerName($tellerId)
     {
         foreach ($this->salesData as $teller) {

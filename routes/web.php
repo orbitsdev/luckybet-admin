@@ -16,6 +16,7 @@ use App\Livewire\Locations\ListLocations;
 use App\Livewire\Commissions\ListCommission;
 use App\Livewire\Reports\ReportByCoordinator;
 use App\Livewire\LowWinNumbers\ListLowWinNumbers;
+use App\Livewire\Reports\Coordinator\TellerBetsReport;
 use App\Livewire\Reports\Coordinator\CoordinatorSalesSummary;
 use App\Livewire\Reports\Coordinator\CoordinatorTellerSalesSummary;
 
@@ -60,6 +61,7 @@ Route::middleware([
         //coordinator 
         Route::get('coordinator/summary', CoordinatorSalesSummary::class)->name('summary');
         Route::get('coordinator/teller-sales-summary/{coordinator_id}', CoordinatorTellerSalesSummary::class)->name('teller-sales-summary');
+        Route::get('coordinator/teller-bets-report/{teller_id}/{date?}', TellerBetsReport::class)->name('teller-bets-report');
    
     });
 
