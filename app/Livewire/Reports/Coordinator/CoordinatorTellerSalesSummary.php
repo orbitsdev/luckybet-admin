@@ -235,9 +235,10 @@ class CoordinatorTellerSalesSummary extends Component implements HasForms, HasAc
     public function viewTellerDetailsAction(): Action
     {
         return Action::make('viewTellerDetails')
-            ->label('View Details')
+            ->label('VIEW DETAILS')
             ->icon('heroicon-o-eye')
-            ->color('primary')
+            ->color('indigo')
+            ->size('sm')
             ->modalHeading(fn (array $arguments) => 'Sales Details for ' . $this->getTellerName($arguments['teller_id']))
             ->modalWidth('7xl')
             ->modalContent(function (array $arguments) {

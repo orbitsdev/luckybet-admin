@@ -321,13 +321,10 @@ class CoordinatorSalesSummary extends Component implements HasForms, HasActions
     public function viewCoordinatorSummaryAction(): Action
     {
         return Action::make('viewCoordinatorSummary')
-            ->label('Quick View')
+            ->label('QUICK VIEW')
             ->icon('heroicon-o-eye')
             ->size('sm')
             ->color('cool-gray')
-            ->extraAttributes([
-                'class' => 'text-cool-gray-600 inline-flex items-center px-2 py-1 bg-gray-600 border border-gray-700 rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-800 focus:outline-none focus:border-gray-800 focus:ring focus:ring-gray-500 disabled:opacity-25 transition'
-            ])
             ->modalHeading(fn (array $arguments) => 'Sales Summary for ' . $this->getCoordinatorName($arguments['coordinator_id']))
             ->modalWidth('6xl')
             ->modalContent(function (array $arguments) {

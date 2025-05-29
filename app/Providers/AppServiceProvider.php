@@ -49,6 +49,8 @@ class AppServiceProvider extends ServiceProvider
 
     public function configureFilament(){
         FilamentColor::register([  
+            //indigo
+            'indigo' => Color::Indigo,
             'danger' => Color::Red,
             'gray' => Color::Zinc,
             'info' => Color::Blue,

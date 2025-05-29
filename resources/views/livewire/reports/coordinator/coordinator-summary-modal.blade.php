@@ -21,7 +21,7 @@
             </div>
             <div class="bg-white p-3 rounded-md shadow-sm border border-gray-100">
                 <h3 class="text-sm font-medium text-gray-500">Total Hits</h3>
-                <p class="text-2xl font-bold text-red-600">{{ $coordinator['total_hits'] }}</p>
+                <p class="text-2xl font-bold text-red-600">{{ number_format($coordinator['total_hits'], 2) }}</p>
             </div>
             <div class="bg-white p-3 rounded-md shadow-sm border border-gray-100">
                 <h3 class="text-sm font-medium text-gray-500">Total Gross</h3>
@@ -47,7 +47,7 @@
                     <tr>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $teller['name'] }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-600 font-bold">{{ number_format($teller['sales'], 2) }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-bold">{{ $teller['hits'] }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-bold">{{ number_format($teller['hits'], 2) }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm {{ $teller['gross'] >= 0 ? 'text-green-600' : 'text-red-600' }} font-bold">{{ number_format($teller['gross'], 2) }}</td>
                     </tr>
                     @endforeach
@@ -91,12 +91,12 @@
         <div class="text-sm text-gray-500">
             <span class="font-medium">Commission Rate:</span> {{ number_format($coordinator['total_sales'] > 0 ? ($coordinator['total_gross'] / $coordinator['total_sales']) * 100 : 0, 1) }}%
         </div>
-        <a href="{{ route('reports.teller-sales-summary', ['coordinator_id' => $coordinator['id']]) }}" target="_blank" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-800 focus:outline-none focus:border-indigo-900 focus:ring focus:ring-indigo-300 disabled:opacity-25 transition">
+        <a href="{{ route('reports.teller-sales-summary', ['coordinator_id' => $coordinator['id']]) }}" target="_blank" class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 active:bg-red-800 focus:outline-none focus:border-red-900 focus:ring focus:ring-red-300 disabled:opacity-25 transition">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
             </svg>
-            View Detailed Report
+            VIEW DETAILED REPORT
         </a>
     </div>
 </div>

@@ -47,7 +47,7 @@
                     </div>
                     <div class="bg-white p-3 rounded-md shadow-sm">
                         <h3 class="text-sm font-medium text-gray-500">Total Gross</h3>
-                        <p class="text-2xl font-bold text-green-600">{{ number_format($totalGross, 2) }}</p>
+                        <p class="text-2xl font-bold {{ $totalGross >= 0 ? 'text-green-600' : 'text-red-600' }}">{{ number_format($totalGross, 2) }}</p>
                     </div>
                 </div>
             </div>
@@ -76,9 +76,9 @@
                         @foreach($salesData as $item)
                             <tr>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $item['name'] }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-500 font-bold">{{ number_format($item['total_sales'], 2) }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-red-500 font-bold">{{ number_format($item['total_hits'], 2) }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-green-500 font-bold">{{ number_format($item['total_gross'], 2) }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-600 font-bold">{{ number_format($item['total_sales'], 2) }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-bold">{{ number_format($item['total_hits'], 2) }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm {{ $item['total_gross'] >= 0 ? 'text-green-600' : 'text-red-600' }} font-bold">{{ number_format($item['total_gross'], 2) }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                     <div class="flex items-center space-x-3">
                                         <a target="_blank" href="{{ route('reports.teller-sales-summary', ['coordinator_id' => $item['id']]) }}" class="inline-flex items-center px-2 py-1 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-800 focus:outline-none focus:border-indigo-900 focus:ring focus:ring-indigo-300 disabled:opacity-25 transition">
