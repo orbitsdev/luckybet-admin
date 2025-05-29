@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Livewire\LowWinNumbers;
+namespace App\Livewire\BetRatios;
 
+use App\Models\BetRatio;
+use App\Models\BetRatioAudit;
 use App\Models\Draw;
 use App\Models\GameType;
 use App\Models\Location;
-use App\Models\LowWinNumber;
 use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
-use Filament\Forms\Form;
 use Filament\Tables;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
@@ -26,7 +26,7 @@ use Illuminate\Database\Eloquent\Model;
 use Livewire\Component;
 use Livewire\Attributes\On;
 
-class ListLowWinNumbers extends Component implements HasForms, HasTable
+class ListBetRatios extends Component implements HasForms, HasTable
 {
     use InteractsWithForms;
     use InteractsWithTable;
@@ -39,11 +39,11 @@ class ListLowWinNumbers extends Component implements HasForms, HasTable
     public $filterDate;
     
     /**
-     * Statistics for low win numbers
+     * Statistics for bet ratios
      *
      * @var array
      */
-    public array $lowWinStats = [];
+    public array $ratioStats = [];
 
     /**
      * Register Livewire event listeners using Livewire 3 syntax
@@ -76,7 +76,7 @@ class ListLowWinNumbers extends Component implements HasForms, HasTable
         
         // Update filter date and recompute stats
         $this->filterDate = $drawDate;
-        $this->computeLowWinStats();
+        $this->computeRatioStats();
         
         // Force a refresh to ensure UI is updated
         $this->dispatch('refresh');
@@ -100,7 +100,7 @@ class ListLowWinNumbers extends Component implements HasForms, HasTable
         }
         
         // Recompute stats with today's date
-        $this->computeLowWinStats();
+        $this->computeRatioStats();
         
         // Force a refresh of the component
         $this->dispatch('refresh');
@@ -118,47 +118,76 @@ class ListLowWinNumbers extends Component implements HasForms, HasTable
             $this->filterDate = now()->toDateString();
         }
         
-        $this->computeLowWinStats();
+        $this->computeRatioStats();
     }
 
     /**
-     * Compute low win number statistics
+     * Compute bet ratio statistics
      *
      * @return void
      */
-    public function computeLowWinStats()
+    public function computeRatioStats()
     {
         // Use the current filter date or default to today
         $date = $this->filterDate ?: now()->format('Y-m-d');
         $this->filterDate = $date; // Ensure the property is set
         
-        $query = LowWinNumber::query()
+        // Query to get bet ratio statistics
+        $query = BetRatio::query()
             ->whereHas('draw', function ($query) use ($date) {
                 $query->whereDate('draw_date', $date);
             })
             ->with(['gameType', 'location', 'user']);
         
-        $this->lowWinStats = [
-            'total_low_win_numbers' => $query->count(),
-            'total_amount' => $query->sum('winning_amount'),
-            'by_game_type' => LowWinNumber::query()
-                ->whereHas('draw', function ($q) use ($date) {
-                    $q->whereDate('draw_date', $date);
-                })
-                ->join('game_types', 'low_win_numbers.game_type_id', '=', 'game_types.id')
-                ->selectRaw('game_types.name, COUNT(*) as count')
-                ->groupBy('game_types.name')
-                ->pluck('count', 'name')
-                ->toArray(),
-            'by_location' => LowWinNumber::query()
-                ->whereHas('draw', function ($q) use ($date) {
-                    $q->whereDate('draw_date', $date);
-                })
-                ->join('locations', 'low_win_numbers.location_id', '=', 'locations.id')
-                ->selectRaw('locations.name, COUNT(*) as count')
-                ->groupBy('locations.name')
-                ->pluck('count', 'name')
-                ->toArray(),
+        // Get total count and sum of max amounts
+        $totalRatios = $query->count();
+        $totalMaxAmount = $query->sum('max_amount');
+        
+        // Get average max amount
+        $avgMaxAmount = $totalRatios > 0 ? $totalMaxAmount / $totalRatios : 0;
+        
+        // Get counts by game type
+        $gameTypeCounts = BetRatio::whereHas('draw', function ($q) use ($date) {
+                $q->whereDate('draw_date', $date);
+            })
+            ->join('game_types', 'bet_ratios.game_type_id', '=', 'game_types.id')
+            ->select('game_types.name')
+            ->selectRaw('COUNT(*) as count')
+            ->selectRaw('SUM(bet_ratios.max_amount) as total_amount')
+            ->groupBy('game_types.name')
+            ->get()
+            ->keyBy('name')
+            ->toArray();
+        
+        // Get counts by location
+        $locationCounts = BetRatio::whereHas('draw', function ($q) use ($date) {
+                $q->whereDate('draw_date', $date);
+            })
+            ->join('locations', 'bet_ratios.location_id', '=', 'locations.id')
+            ->select('locations.name')
+            ->selectRaw('COUNT(*) as count')
+            ->selectRaw('SUM(bet_ratios.max_amount) as total_amount')
+            ->groupBy('locations.name')
+            ->get()
+            ->keyBy('name')
+            ->toArray();
+        
+        // Get recent audit history
+        $recentAudits = BetRatioAudit::whereHas('betRatio.draw', function ($q) use ($date) {
+                $q->whereDate('draw_date', $date);
+            })
+            ->with(['betRatio.gameType', 'betRatio.location'])
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get();
+        
+        $this->ratioStats = [
+            'total_ratios' => $totalRatios,
+            'total_max_amount' => $totalMaxAmount,
+            'avg_max_amount' => $avgMaxAmount,
+            'game_type_counts' => $gameTypeCounts,
+            'location_counts' => $locationCounts,
+            'recent_audits' => $recentAudits,
         ];
     }
 
@@ -171,29 +200,12 @@ class ListLowWinNumbers extends Component implements HasForms, HasTable
     public function refresh(): void
     {
         // This method will be automatically called when the 'refresh' event is dispatched
-        // No need to do anything here as Livewire will automatically re-render the component
-    }
-    
-    /**
-     * Update statistics when filter date changes
-     *
-     * @return void
-     */
-    public function updatedFilterDate()
-    {
-        $this->computeLowWinStats();
     }
 
-    /**
-     * Define the table configuration
-     *
-     * @param Table $table
-     * @return Table
-     */
     public function table(Table $table): Table
     {
         return $table
-            ->query(LowWinNumber::query()
+            ->query(BetRatio::query()
                 ->when($this->filterDate, function ($query, $date) {
                     $query->whereHas('draw', function ($q) use ($date) {
                         $q->whereDate('draw_date', $date);
@@ -202,13 +214,16 @@ class ListLowWinNumbers extends Component implements HasForms, HasTable
                 ->with(['gameType', 'draw', 'user', 'location'])
             )
             ->groups([
+                Group::make('gameType.name')
+                    ->label('Game Type')
+                    ->titlePrefixedWithLabel(false)
+                    ->collapsible(),
                 Group::make('location.name')
                     ->label('Location')
                     ->titlePrefixedWithLabel(false)
-                    ->collapsible()
+                    ->collapsible(),
             ])
-            ->defaultGroup('location.name')
-           
+            ->defaultGroup('gameType.name')
             ->columns([
                 Tables\Columns\TextColumn::make('draw.draw_date')
                     ->label('Draw Date')
@@ -216,23 +231,24 @@ class ListLowWinNumbers extends Component implements HasForms, HasTable
                     ->sortable(),
                 Tables\Columns\TextColumn::make('draw.draw_time')
                     ->label('Draw Time')
+                    ->time('h:i A')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('gameType.name')
                     ->label('Game Type')
-                    ->formatStateUsing(function ($state, LowWinNumber $record) {
-                        // Support for D4 sub-selection display
-                        if ($record->gameType && $record->gameType->code === 'D4' && $record->d4_sub_selection) {
-                            return "D4-{$record->d4_sub_selection}";
-                        }
-                        return $state;
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'S2' => 'success',
+                        'S3' => 'warning',
+                        'D4' => 'danger',
+                        default => 'gray',
                     })
                     ->sortable(),
                 Tables\Columns\TextColumn::make('bet_number')
-                    ->label('Number')
+                    ->label('Bet Number')
                     ->searchable()
                     ->copyable(),
-                Tables\Columns\TextColumn::make('winning_amount')
-                    ->label('Amount')
+                Tables\Columns\TextColumn::make('max_amount')
+                    ->label('Max Amount')
                     ->money('PHP')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('user.name')
@@ -241,16 +257,14 @@ class ListLowWinNumbers extends Component implements HasForms, HasTable
                 Tables\Columns\TextColumn::make('location.name')
                     ->label('Location')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('reason')
-                    ->label('Reason')
-                    ->limit(30)
-                    ->searchable()
-                    ->tooltip(function (LowWinNumber $record): string {
-                        return $record->reason ?? '';
-                    }),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Created')
-                    ->date()
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('updated_at')
+                    ->label('Updated')
+                    ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
@@ -266,7 +280,7 @@ class ListLowWinNumbers extends Component implements HasForms, HasTable
                             ->afterStateUpdated(function ($state, $set, $get, $livewire) {
                                 // Always update filterDate and recompute stats when date changes
                                 $livewire->filterDate = $state ?? now()->toDateString();
-                                $livewire->computeLowWinStats();
+                                $livewire->computeRatioStats();
                             })
                     ])
                     ->indicateUsing(function (array $data): ?string {
@@ -288,100 +302,69 @@ class ListLowWinNumbers extends Component implements HasForms, HasTable
                     ->relationship('gameType', 'name')
                     ->searchable()
                     ->preload(),
-                // Add D4 sub-selection filter
-                SelectFilter::make('d4_sub_selection')
-                    ->label('D4 Sub-Selection')
-                    ->options([
-                        'S2' => 'S2',
-                        'S3' => 'S3',
-                    ])
-                    ->query(function (Builder $query, array $data) {
-                        return $query->when($data['value'], function ($query, $value) {
-                            return $query->where('d4_sub_selection', $value);
-                        });
-                    }),
                 SelectFilter::make('location_id')
                     ->label('Location')
                     ->relationship('location', 'name')
                     ->searchable()
                     ->preload(),
-               
             ],
             layout: FiltersLayout::AboveContent
             )
             ->actions([
-                 Tables\Actions\ActionGroup::make([
-                  
-                    
-                        Tables\Actions\Action::make('edit')
-                    ->label('Edit')
-                    ->icon('heroicon-o-pencil')
-                    ->form(function (LowWinNumber $record) {
-                        return [
-                            Forms\Components\Grid::make(2)
-                                ->schema([
-                                    Forms\Components\Select::make('game_type_id')
-                                        ->label('Game Type')
-                                        ->relationship('gameType', 'name')
-                                        ->required()
-                                        ->default($record->game_type_id)
-                                        ->reactive()
-                                        ->afterStateUpdated(fn (callable $set) => $set('d4_sub_selection', null)),
-                                    Forms\Components\Select::make('d4_sub_selection')
-                                        ->label('D4 Sub-Selection')
-                                        ->options([
-                                            'S2' => 'S2',
-                                            'S3' => 'S3',
-                                        ])
-                                        ->default($record->d4_sub_selection)
-                                        ->visible(function (callable $get) use ($record) {
-                                            $gameTypeId = $get('game_type_id') ?: $record->game_type_id;
-                                            if (!$gameTypeId) return false;
-                                            
-                                            $gameType = GameType::find($gameTypeId);
-                                            return $gameType && $gameType->code === 'D4';
-                                        }),
-                                ]),
-                            Forms\Components\Grid::make(2)
-                                ->schema([
-                                    Forms\Components\TextInput::make('bet_number')
-                                        ->label('Number')
-                                        ->required(),
-                                    Forms\Components\TextInput::make('winning_amount')
-                                        ->label('Amount')
-                                        ->prefix('₱')
-                                        ->numeric()
-                                        ->required(),
-                                ]),
-                            Forms\Components\Textarea::make('reason')
-                                ->label('Reason')
-                                ->required()
-                                ->columnSpan('full'),
-                        ];
-                    })
-                    ->action(function (LowWinNumber $record, array $data): void {
-                        $record->update($data);
-                        $this->computeLowWinStats();
-                        Notification::make()
-                            ->title('Low Win Number Updated')
-                            ->success()
-                            ->send();
-                    }),
-                Tables\Actions\DeleteAction::make()
-                    ->requiresConfirmation()
-                    ->after(function () {
-                        $this->computeLowWinStats();
-                        Notification::make()
-                            ->title('Low Win Number Deleted')
-                            ->success()
-                            ->send();
-                    }),
-                    
-                 ])
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\Action::make('edit')
+                        ->label('Edit')
+                        ->icon('heroicon-o-pencil')
+                        ->form(function (BetRatio $record) {
+                            return [
+                                Forms\Components\Grid::make(2)
+                                    ->schema([
+                                        Forms\Components\Select::make('game_type_id')
+                                            ->label('Game Type')
+                                            ->relationship('gameType', 'name')
+                                            ->required()
+                                            ->default($record->game_type_id),
+                                        Forms\Components\Select::make('location_id')
+                                            ->label('Location')
+                                            ->relationship('location', 'name')
+                                            ->required()
+                                            ->default($record->location_id),
+                                    ]),
+                                Forms\Components\Grid::make(2)
+                                    ->schema([
+                                        Forms\Components\TextInput::make('bet_number')
+                                            ->label('Bet Number')
+                                            ->required(),
+                                        Forms\Components\TextInput::make('max_amount')
+                                            ->label('Max Amount')
+                                            ->prefix('₱')
+                                            ->numeric()
+                                            ->required(),
+                                    ]),
+                            ];
+                        })
+                        ->action(function (BetRatio $record, array $data): void {
+                            $record->update($data);
+                            $this->computeRatioStats();
+                            Notification::make()
+                                ->title('Bet Ratio Updated')
+                                ->success()
+                                ->send();
+                        }),
+                    Tables\Actions\DeleteAction::make()
+                        ->requiresConfirmation()
+                        ->after(function () {
+                            $this->computeRatioStats();
+                            Notification::make()
+                                ->title('Bet Ratio Deleted')
+                                ->success()
+                                ->send();
+                        }),
+                ])
             ])
             ->headerActions([
-                Tables\Actions\Action::make('add_low_win')
-                    ->label('Add Low Win Number')
+                Tables\Actions\Action::make('add_bet_ratio')
+                    ->label('Add Bet Ratio')
                     ->icon('heroicon-o-plus')
                     ->color('primary')
                     ->form([
@@ -401,50 +384,31 @@ class ListLowWinNumbers extends Component implements HasForms, HasTable
                                 Forms\Components\Select::make('game_type_id')
                                     ->label('Game Type')
                                     ->relationship('gameType', 'name')
-                                    ->required()
-                                    ->reactive()
-                                    ->afterStateUpdated(fn (callable $set) => $set('d4_sub_selection', null)),
-                                Forms\Components\Select::make('d4_sub_selection')
-                                    ->label('D4 Sub-Selection')
-                                    ->options([
-                                        'S2' => 'S2',
-                                        'S3' => 'S3',
-                                    ])
-                                    ->visible(function (callable $get) {
-                                        $gameTypeId = $get('game_type_id');
-                                        if (!$gameTypeId) return false;
-                                        
-                                        $gameType = GameType::find($gameTypeId);
-                                        return $gameType && $gameType->code === 'D4';
-                                    }),
-                            ]),
-                        Forms\Components\Grid::make(2)
-                            ->schema([
+                                    ->required(),
                                 Forms\Components\Select::make('location_id')
                                     ->label('Location')
                                     ->relationship('location', 'name')
                                     ->required()
                                     ->searchable(),
+                            ]),
+                        Forms\Components\Grid::make(2)
+                            ->schema([
                                 Forms\Components\TextInput::make('bet_number')
-                                    ->label('Number')
+                                    ->label('Bet Number')
+                                    ->required(),
+                                Forms\Components\TextInput::make('max_amount')
+                                    ->label('Max Amount')
+                                    ->prefix('₱')
+                                    ->numeric()
                                     ->required(),
                             ]),
-                        Forms\Components\TextInput::make('winning_amount')
-                            ->label('Amount')
-                            ->prefix('₱')
-                            ->numeric()
-                            ->required(),
-                        Forms\Components\Textarea::make('reason')
-                            ->label('Reason')
-                            ->required()
-                            ->columnSpan('full'),
                     ])
                     ->action(function (array $data): void {
                         $data['user_id'] = auth()->id();
-                        LowWinNumber::create($data);
-                        $this->computeLowWinStats();
+                        BetRatio::create($data);
+                        $this->computeRatioStats();
                         Notification::make()
-                            ->title('Low Win Number Added')
+                            ->title('Bet Ratio Added')
                             ->success()
                             ->send();
                     }),
@@ -454,7 +418,7 @@ class ListLowWinNumbers extends Component implements HasForms, HasTable
                     Tables\Actions\DeleteBulkAction::make()
                         ->requiresConfirmation()
                         ->after(function () {
-                            $this->computeLowWinStats();
+                            $this->computeRatioStats();
                         }),
                 ]),
             ]);
@@ -462,6 +426,6 @@ class ListLowWinNumbers extends Component implements HasForms, HasTable
 
     public function render(): View
     {
-        return view('livewire.low-win-numbers.list-low-win-numbers');
+        return view('livewire.bet-ratios.list-bet-ratios');
     }
 }

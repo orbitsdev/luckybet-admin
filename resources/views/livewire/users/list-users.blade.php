@@ -3,7 +3,7 @@
         <div class="mb-4">
     <!-- Gradient divider line -->
     <!-- <div class="h-1 w-full rounded mb-6" style="background: linear-gradient(90deg, #f43f5e 0%, #22c55e 100%);"></div> -->
-    <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+    <div class="grid grid-cols-4 md:grid-cols-5 gap-4">
         <!-- Total Users -->
         <div class="rounded-xl shadow p-4 text-center bg-white text-gray-800 ">
             <div class="flex justify-center mb-2">

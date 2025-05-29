@@ -102,10 +102,10 @@ class ListCommission extends Component implements HasForms, HasTable
                     ->label('Commission Rate')
                     ->formatStateUsing(fn($state) => $state . '%')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('commission_amount')
-                    ->label('Total Earned')
-                    ->money('PHP')
-                    ->sortable(),
+                // Tables\Columns\TextColumn::make('commission_amount')
+                //     ->label('Total Earned')
+                //     ->money('PHP')
+                //     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Created')
                     ->date()

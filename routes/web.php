@@ -9,8 +9,12 @@ use App\Livewire\Draws\CreateDraw;
 use App\Livewire\Users\CreateUser;
 use App\Livewire\Draws\ManageDraws;
 use Illuminate\Support\Facades\Route;
+use App\Livewire\Reports\SalesSummary;
+use App\Livewire\Reports\ReportByTeller;
+use App\Livewire\BetRatios\ListBetRatios;
 use App\Livewire\Locations\ListLocations;
 use App\Livewire\Commissions\ListCommission;
+use App\Livewire\Reports\ReportByCoordinator;
 use App\Livewire\LowWinNumbers\ListLowWinNumbers;
 
 Route::get('/', function () {
@@ -40,14 +44,21 @@ Route::middleware([
 
         //
         Route::get('bets', ListBets::class)->name('bets');
+        Route::get('bet-ratios', ListBetRatios::class)->name('bet-ratios');
         Route::get('commissions', ListCommission::class)->name('commissions');
         Route::get('low-win-numbers', ListLowWinNumbers::class)->name('low-win-numbers');
+
     
 
 
 
     });
    
+    Route::prefix('/reports')->name('reports.')->group(function(){
+        Route::get('sales-summary', SalesSummary::class)->name('sales-summary');
+        Route::get('report-by-coordinator', ReportByCoordinator::class)->name('report-by-coordinator');
+        Route::get('report-by-teller', ReportByTeller::class)->name('report-by-teller');
+    });
 
 
 
