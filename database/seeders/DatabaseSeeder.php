@@ -12,6 +12,7 @@ use Database\Seeders\ScheduleSeeder;
 use Database\Seeders\GameTypeSeeder;
 use Database\Seeders\TallySheetSeeder;
 use Database\Seeders\BettingTestSeeder;
+use Database\Seeders\ReportTestSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -41,10 +42,13 @@ class DatabaseSeeder extends Seeder
             // 6. Create draws (past, current, and future)
             DrawSeeder::class,
             
-            // 7. Create bets for all draws
+            // 7. Create test data for reports (draws, bets, and results)
+            ReportTestSeeder::class,
+            
+            // 8. Create bets for all draws (commented out)
             // BetSeeder::class,
             
-            // // 8. Create results for closed draws and update bet statuses
+            // 9. Create results for closed draws and update bet statuses (commented out)
             // ResultSeeder::class,
             
           

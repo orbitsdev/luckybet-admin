@@ -44,7 +44,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/reports/sales', [TellerReportController::class, 'sales']);
     Route::get('/reports/detailed-tallysheet', [TellerReportController::class, 'detailedTallysheet']);
     Route::get('/teller/today-sales', [TellerReportController::class, 'todaySales']);
-    Route::get('/teller/detailed-tallysheet', [TellerReportController::class, 'detailedTallysheet']);
+    Route::get('/teller/detailed-tallysheet', [TellerReportController::class, 'd tailedTallysheet']);
     Route::get('/teller/commission-report', [TellerReportController::class, 'commissionReport']);
 });
 

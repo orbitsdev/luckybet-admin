@@ -16,6 +16,8 @@ use App\Livewire\Locations\ListLocations;
 use App\Livewire\Commissions\ListCommission;
 use App\Livewire\Reports\ReportByCoordinator;
 use App\Livewire\LowWinNumbers\ListLowWinNumbers;
+use App\Livewire\Reports\Coordinator\CoordinatorSalesSummary;
+use App\Livewire\Reports\Coordinator\CoordinatorTellerSalesSummary;
 
 Route::get('/', function () {
     return route('dashboard');
@@ -55,9 +57,10 @@ Route::middleware([
     });
    
     Route::prefix('/reports')->name('reports.')->group(function(){
-        Route::get('sales-summary', SalesSummary::class)->name('sales-summary');
-        Route::get('report-by-coordinator', ReportByCoordinator::class)->name('report-by-coordinator');
-        Route::get('report-by-teller', ReportByTeller::class)->name('report-by-teller');
+        //coordinator 
+        Route::get('coordinator/summary', CoordinatorSalesSummary::class)->name('summary');
+        Route::get('coordinator/teller-sales-summary/{coordinator_id}', CoordinatorTellerSalesSummary::class)->name('teller-sales-summary');
+   
     });
 
 
