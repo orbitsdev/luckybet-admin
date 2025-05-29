@@ -55,6 +55,7 @@ class AppServiceProvider extends ServiceProvider
             'primary' => '#FC0204',
             'success' => Color::Green,
             'warning' => Color::Amber,
+            'cool-gray' => Color::Zinc,
         ]);
 
         // Register custom CSS

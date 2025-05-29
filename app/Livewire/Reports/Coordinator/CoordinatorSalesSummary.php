@@ -9,14 +9,18 @@ use Carbon\Carbon;
 use Livewire\WithPagination;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
+use Filament\Actions\Concerns\InteractsWithActions;
+use Filament\Actions\Contracts\HasActions;
+use Filament\Actions\Action;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
-class CoordinatorSalesSummary extends Component implements HasForms
+class CoordinatorSalesSummary extends Component implements HasForms, HasActions
 {
     use InteractsWithForms;
     use WithPagination;
+    use InteractsWithActions;
     
     public $date;
     public $searchTerm = '';
@@ -114,10 +118,10 @@ class CoordinatorSalesSummary extends Component implements HasForms
                     }
                 }
                 
-                // Calculate totals
+                // Calculate totals using the same method as CoordinatorTellerSalesSummary
                 $totalSales = $betsQuery->sum('amount');
-                $totalHits = $betsQuery->whereNotNull('winning_amount')->where('winning_amount', '>', 0)->count();
-                $totalGross = $betsQuery->sum('winning_amount');
+                $totalHits = $betsQuery->whereNotNull('winning_amount')->where('winning_amount', '>', 0)->sum('winning_amount');
+                $totalGross = $totalSales - $totalHits;
                 
                 if ($totalSales > 0) { // Only add coordinators with sales
                     $this->salesData[] = [
@@ -312,6 +316,138 @@ class CoordinatorSalesSummary extends Component implements HasForms
         $this->searchTerm = '';
         $this->date = Carbon::today()->format('Y-m-d');
         $this->loadSalesData();
+    }
+    
+    public function viewCoordinatorSummaryAction(): Action
+    {
+        return Action::make('viewCoordinatorSummary')
+            ->label('Quick View')
+            ->icon('heroicon-o-eye')
+            ->size('sm')
+            ->color('cool-gray')
+            ->extraAttributes([
+                'class' => 'text-cool-gray-600 inline-flex items-center px-2 py-1 bg-gray-600 border border-gray-700 rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-800 focus:outline-none focus:border-gray-800 focus:ring focus:ring-gray-500 disabled:opacity-25 transition'
+            ])
+            ->modalHeading(fn (array $arguments) => 'Sales Summary for ' . $this->getCoordinatorName($arguments['coordinator_id']))
+            ->modalWidth('6xl')
+            ->modalContent(function (array $arguments) {
+                $coordinatorId = $arguments['coordinator_id'];
+                $coordinatorData = null;
+                
+                // Find the coordinator data in the salesData array
+                foreach ($this->salesData as $item) {
+                    if ($item['id'] == $coordinatorId) {
+                        $coordinatorData = $item;
+                        break;
+                    }
+                }
+                
+                // Get teller count for this coordinator
+                $tellerCount = User::where('coordinator_id', $coordinatorId)
+                    ->where('role', 'teller')
+                    ->count();
+                
+                // Get active teller count (tellers with sales on this date)
+                $formattedDate = is_string($this->date) ? $this->date : Carbon::parse($this->date)->format('Y-m-d');
+                $draws = Draw::whereDate('draw_date', $formattedDate)->pluck('id')->toArray();
+                
+                $tellers = User::where('coordinator_id', $coordinatorId)
+                    ->where('role', 'teller')
+                    ->get();
+                
+                $tellerIds = $tellers->pluck('id')->toArray();
+                
+                $activeTellerCount = Bet::whereIn('teller_id', $tellerIds)
+                    ->whereIn('draw_id', $draws)
+                    ->where('is_rejected', false)
+                    ->select('teller_id')
+                    ->distinct()
+                    ->count();
+                
+                // Get bet count
+                $betCount = Bet::whereIn('teller_id', $tellerIds)
+                    ->whereIn('draw_id', $draws)
+                    ->where('is_rejected', false)
+                    ->count();
+                
+                // Get winning bet count
+                $winningBetCount = Bet::whereIn('teller_id', $tellerIds)
+                    ->whereIn('draw_id', $draws)
+                    ->where('is_rejected', false)
+                    ->whereNotNull('winning_amount')
+                    ->where('winning_amount', '>', 0)
+                    ->count();
+                    
+                // Make sure the hits count matches the main view
+                if ($coordinatorData) {
+                    $coordinatorData['total_hits'] = (int)$coordinatorData['total_hits'];
+                }
+                
+                // Calculate commission rate
+                $commissionRate = 0;
+                if ($coordinatorData && $coordinatorData['total_sales'] > 0) {
+                    $commissionRate = ($coordinatorData['total_gross'] / $coordinatorData['total_sales']) * 100;
+                }
+                
+                // Get teller data for the table - using the same calculation as CoordinatorTellerSalesSummary
+                $tellerData = [];
+                foreach ($tellers as $teller) {
+                    // Get all bets for this teller on this date
+                    $betsQuery = Bet::where('teller_id', $teller->id)
+                        ->whereIn('draw_id', $draws)
+                        ->where('is_rejected', false);
+                    
+                    // Calculate totals exactly as in CoordinatorTellerSalesSummary
+                    $totalSales = $betsQuery->sum('amount');
+                    
+                    // Get winning bets amount (hits)
+                    $totalHits = $betsQuery->whereNotNull('winning_amount')
+                        ->where('winning_amount', '>', 0)
+                        ->sum('winning_amount');
+                    
+                    // Calculate gross as sales - hits
+                    $totalGross = $totalSales - $totalHits;
+                    
+                    if ($totalSales > 0) { // Only include tellers with sales
+                        $tellerData[] = [
+                            'name' => $teller->name,
+                            'sales' => $totalSales,
+                            'hits' => $totalHits,
+                            'gross' => $totalGross,
+                        ];
+                    }
+                }
+                
+                // Sort teller data by sales (highest first)
+                usort($tellerData, function($a, $b) {
+                    return $b['sales'] <=> $a['sales'];
+                });
+                
+                return view('livewire.reports.coordinator.coordinator-summary-modal', [
+                    'coordinator' => $coordinatorData,
+                    'date' => $this->date,
+                    'tellerCount' => $tellerCount,
+                    'activeTellerCount' => $activeTellerCount,
+                    'betCount' => $betCount,
+                    'winningBetCount' => $winningBetCount,
+                    'tellerData' => $tellerData,
+                    'commissionRate' => $commissionRate,
+                ]);
+            })
+            ->modalSubmitAction(false)
+            ->modalCancelAction(fn ($action) => $action->label('Close'))
+            ->closeModalByClickingAway(true);
+    }
+    
+    private function getCoordinatorName($coordinatorId)
+    {
+        foreach ($this->salesData as $item) {
+            if ($item['id'] == $coordinatorId) {
+                return $item['name'];
+            }
+        }
+        
+        return 'Coordinator';
     }
     
     public function render()

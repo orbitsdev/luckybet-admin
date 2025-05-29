@@ -80,7 +80,17 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-red-500 font-bold">{{ number_format($item['total_hits'], 2) }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-green-500 font-bold">{{ number_format($item['total_gross'], 2) }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    <a target="_blank" href="{{ route('reports.teller-sales-summary', ['coordinator_id' => $item['id']]) }}" class="text-indigo-600 hover:text-indigo-900">View Details</a>
+                                    <div class="flex items-center space-x-3">
+                                        <a target="_blank" href="{{ route('reports.teller-sales-summary', ['coordinator_id' => $item['id']]) }}" class="inline-flex items-center px-2 py-1 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-800 focus:outline-none focus:border-indigo-900 focus:ring focus:ring-indigo-300 disabled:opacity-25 transition">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                            </svg>
+                                            View Details
+                                        </a>
+                                        <div>
+                                            {{ ($this->viewCoordinatorSummaryAction)(['coordinator_id' => $item['id']]) }}
+                                        </div>
+                                    </div>
                                 </td>
                             </tr>
                         @endforeach
