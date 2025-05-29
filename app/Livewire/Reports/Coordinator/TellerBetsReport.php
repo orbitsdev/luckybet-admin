@@ -214,7 +214,7 @@ class TellerBetsReport extends Component implements HasForms, HasActions
             ->color('primary')
             ->size('sm')
             ->modalHeading(fn (array $arguments) => 'Bet Details #' . $arguments['bet_id'])
-            ->modalWidth('4xl')
+            ->modalWidth('7xl')
             ->modalContent(function (array $arguments) {
                 $betId = $arguments['bet_id'];
                 $bet = Bet::with(['draw', 'gameType', 'teller', 'location', 'customer'])->find($betId);

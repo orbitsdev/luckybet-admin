@@ -419,9 +419,7 @@
         <!-- Main Content -->
         <main class="flex-1 p-8 bg-gray-50 overflow-y-auto transition-all duration-300"
             :class="{ 'ml-0': !sidebarOpen || window.innerWidth < 1024, 'lg:ml-72': sidebarOpen && window.innerWidth >= 1024 }">
-           <h1>
             {{ $slot }}
-           </h1>
         </main>
     </div>
 </div>
