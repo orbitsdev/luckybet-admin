@@ -76,7 +76,7 @@
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-medium">{{ number_format($teller['total_hits'], 2) }}</td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-medium">{{ number_format($teller['total_gross'], 2) }}</td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                <a href="#" class="text-indigo-600 hover:text-indigo-900">View Details</a>
+                                                {{ ($this->viewTellerDetailsAction)(['teller_id' => $teller['id']]) }}
                                             </td>
                                         </tr>
                                     @endforeach

@@ -9,14 +9,18 @@ use Carbon\Carbon;
 use Livewire\WithPagination;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
+use Filament\Actions\Concerns\InteractsWithActions;
+use Filament\Actions\Contracts\HasActions;
+use Filament\Actions\Action;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
-class CoordinatorTellerSalesSummary extends Component implements HasForms
+class CoordinatorTellerSalesSummary extends Component implements HasForms, HasActions
 {
     use InteractsWithForms;
     use WithPagination;
+    use InteractsWithActions;
     
     public $coordinatorId;
     public $date;
@@ -224,6 +228,47 @@ class CoordinatorTellerSalesSummary extends Component implements HasForms
     public function updatedDate()
     {
         $this->loadSalesData();
+    }
+    
+    public function viewTellerDetailsAction(): Action
+    {
+        return Action::make('viewTellerDetails')
+            ->label('View Details')
+            ->icon('heroicon-o-eye')
+            ->color('primary')
+            ->modalHeading(fn (array $arguments) => 'Sales Details for ' . $this->getTellerName($arguments['teller_id']))
+            ->modalWidth('7xl')
+            ->modalContent(function (array $arguments) {
+                $tellerId = $arguments['teller_id'];
+                $tellerData = null;
+                
+                // Find the teller data in the salesData array
+                foreach ($this->salesData as $teller) {
+                    if ($teller['id'] == $tellerId) {
+                        $tellerData = $teller;
+                        break;
+                    }
+                }
+                
+                return view('livewire.reports.coordinator.teller-detailed-sales', [
+                    'teller' => $tellerData,
+                    'date' => $this->date
+                ]);
+            })
+            ->modalSubmitAction(false)
+            ->modalCancelAction(fn ($action) => $action->label('Close'))
+            ->closeModalByClickingAway(true);
+    }
+    
+    private function getTellerName($tellerId)
+    {
+        foreach ($this->salesData as $teller) {
+            if ($teller['id'] == $tellerId) {
+                return $teller['name'];
+            }
+        }
+        
+        return 'Teller';
     }
     
     public function render()
