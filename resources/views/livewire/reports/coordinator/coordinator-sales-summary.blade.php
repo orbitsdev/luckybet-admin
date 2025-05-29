@@ -22,6 +22,14 @@
                             @endif
                         </div>
                     </div>
+                    <div class="mt-6">
+                        <button wire:click="resetFilters" class="inline-flex items-center px-3 py-1.5 bg-gray-100 rounded-md font-medium text-sm text-gray-700 hover:bg-gray-200 focus:outline-none">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            Reset All Filters
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -72,7 +80,7 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-red-500 font-bold">{{ number_format($item['total_hits'], 2) }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-green-500 font-bold">{{ number_format($item['total_gross'], 2) }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    <a href="{{ route('reports.teller-sales-summary', ['coordinator_id' => $item['id']]) }}" class="text-indigo-600 hover:text-indigo-900">View Details</a>
+                                    <a target="_blank" href="{{ route('reports.teller-sales-summary', ['coordinator_id' => $item['id']]) }}" class="text-indigo-600 hover:text-indigo-900">View Details</a>
                                 </td>
                             </tr>
                         @endforeach
@@ -82,33 +90,6 @@
         @else
             <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded relative" role="alert">
                 <p>No sales data found for the selected criteria.</p>
-                
-                @if(count($debugInfo) > 0)
-                    <div class="mt-4 p-4 bg-gray-100 rounded">
-                        <h3 class="text-sm font-bold mb-2">Debug Information:</h3>
-                        <pre class="text-xs overflow-auto max-h-64">{{ json_encode($debugInfo, JSON_PRETTY_PRINT) }}</pre>
-                        
-                        <div class="mt-4">
-                            <h4 class="text-sm font-bold mb-2">Database Check:</h4>
-                            <div class="space-y-2">
-                                @php
-                                    $coordinators = \App\Models\User::where('role', 'coordinator')->get();
-                                    $tellers = \App\Models\User::where('role', 'teller')->whereNotNull('coordinator_id')->get();
-                                    $draws = \App\Models\Draw::where('draw_date', $date)->get();
-                                    $bets = \App\Models\Bet::whereIn('teller_id', $tellers->pluck('id'))
-                                        ->whereIn('draw_id', $draws->pluck('id'))
-                                        ->where('is_rejected', false)
-                                        ->get();
-                                @endphp
-                                
-                                <p class="text-xs">Coordinators in system: {{ $coordinators->count() }}</p>
-                                <p class="text-xs">Tellers with coordinators: {{ $tellers->count() }}</p>
-                                <p class="text-xs">Draws for date {{ $date }}: {{ $draws->count() }}</p>
-                                <p class="text-xs">Bets for these tellers and draws: {{ $bets->count() }}</p>
-                            </div>
-                        </div>
-                    </div>
-                @endif
             </div>
         @endif
     </div>

@@ -307,6 +307,13 @@ class CoordinatorSalesSummary extends Component implements HasForms
         $this->loadSalesData();
     }
     
+    public function resetFilters()
+    {
+        $this->searchTerm = '';
+        $this->date = Carbon::today()->format('Y-m-d');
+        $this->loadSalesData();
+    }
+    
     public function render()
     {
         return view('livewire.reports.coordinator.coordinator-sales-summary');

@@ -29,7 +29,6 @@ class CoordinatorTellerSalesSummary extends Component implements HasForms, HasAc
     public $totalSales = 0;
     public $totalHits = 0;
     public $totalGross = 0;
-    public $debugInfo = [];
     
     public function mount($coordinator_id = null)
     {   
@@ -64,8 +63,6 @@ class CoordinatorTellerSalesSummary extends Component implements HasForms, HasAc
                 'name' => $coordinator->name,
                 'id' => $coordinator->id
             ];
-            
-            $this->debugInfo['coordinator'] = $this->coordinatorData;
         } else if ($user->role === 'coordinator') {
             // Coordinator viewing their own tellers
             $coordinatorId = $user->id;
@@ -74,8 +71,6 @@ class CoordinatorTellerSalesSummary extends Component implements HasForms, HasAc
                 'name' => $user->name,
                 'id' => $user->id
             ];
-            
-            $this->debugInfo['coordinator'] = $this->coordinatorData;
         } else {
             // Fallback to first coordinator if needed
             $coordinator = User::where('role', 'coordinator')->first();
@@ -85,8 +80,6 @@ class CoordinatorTellerSalesSummary extends Component implements HasForms, HasAc
                     'name' => $coordinator->name,
                     'id' => $coordinator->id
                 ];
-                
-                $this->debugInfo['coordinator'] = $this->coordinatorData;
             }
         }
         
@@ -101,7 +94,6 @@ class CoordinatorTellerSalesSummary extends Component implements HasForms, HasAc
             $this->totalSales = 0;
             $this->totalHits = 0;
             $this->totalGross = 0;
-            $this->debugInfo['error'] = 'No coordinator data available';
             return;
         }
         
