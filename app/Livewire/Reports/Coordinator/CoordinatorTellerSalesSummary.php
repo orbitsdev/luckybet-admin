@@ -194,13 +194,23 @@ class CoordinatorTellerSalesSummary extends Component implements HasForms, HasAc
             $salesByTeller[$tellerId]['total_sales'] += $bet->amount;
             $salesByTeller[$tellerId]['game_types'][$displayGameType]['total_sales'] += $bet->amount;
             
-            // Update hits and gross if this is a winning bet
+            // Update hits if this is a winning bet
             if ($bet->winning_amount > 0) {
                 $salesByTeller[$tellerId]['total_hits'] += $bet->winning_amount;
-                $salesByTeller[$tellerId]['total_gross'] += $bet->winning_amount;
                 $salesByTeller[$tellerId]['game_types'][$displayGameType]['total_hits'] += $bet->winning_amount;
-                $salesByTeller[$tellerId]['game_types'][$displayGameType]['total_gross'] += $bet->winning_amount;
             }
+        }
+        
+        // Calculate gross for each teller and game type
+        foreach ($salesByTeller as $tellerId => $teller) {
+            // Calculate gross for each game type
+            foreach ($teller['game_types'] as $gameType => $gameData) {
+                $salesByTeller[$tellerId]['game_types'][$gameType]['total_gross'] = 
+                    $gameData['total_sales'] - $gameData['total_hits'];
+            }
+            
+            // Calculate total gross for teller
+            $salesByTeller[$tellerId]['total_gross'] = $teller['total_sales'] - $teller['total_hits'];
         }
         
         // Calculate totals across all tellers
@@ -211,7 +221,7 @@ class CoordinatorTellerSalesSummary extends Component implements HasForms, HasAc
         foreach ($salesByTeller as $teller) {
             $this->totalSales += $teller['total_sales'];
             $this->totalHits += $teller['total_hits'];
-            $this->totalGross += $teller['total_gross'];
+            $this->totalGross += ($teller['total_sales'] - $teller['total_hits']); // Correct gross calculation
         }
         
         // Remove tellers with no sales
