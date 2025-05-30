@@ -21,7 +21,7 @@ class CoordinatorTellerSalesSummary extends Component implements HasForms, HasAc
     use InteractsWithForms;
     use WithPagination;
     use InteractsWithActions;
-    
+
     public $coordinatorId;
     public $date;
     public $coordinatorData = null;
@@ -29,35 +29,35 @@ class CoordinatorTellerSalesSummary extends Component implements HasForms, HasAc
     public $totalSales = 0;
     public $totalHits = 0;
     public $totalGross = 0;
-    
+
     public function mount($coordinator_id = null)
-    {   
+    {
         $this->coordinatorId = $coordinator_id;
         $this->date = Carbon::today()->format('Y-m-d');
         $this->loadCoordinatorData();
         $this->loadSalesData();
     }
-    
+
     public function loadCoordinatorData()
     {
         $user = Auth::user();
         $coordinatorId = null;
-        
+
         // Determine which coordinator's tellers to show
         if ($user->role === 'admin' && $this->coordinatorId) {
             // Admin viewing a specific coordinator's tellers
             $coordinatorId = $this->coordinatorId;
-            
+
             // Get the coordinator data for display
             $coordinator = User::where('id', $coordinatorId)
                 ->where('role', 'coordinator')
                 ->first();
-                
+
             if (!$coordinator) {
                 // Invalid coordinator ID
                 return;
             }
-            
+
             // Store coordinator data for display
             $this->coordinatorData = [
                 'name' => $coordinator->name,
@@ -66,7 +66,7 @@ class CoordinatorTellerSalesSummary extends Component implements HasForms, HasAc
         } else if ($user->role === 'coordinator') {
             // Coordinator viewing their own tellers
             $coordinatorId = $user->id;
-            
+
             $this->coordinatorData = [
                 'name' => $user->name,
                 'id' => $user->id
@@ -82,11 +82,11 @@ class CoordinatorTellerSalesSummary extends Component implements HasForms, HasAc
                 ];
             }
         }
-        
+
         // Store the coordinator ID for use in other methods
         $this->coordinatorId = $coordinatorId;
     }
-    
+
     public function loadSalesData()
     {
         if (!$this->coordinatorId || !$this->coordinatorData) {
@@ -96,14 +96,14 @@ class CoordinatorTellerSalesSummary extends Component implements HasForms, HasAc
             $this->totalGross = 0;
             return;
         }
-        
+
         // Get all draws for the selected date
         $draws = Draw::where('draw_date', $this->date)
             ->orderBy('draw_time')
             ->get();
-        
+
         $drawIds = $draws->pluck('id')->toArray();
-        
+
         if (empty($drawIds)) {
             $this->salesData = [];
             $this->totalSales = 0;
@@ -111,12 +111,12 @@ class CoordinatorTellerSalesSummary extends Component implements HasForms, HasAc
             $this->totalGross = 0;
             return;
         }
-        
+
         // Get all tellers for this coordinator
         $tellers = User::where('coordinator_id', $this->coordinatorId)
             ->where('role', 'teller')
             ->get();
-            
+
         if ($tellers->isEmpty()) {
             $this->salesData = [];
             $this->totalSales = 0;
@@ -124,22 +124,22 @@ class CoordinatorTellerSalesSummary extends Component implements HasForms, HasAc
             $this->totalGross = 0;
             return;
         }
-        
+
         $tellerIds = $tellers->pluck('id')->toArray();
-        
+
         // Get all bets for all tellers under this coordinator on this date
         $bets = Bet::whereIn('teller_id', $tellerIds)
             ->whereIn('draw_id', $drawIds)
             ->where('is_rejected', false)
             ->with(['draw', 'gameType', 'teller'])
             ->get();
-        
+
         // Group data by teller
         $salesByTeller = [];
         $this->totalSales = 0;
         $this->totalHits = 0;
         $this->totalGross = 0;
-        
+
         // Initialize data for all tellers
         foreach ($tellers as $teller) {
             $salesByTeller[$teller->id] = [
@@ -151,26 +151,26 @@ class CoordinatorTellerSalesSummary extends Component implements HasForms, HasAc
                 'game_types' => []
             ];
         }
-        
+
         // Process all bets and update teller data
         foreach ($bets as $bet) {
             $tellerId = $bet->teller_id;
-            
+
             // Skip if teller not found (shouldn't happen, but just in case)
             if (!isset($salesByTeller[$tellerId])) {
                 continue;
             }
-            
+
             $gameTypeId = $bet->game_type_id;
             $gameTypeName = $bet->gameType->name;
             $gameTypeCode = $bet->gameType->code;
-            
+
             // Handle D4 sub-selection
             $displayGameType = $gameTypeCode;
             if ($gameTypeCode === 'D4' && $bet->d4_sub_selection) {
                 $displayGameType = "D4-{$bet->d4_sub_selection}";
             }
-            
+
             // Initialize game type data if not exists for this teller
             if (!isset($salesByTeller[$tellerId]['game_types'][$displayGameType])) {
                 $salesByTeller[$tellerId]['game_types'][$displayGameType] = [
@@ -181,70 +181,70 @@ class CoordinatorTellerSalesSummary extends Component implements HasForms, HasAc
                     'total_gross' => 0,
                 ];
             }
-            
+
             // Update sales data for this teller
             $salesByTeller[$tellerId]['total_sales'] += $bet->amount;
             $salesByTeller[$tellerId]['game_types'][$displayGameType]['total_sales'] += $bet->amount;
-            
+
             // Update hits if this is a winning bet
             if ($bet->winning_amount > 0) {
                 $salesByTeller[$tellerId]['total_hits'] += $bet->winning_amount;
                 $salesByTeller[$tellerId]['game_types'][$displayGameType]['total_hits'] += $bet->winning_amount;
             }
         }
-        
+
         // Calculate gross for each teller and game type
         foreach ($salesByTeller as $tellerId => $teller) {
             // Calculate gross for each game type
             foreach ($teller['game_types'] as $gameType => $gameData) {
-                $salesByTeller[$tellerId]['game_types'][$gameType]['total_gross'] = 
+                $salesByTeller[$tellerId]['game_types'][$gameType]['total_gross'] =
                     $gameData['total_sales'] - $gameData['total_hits'];
             }
-            
+
             // Calculate total gross for teller
             $salesByTeller[$tellerId]['total_gross'] = $teller['total_sales'] - $teller['total_hits'];
         }
-        
+
         // Calculate totals across all tellers
         $this->totalSales = 0;
         $this->totalHits = 0;
         $this->totalGross = 0;
-        
+
         foreach ($salesByTeller as $teller) {
             $this->totalSales += $teller['total_sales'];
             $this->totalHits += $teller['total_hits'];
             $this->totalGross += ($teller['total_sales'] - $teller['total_hits']); // Correct gross calculation
         }
-        
+
         // Remove tellers with no sales
         foreach ($salesByTeller as $tellerId => $teller) {
             if ($teller['total_sales'] == 0) {
                 unset($salesByTeller[$tellerId]);
             }
         }
-        
+
         // Convert to indexed array for the view
         $this->salesData = array_values($salesByTeller);
     }
-    
+
     public function updatedDate()
     {
         $this->loadSalesData();
     }
-    
+
     public function viewTellerDetailsAction(): Action
     {
         return Action::make('viewTellerDetails')
             ->label('VIEW DETAILS')
             ->icon('heroicon-o-eye')
             ->color('indigo')
-            ->size('sm')
+            ->size('xs')
             ->modalHeading(fn (array $arguments) => 'Sales Details for ' . $this->getTellerName($arguments['teller_id']))
             ->modalWidth('7xl')
             ->modalContent(function (array $arguments) {
                 $tellerId = $arguments['teller_id'];
                 $tellerData = null;
-                
+
                 // Find the teller data in the salesData array
                 foreach ($this->salesData as $teller) {
                     if ($teller['id'] == $tellerId) {
@@ -252,7 +252,7 @@ class CoordinatorTellerSalesSummary extends Component implements HasForms, HasAc
                         break;
                     }
                 }
-                
+
                 return view('livewire.reports.coordinator.teller-detailed-sales', [
                     'teller' => $tellerData,
                     'date' => $this->date
@@ -262,9 +262,20 @@ class CoordinatorTellerSalesSummary extends Component implements HasForms, HasAc
             ->modalCancelAction(fn ($action) => $action->label('Close'))
             ->closeModalByClickingAway(true);
     }
-    
 
-    
+
+
+    public function viewTellerBetsAction(): Action
+    {
+        return Action::make('viewTellerBets')
+            ->label('VIEW BETS')
+            ->icon('heroicon-o-currency-dollar')
+            ->color('gray')
+            ->size('xs')
+            ->url(fn (array $arguments) => route('reports.teller-bets-report', ['teller_id' => $arguments['teller_id'], 'date' => $this->date]))
+            ->openUrlInNewTab();
+    }
+
     private function getTellerName($tellerId)
     {
         foreach ($this->salesData as $teller) {
@@ -272,10 +283,10 @@ class CoordinatorTellerSalesSummary extends Component implements HasForms, HasAc
                 return $teller['name'];
             }
         }
-        
+
         return 'Teller';
     }
-    
+
     public function render()
     {
         return view('livewire.reports.coordinator.coordinator-teller-sales-summary');

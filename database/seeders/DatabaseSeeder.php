@@ -25,33 +25,33 @@ class DatabaseSeeder extends Seeder
         $this->call([
             // 1. Create users first (admin, coordinators, tellers)
             UserSeeder::class,
-            
+
             // 2. Create locations and assign coordinators
             LocationSeeder::class,
-            
+
             // 3. Create game types for multi-game lottery system
             GameTypeSeeder::class,
-            
+
             // 4. Create schedules for draws
             ScheduleSeeder::class,
-            
+
             // 5. Seed winning amounts and low win numbers before draws/bets
             WinningAmountSeeder::class,
             LowWinNumberSeeder::class,
 
             // 6. Create draws (past, current, and future)
-            DrawSeeder::class,
+            // DrawSeeder::class,
             
             // 7. Create test data for reports (draws, bets, and results)
             ReportTestSeeder::class,
-            
+
             // 8. Create bets for all draws (commented out)
             // BetSeeder::class,
-            
+
             // 9. Create results for closed draws and update bet statuses (commented out)
             // ResultSeeder::class,
-            
-          
+
+
         ]);
     }
 }

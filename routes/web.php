@@ -51,22 +51,22 @@ Route::middleware([
         Route::get('commissions', ListCommission::class)->name('commissions');
         Route::get('low-win-numbers', ListLowWinNumbers::class)->name('low-win-numbers');
 
-    
+
 
 
 
     });
-   
+
     Route::prefix('/reports')->name('reports.')->group(function(){
-        //coordinator 
+        //coordinator
         Route::get('coordinator/summary', CoordinatorSalesSummary::class)->name('summary');
         Route::get('coordinator/teller-sales-summary/{coordinator_id}', CoordinatorTellerSalesSummary::class)->name('teller-sales-summary');
         Route::get('coordinator/teller-bets-report/{teller_id}/{date?}', TellerBetsReport::class)->name('teller-bets-report');
-   
+
     });
 
 
 
 });
 
- 
+
