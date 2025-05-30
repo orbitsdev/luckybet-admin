@@ -215,7 +215,7 @@ class ListBetRatios extends Component implements HasForms, HasTable
             )
             ->groups([
                 Group::make('gameType.name')
-                    ->label('Game Type')
+                    ->label('Bet Type')
                     ->titlePrefixedWithLabel(false)
                     ->collapsible(),
                 Group::make('location.name')
@@ -234,7 +234,7 @@ class ListBetRatios extends Component implements HasForms, HasTable
                     ->time('h:i A')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('gameType.name')
-                    ->label('Game Type')
+                    ->label('Bet Type')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'S2' => 'success',
@@ -247,6 +247,16 @@ class ListBetRatios extends Component implements HasForms, HasTable
                     ->label('Bet Number')
                     ->searchable()
                     ->copyable(),
+                Tables\Columns\TextColumn::make('sub_selection')
+                    ->label('Sub-Selection')
+                    ->badge()
+                    ->color(fn (?string $state): string => match ($state) {
+                        'S2' => 'success',
+                        'S3' => 'warning',
+                        default => 'gray',
+                    })
+                    ->visible(fn (?BetRatio $record): bool => $record && $record->gameType && $record->gameType->code === 'D4' && !empty($record->sub_selection))
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('max_amount')
                     ->label('Max Amount')
                     ->money('PHP')
@@ -298,7 +308,7 @@ class ListBetRatios extends Component implements HasForms, HasTable
                         });
                     }),
                 SelectFilter::make('game_type_id')
-                    ->label('Game Type')
+                    ->label('Bet Type')
                     ->relationship('gameType', 'name')
                     ->searchable()
                     ->preload(),
@@ -317,13 +327,36 @@ class ListBetRatios extends Component implements HasForms, HasTable
                         ->icon('heroicon-o-pencil')
                         ->form(function (BetRatio $record) {
                             return [
-                                Forms\Components\Grid::make(2)
+                                Forms\Components\Grid::make(1)
                                     ->schema([
                                         Forms\Components\Select::make('game_type_id')
-                                            ->label('Game Type')
+                                            ->label('Bet Type')
                                             ->relationship('gameType', 'name')
                                             ->required()
-                                            ->default($record->game_type_id),
+                                            ->default($record->game_type_id)
+                                            ->live()
+                                            ->afterStateUpdated(fn (callable $set) => $set('sub_selection', null)),
+                                    ]),
+                                Forms\Components\Grid::make(2)
+                                    ->schema([
+                                        Forms\Components\Select::make('sub_selection')
+                                            ->label('Sub-Selection')
+                                            ->options([
+                                                'S2' => 'S2 (Last 2 Digits)',
+                                                'S3' => 'S3 (Last 3 Digits)'
+                                            ])
+                                            ->nullable()
+                                            ->default($record->sub_selection)
+                                            ->visible(function (callable $get) use ($record) {
+                                                // Get the selected game type ID
+                                                $gameTypeId = $get('game_type_id') ?: $record->game_type_id;
+                                                if (!$gameTypeId) return false;
+                                                
+                                                // Get the game type code from the database
+                                                $gameType = \App\Models\GameType::find($gameTypeId);
+                                                return $gameType && $gameType->code === 'D4';
+                                            })
+                                            ->helperText('Only for D4 bet type'),
                                         Forms\Components\Select::make('location_id')
                                             ->label('Location')
                                             ->relationship('location', 'name')
@@ -334,13 +367,53 @@ class ListBetRatios extends Component implements HasForms, HasTable
                                     ->schema([
                                         Forms\Components\TextInput::make('bet_number')
                                             ->label('Bet Number')
-                                            ->required(),
+                                            ->required()
+                                            ->live()
+                                            ->mask(function (callable $get) use ($record) {
+                                                $gameTypeId = $get('game_type_id') ?: $record->game_type_id;
+                                                $subSelection = $get('sub_selection') ?: $record->sub_selection;
+                                                if (!$gameTypeId) return '';
+                                                
+                                                $gameType = \App\Models\GameType::find($gameTypeId);
+                                                if (!$gameType) return '';
+                                                
+                                                return match($gameType->code) {
+                                                    'S2' => '99',
+                                                    'S3' => '999',
+                                                    'D4' => match($subSelection) {
+                                                        'S2' => '99',
+                                                        'S3' => '999',
+                                                        default => '9999'
+                                                    },
+                                                    default => ''
+                                                };
+                                            })
+                                            ->helperText(function (callable $get) use ($record) {
+                                                $gameTypeId = $get('game_type_id') ?: $record->game_type_id;
+                                                $subSelection = $get('sub_selection') ?: $record->sub_selection;
+                                                if (!$gameTypeId) return 'Enter bet number';
+                                                
+                                                $gameType = \App\Models\GameType::find($gameTypeId);
+                                                if (!$gameType) return 'Enter bet number';
+                                                
+                                                return match($gameType->code) {
+                                                    'S2' => '2-digit number (00-99)',
+                                                    'S3' => '3-digit number (000-999)',
+                                                    'D4' => match($subSelection) {
+                                                        'S2' => '2-digit number (00-99)',
+                                                        'S3' => '3-digit number (000-999)',
+                                                        default => '4-digit number (0000-9999)'
+                                                    },
+                                                    default => 'Enter bet number'
+                                                };
+                                            }),
                                         Forms\Components\TextInput::make('max_amount')
                                             ->label('Max Amount')
                                             ->prefix('₱')
                                             ->numeric()
                                             ->required(),
                                     ]),
+
                             ];
                         })
                         ->action(function (BetRatio $record, array $data): void {
@@ -379,12 +452,34 @@ class ListBetRatios extends Component implements HasForms, HasTable
                             })
                             ->required()
                             ->searchable(),
-                        Forms\Components\Grid::make(2)
+                        Forms\Components\Grid::make(1)
                             ->schema([
                                 Forms\Components\Select::make('game_type_id')
-                                    ->label('Game Type')
+                                    ->label('Bet Type')
                                     ->relationship('gameType', 'name')
-                                    ->required(),
+                                    ->required()
+                                    ->live()
+                                    ->afterStateUpdated(fn (callable $set) => $set('sub_selection', null)),
+                            ]),
+                        Forms\Components\Grid::make(2)
+                            ->schema([
+                                Forms\Components\Select::make('sub_selection')
+                                    ->label('Sub-Selection')
+                                    ->options([
+                                        'S2' => 'S2 (Last 2 Digits)',
+                                        'S3' => 'S3 (Last 3 Digits)'
+                                    ])
+                                    ->nullable()
+                                    ->visible(function (callable $get) {
+                                        // Get the selected game type ID
+                                        $gameTypeId = $get('game_type_id');
+                                        if (!$gameTypeId) return false;
+                                        
+                                        // Get the game type code from the database
+                                        $gameType = \App\Models\GameType::find($gameTypeId);
+                                        return $gameType && $gameType->code === 'D4';
+                                    })
+                                    ->helperText('Only for D4 bet type'),
                                 Forms\Components\Select::make('location_id')
                                     ->label('Location')
                                     ->relationship('location', 'name')
@@ -395,16 +490,56 @@ class ListBetRatios extends Component implements HasForms, HasTable
                             ->schema([
                                 Forms\Components\TextInput::make('bet_number')
                                     ->label('Bet Number')
-                                    ->required(),
+                                    ->required()
+                                    ->live()
+                                    ->mask(function (callable $get) {
+                                        $gameTypeId = $get('game_type_id');
+                                        $subSelection = $get('sub_selection');
+                                        if (!$gameTypeId) return '';
+                                        
+                                        $gameType = \App\Models\GameType::find($gameTypeId);
+                                        if (!$gameType) return '';
+                                        
+                                        return match($gameType->code) {
+                                            'S2' => '99',
+                                            'S3' => '999',
+                                            'D4' => match($subSelection) {
+                                                'S2' => '99',
+                                                'S3' => '999',
+                                                default => '9999'
+                                            },
+                                            default => ''
+                                        };
+                                    })
+                                    ->helperText(function (callable $get) {
+                                        $gameTypeId = $get('game_type_id');
+                                        $subSelection = $get('sub_selection');
+                                        if (!$gameTypeId) return 'Enter bet number';
+                                        
+                                        $gameType = \App\Models\GameType::find($gameTypeId);
+                                        if (!$gameType) return 'Enter bet number';
+                                        
+                                        return match($gameType->code) {
+                                            'S2' => '2-digit number (00-99)',
+                                            'S3' => '3-digit number (000-999)',
+                                            'D4' => match($subSelection) {
+                                                'S2' => '2-digit number (00-99)',
+                                                'S3' => '3-digit number (000-999)',
+                                                default => '4-digit number (0000-9999)'
+                                            },
+                                            default => 'Enter bet number'
+                                        };
+                                    }),
                                 Forms\Components\TextInput::make('max_amount')
                                     ->label('Max Amount')
                                     ->prefix('₱')
                                     ->numeric()
                                     ->required(),
                             ]),
+
                     ])
                     ->action(function (array $data): void {
-                        $data['user_id'] = auth()->id();
+                        $data['user_id'] = auth()->user()->id;
                         BetRatio::create($data);
                         $this->computeRatioStats();
                         Notification::make()
