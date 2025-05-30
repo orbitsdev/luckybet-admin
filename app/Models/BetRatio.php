@@ -20,11 +20,12 @@ class BetRatio extends Model
 {
     use HasFactory;
 
-    //filalble
+    //fillable
     protected $fillable = [
         'draw_id',
         'game_type_id',
         'bet_number',
+        'sub_selection',
         'max_amount',
         'user_id',
         'location_id',

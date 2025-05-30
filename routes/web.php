@@ -16,6 +16,7 @@ use App\Livewire\Locations\ListLocations;
 use App\Livewire\Commissions\ListCommission;
 use App\Livewire\Reports\ReportByCoordinator;
 use App\Livewire\LowWinNumbers\ListLowWinNumbers;
+use App\Livewire\SoldOutNumbers\ListSoldOutNumbers;
 use App\Livewire\Reports\Coordinator\TellerBetsReport;
 use App\Livewire\Reports\Coordinator\CoordinatorSalesSummary;
 use App\Livewire\Reports\Coordinator\CoordinatorTellerSalesSummary;
@@ -50,6 +51,7 @@ Route::middleware([
         Route::get('bet-ratios', ListBetRatios::class)->name('bet-ratios');
         Route::get('commissions', ListCommission::class)->name('commissions');
         Route::get('low-win-numbers', ListLowWinNumbers::class)->name('low-win-numbers');
+        Route::get('sold-out-numbers', ListSoldOutNumbers::class)->name('sold-out-numbers');
 
 
 

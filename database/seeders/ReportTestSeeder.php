@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\Result;
 use App\Models\GameType;
 use App\Models\Location;
+use App\Models\BetRatio;
 use Illuminate\Support\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -162,6 +163,9 @@ class ReportTestSeeder extends Seeder
             }
         }
         
+        // Create sold out numbers for testing
+        $this->createSoldOutNumbers($createdDraws, $s2GameType, $s3GameType, $d4GameType, $location);
+        
         $this->command->info('Report test data created successfully for ' . $testDate->format('F d, Y'));
     }
     
@@ -277,5 +281,79 @@ class ReportTestSeeder extends Seeder
             default:
                 return 1;
         }
+    }
+    
+    /**
+     * Create sold out numbers for testing
+     */
+    private function createSoldOutNumbers(
+        array $draws,
+        GameType $s2GameType,
+        GameType $s3GameType,
+        GameType $d4GameType,
+        Location $location
+    ): void {
+        // Define popular numbers to mark as sold out
+        $soldOutNumbers = [
+            // S2 sold out numbers (popular numbers)
+            ['game_type' => $s2GameType, 'numbers' => ['11', '22', '33', '44', '55', '66', '77', '88', '99']],
+            
+            // S3 sold out numbers (popular numbers)
+            ['game_type' => $s3GameType, 'numbers' => ['111', '222', '333', '444', '555', '666', '777', '888', '999']],
+            
+            // D4 sold out numbers (popular numbers)
+            ['game_type' => $d4GameType, 'numbers' => ['1111', '2222', '3333', '4444', '5555', '6666', '7777', '8888', '9999']],
+        ];
+        
+        $totalCreated = 0;
+        
+        // Get the first admin user for the user_id field
+        $adminUser = User::where('role', 'admin')->first();
+        
+        if (!$adminUser) {
+            $this->command->error('No admin user found for sold out numbers. Using first user instead.');
+            $adminUser = User::first();
+            
+            if (!$adminUser) {
+                $this->command->error('No users found. Skipping sold out numbers creation.');
+                return;
+            }
+        }
+        
+        // Create sold out numbers for each draw
+        foreach ($draws as $draw) {
+            foreach ($soldOutNumbers as $soldOutGroup) {
+                $gameType = $soldOutGroup['game_type'];
+                
+                foreach ($soldOutGroup['numbers'] as $number) {
+                    // Check if this number is already marked as sold out
+                    $existingRatio = BetRatio::where('draw_id', $draw->id)
+                        ->where('game_type_id', $gameType->id)
+                        ->where('location_id', $location->id)
+                        ->where('bet_number', $number)
+                        ->first();
+                    
+                    if ($existingRatio) {
+                        // Update existing ratio to mark as sold out
+                        $existingRatio->update(['max_amount' => 0]);
+                        $this->command->info("Updated existing bet ratio for {$gameType->name} number {$number} to sold out");
+                    } else {
+                        // Create new sold out number
+                        BetRatio::create([
+                            'draw_id' => $draw->id,
+                            'game_type_id' => $gameType->id,
+                            'location_id' => $location->id,
+                            'bet_number' => $number,
+                            'max_amount' => 0, // Mark as sold out
+                            'user_id' => $adminUser->id,
+                        ]);
+                        
+                        $totalCreated++;
+                    }
+                }
+            }
+        }
+        
+        $this->command->info("Created {$totalCreated} sold out numbers for testing");
     }
 }

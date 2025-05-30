@@ -44,7 +44,7 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
     use InteractsWithTable;
     use InteractsWithForms;
     use InteractsWithActions;
-    
+
     /**
      * Register Livewire event listeners using Livewire 3 syntax
      */
@@ -57,28 +57,28 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
             'filament.table.filters.reset' => 'handleFilterReset',
         ];
     }
-    
+
     /**
      * Handle Filament table filter changes
-     * 
+     *
      * @return void
      */
     public function handleFilterChange(): void
     {
         // Get the current filter date or default to today
         $drawDate = $this->tableFilters['draw_date']['value'] ?? now()->toDateString();
-        
+
         // If the filter was cleared or reset, explicitly set to today
         if (empty($drawDate) || $drawDate === null) {
             $drawDate = now()->toDateString();
             // Update the table filter value to today as well
             $this->tableFilters['draw_date']['value'] = $drawDate;
         }
-        
+
         // Update filter date and recompute stats
         $this->filterDate = $drawDate;
         $this->computeDrawStats();
-        
+
         // Force a refresh to ensure UI is updated
         $this->dispatch('refresh');
     }
@@ -96,17 +96,17 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
      * @var array
      */
     public array $drawStats = [];
-    
+
     /**
      * Flag to track if stats computation is in progress
-     * 
+     *
      * @var bool
      */
     protected $computingStats = false;
-    
+
     /**
      * Timestamp of the last stats computation
-     * 
+     *
      * @var int
      */
     protected $lastStatsComputation = 0;
@@ -123,11 +123,11 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
         if (!$this->filterDate) {
             $this->filterDate = now()->toDateString();
         }
-        
+
         $this->computeDrawStats();
-        
+
     }
-    
+
     /**
      * Handle explicit filter reset events
      * This is triggered when the user clicks the reset button
@@ -139,45 +139,45 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
         // Set filter date to today
         $today = now()->toDateString();
         $this->filterDate = $today;
-        
+
         // Update the table filter value to today
         if (isset($this->tableFilters['draw_date'])) {
             $this->tableFilters['draw_date']['value'] = $today;
         }
-        
+
         // Recompute stats with today's date
         $this->computeDrawStats();
-        
+
         // Force a refresh of the component
         $this->dispatch('refresh');
-        
+
     }
-    
+
     // Hook into Filament's filter reset functionality
     public function resetTableFilters(): void
     {
         // Call parent method to ensure proper Filament behavior
         parent::resetTableFilters();
-        
+
         // Get the actual filter value that Filament resets to (or default to today)
         $drawDate = $this->tableFilters['draw_date']['value'] ?? now()->toDateString();
-        
+
         // Only update filterDate if it's changed
         if ($this->filterDate !== $drawDate) {
             $this->filterDate = $drawDate;
             // Directly compute stats (no scheduling needed in Livewire 3)
             $this->computeDrawStats();
-            
+
             // Force a refresh of the component
             $this->dispatch('refresh');
         }
     }
-    
+
     // We'll handle filter resets through the resetTableFilters method instead
-    
+
     /**
      * Schedule stats computation with debounce to prevent multiple rapid calls
-     * 
+     *
      * @return void
      */
     protected function scheduleStatsComputation(): void
@@ -187,22 +187,22 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
         if ($this->computingStats || ($now - $this->lastStatsComputation < 0.5)) {
             return;
         }
-        
+
         // In Livewire 3, we can directly call the method instead of dispatching an event
         // This ensures immediate execution and avoids event handling issues
         $this->computeDrawStats();
     }
-    
+
     /**
      * Livewire listener for the compute-stats event
-     * 
+     *
      * @return void
      */
     public function computeStatsListener(): void
     {
         $this->computeDrawStats();
     }
-    
+
     /**
      * Compute draw statistics for the selected date
      *
@@ -216,7 +216,7 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
         // Use the current filter date or default to today
         $date = $this->filterDate ?: now()->format('Y-m-d');
         $this->filterDate = $date; // Ensure the property is set
-        
+
         // Build optimized query with eager loading
         $draws = \App\Models\Draw::query()
             ->where('draw_date', $date)
@@ -232,20 +232,20 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
         $totalHits = 0;
         $totalBetAmount = 0;
         $totalWinAmount = 0;
-        
+
         // Enhanced stats tracking
         $tellerGameTypeStats = [];
         $locationStats = []; // Track stats by location
-        
+
         // Fetch game types dynamically from the database
         $gameTypeModels = \App\Models\GameType::all();
         $gameTypes = [];
-        
+
         // Add standard game types
         foreach ($gameTypeModels as $gameType) {
             $gameTypes[strtolower($gameType->code)] = $gameType->code;
         }
-        
+
         // Add D4 sub-selections if D4 exists
         if (isset($gameTypes['d4'])) {
             $gameTypes['d4-s2'] = 'D4-S2';
@@ -256,19 +256,19 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
             foreach ($draw->bets as $bet) {
                 $totalBets++;
                 $totalBetAmount += $bet->amount;
-                
+
                 $teller = $bet->teller?->name ?? 'Unknown';
                 $tellerId = $bet->teller?->id ?? 0;
                 $locationName = $bet->location?->name ?? 'Unknown';
                 $locationId = $bet->location?->id ?? 0;
                 $gameType = $bet->gameType?->code ?? 'Unknown';
                 $subSelection = $bet->d4_sub_selection ?? '';
-                
+
                 // Handle D4 sub-selections
                 if ($gameType === 'D4' && !empty($subSelection)) {
                     $gameType = "D4-{$subSelection}";
                 }
-                
+
                 // Initialize location stats if not exists
                 if (!isset($locationStats[$locationId])) {
                     $locationStats[$locationId] = [
@@ -278,7 +278,7 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
                         'tellers' => [],
                     ];
                 }
-                
+
                 // Initialize teller stats if not exists
                 if (!isset($locationStats[$locationId]['tellers'][$tellerId])) {
                     $locationStats[$locationId]['tellers'][$tellerId] = [
@@ -288,7 +288,7 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
                         'game_types' => array_fill_keys(array_keys($gameTypes), 0),
                     ];
                 }
-                
+
                 // Also maintain the flat teller stats for backward compatibility
                 if (!isset($tellerGameTypeStats[$teller])) {
                     $tellerGameTypeStats[$teller] = [
@@ -298,34 +298,34 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
                         'game_types' => array_fill_keys(array_keys($gameTypes), 0),
                     ];
                 }
-                
+
                 // Count total bets by teller
                 $locationStats[$locationId]['tellers'][$tellerId]['total']++;
                 $tellerGameTypeStats[$teller]['total']++;
-                
+
                 // Check if this bet is a hit (only if draw has results)
                 $isHit = false;
                 if ($draw->result) {
                     $gameTypeCode = $bet->gameType ? $bet->gameType->code : null;
                     $result = $draw->result;
-                    
+
                     // Optimized hit detection logic
                     switch ($gameTypeCode) {
                         case 'S2':
                             $isHit = $bet->bet_number === $result->s2_winning_number;
                             break;
-                            
+
                         case 'S3':
                             $isHit = $bet->bet_number === $result->s3_winning_number;
                             break;
-                            
+
                         case 'D4':
                             // First check exact D4 match
                             if ($bet->bet_number === $result->d4_winning_number) {
                                 $isHit = true;
                                 break;
                             }
-                            
+
                             // Then check D4 sub-selections if applicable
                             if ($bet->d4_sub_selection && $result->d4_winning_number) {
                                 $sub = strtoupper($bet->d4_sub_selection);
@@ -337,26 +337,26 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
                             }
                             break;
                     }
-                    
+
                     if ($isHit) {
                         $totalHits++;
                         $totalWinAmount += $bet->winning_amount;
-                        
+
                         // Convert gameType to lowercase for consistent array keys
                         $gameTypeKey = strtolower($gameType);
-                        
+
                         // Count hits by location
                         $locationStats[$locationId]['total_hits']++;
                         if (isset($locationStats[$locationId]['game_types'][$gameTypeKey])) {
                             $locationStats[$locationId]['game_types'][$gameTypeKey]++;
                         }
-                        
+
                         // Count hits by teller within location
                         $locationStats[$locationId]['tellers'][$tellerId]['total_hits']++;
                         if (isset($locationStats[$locationId]['tellers'][$tellerId]['game_types'][$gameTypeKey])) {
                             $locationStats[$locationId]['tellers'][$tellerId]['game_types'][$gameTypeKey]++;
                         }
-                        
+
                         // Count hits in flat teller array (for backward compatibility)
                         $tellerGameTypeStats[$teller]['total_hits']++;
                         if (isset($tellerGameTypeStats[$teller]['game_types'][$gameTypeKey])) {
@@ -376,7 +376,7 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
             'location_stats' => $locationStats,
             'game_types' => $gameTypes,
         ];
-        
+
         // Reset computing flag
         $this->computingStats = false;
     }
@@ -388,7 +388,7 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
     {
         return $table
             ->query(Draw::query()->with('result'))
-            
+
             ->headerActions([
                 CreateAction::make('addDraw')
                     ->label('Add Draw')
@@ -482,7 +482,7 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
                             if (!$data['draw_date']) {
                                 return null;
                             }
-                            
+
                             return 'Date: ' . date('F j, Y', strtotime($data['draw_date']));
                         })
                         ->query(fn($query, $data) => $query->when($data['draw_date'] ?? null, fn($q, $date) => $q->where('draw_date', $date))),
@@ -538,14 +538,32 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
                             ->send();
                     }),
                 Tables\Actions\ActionGroup::make([
-                    Action::make('edit')
-                        ->icon('heroicon-o-pencil-square')
+                    Tables\Actions\EditAction::make('edit')
                         ->label('Manage Draw')
                         ->tooltip('Manage Draw, Bet Ratios, Low Winning Numbers & Result')
                         ->modalWidth(MaxWidth::SevenExtraLarge)
                         ->modalHeading('Manage Draw')
                         ->modalSubmitActionLabel('Save Changes')
-                        ->form(fn(Draw $record) => [
+                        ->successNotificationTitle('Draw Updated Successfully')
+                        ->beforeFormFilled(function (\App\Models\Draw $record) {
+                            // Eager load relationships before filling the form
+                            $record->load(['betRatios', 'lowWinNumbers', 'result']);
+                        })
+                        ->mutateRecordDataUsing(function (array $data, \App\Models\Draw $record) {
+                            // Add related data to the form data
+                            $data['betRatios'] = $record->betRatios->toArray();
+                            $data['lowWinNumbers'] = $record->lowWinNumbers->toArray();
+                            
+                            // Add result data if available
+                            if ($record->result) {
+                                $data['s2_winning_number'] = $record->result->s2_winning_number;
+                                $data['s3_winning_number'] = $record->result->s3_winning_number;
+                                $data['d4_winning_number'] = $record->result->d4_winning_number;
+                            }
+                            
+                            return $data;
+                        })
+                        ->form([
                             Section::make('Draw Details')
                                 ->schema([
                                     Tabs::make('Edit Draw')->tabs([
@@ -555,7 +573,6 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
                                                     DatePicker::make('draw_date')
                                                         ->label('Draw Date')
                                                         ->required()
-                                                        ->default($record->draw_date)
                                                         ->disabled()
                                                         ->dehydrated()
                                                         ->helperText('Draw date cannot be modified after creation'),
@@ -573,17 +590,14 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
                                                         ->required()
                                                         ->disabled()
                                                         ->dehydrated()
-                                                        ->default($record->draw_time)
                                                         ->helperText('Draw time cannot be modified after creation'),
                                                 ]),
                                                 Toggle::make('is_open')
                                                     ->required()
-                                                    ->default($record->is_open)
                                                     ->live()
                                                     ->helperText('Note: Winning numbers can only be entered after the draw is closed.'),
                                                 Toggle::make('is_active')
                                                     ->label('Active')
-                                                    ->default($record->is_active)
                                                     ->helperText('Hide this draw from dropdowns and betting screens without deleting.'),
                                             ]),
                                         Tabs\Tab::make('Bet Ratios')
@@ -592,7 +606,7 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
                                                     ->label('Bet Ratios')
                                                     ->relationship('betRatios')
                                                     ->schema([
-                                                        Grid::make(4)->schema([
+                                                        Grid::make(5)->schema([
                                                             Select::make('location_id')
                                                                 ->label('Location')
                                                                 ->relationship('location', 'name')
@@ -600,12 +614,24 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
                                                             Select::make('game_type_id')
                                                                 ->label('Game Type')
                                                                 ->relationship('gameType', 'name')
-                                                                ->required(),
+                                                                ->required()
+                                                                ->live(),
                                                             TextInput::make('bet_number')
                                                                 ->label('Bet Number')
                                                                 ->required(),
+                                                            Select::make('sub_selection')
+                                                                ->label('Subtype (for D4 only)')
+                                                                ->options([
+                                                                    'S2' => 'D4-S2 (Last 2 digits)',
+                                                                    'S3' => 'D4-S3 (Last 3 digits)',
+                                                                ])
+                                                                ->placeholder('None (Regular number)')
+                                                                ->helperText('For D4 numbers, you can specify a subtype')
+                                                                ->visible(fn (callable $get) => \App\Models\GameType::find($get('game_type_id'))?->code === 'D4')
+                                                                ->nullable(),
                                                             TextInput::make('max_amount')
                                                                 ->label('Max Amount')
+                                                                ->helperText('Set to 0 to mark as sold out')
                                                                 ->numeric()
                                                                 ->required(),
                                                         ])
@@ -644,59 +670,125 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
                                                     ->columnSpanFull()
                                             ]),
                                         Tabs\Tab::make('Winning Numbers')
-                                            ->hidden(fn ($get) => $get('is_open') === true)
+                                            ->hidden(function (callable $get) {
+                                                return $get('is_open') === true;
+                                            })
                                             ->schema([
                                                 Grid::make(3)->schema([
                                                     TextInput::make('s2_winning_number')
                                                         ->label('2-Digit (S2)')
                                                         ->mask('99')
-                                                        ->nullable()
-                                                        ->default(optional($record->result)->s2_winning_number),
+                                                        ->nullable(),
                                                     TextInput::make('s3_winning_number')
                                                         ->label('3-Digit (S3)')
                                                         ->mask('999')
-                                                        ->nullable()
-                                                        ->default(optional($record->result)->s3_winning_number),
+                                                        ->nullable(),
                                                     TextInput::make('d4_winning_number')
                                                         ->label('4-Digit (D4)')
                                                         ->mask('9999')
-                                                        ->nullable()
-                                                        ->default(optional($record->result)->d4_winning_number),
+                                                        ->nullable(),
                                                 ])
                                             ])
                                     ])
                                 ])
                         ])
-                        ->action(function (Draw $record, array $data) {
-                            // Update the draw record
-                            $record->update([
-                                'draw_date' => $data['draw_date'],
-                                'draw_time' => $data['draw_time'],
-                                'is_open' => $data['is_open'],
-                                'is_active' => $data['is_active'],
-                            ]);
-                            // Save betRatios and lowWinNumbers if present
-                            if (isset($data['betRatios'])) {
-                                $record->betRatios()->delete();
-                                foreach ($data['betRatios'] as $ratio) {
-                                    $record->betRatios()->create($ratio);
-                                }
-                            }
-                            if (isset($data['lowWinNumbers'])) {
-                                $record->lowWinNumbers()->delete();
-                                foreach ($data['lowWinNumbers'] as $low) {
-                                    $record->lowWinNumbers()->create($low);
-                                }
-                            }
-                            // Save winning numbers if present and draw is closed
-                            if (!$data['is_open'] && isset($data['s2_winning_number']) || isset($data['s3_winning_number']) || isset($data['d4_winning_number'])) {
-                                $record->result()->updateOrCreate([], [
-                                    's2_winning_number' => $data['s2_winning_number'] ?? null,
-                                    's3_winning_number' => $data['s3_winning_number'] ?? null,
-                                    'd4_winning_number' => $data['d4_winning_number'] ?? null,
+                        ->using(function (Draw $record, array $data) {
+                            try {
+                                // Update the draw record
+                                $record->update([
                                     'draw_date' => $data['draw_date'],
                                     'draw_time' => $data['draw_time'],
+                                    'is_open' => $data['is_open'],
+                                    'is_active' => $data['is_active'],
                                 ]);
+                                
+                                // Save betRatios if present
+                                if (isset($data['betRatios'])) {
+                                    // Get existing bet ratio IDs to determine which ones to keep
+                                    $existingRatioIds = $record->betRatios->pluck('id')->toArray();
+                                    $updatedRatioIds = [];
+                                    
+                                    foreach ($data['betRatios'] as $ratio) {
+                                        if (isset($ratio['id'])) {
+                                            // Update existing ratio
+                                            $betRatio = \App\Models\BetRatio::find($ratio['id']);
+                                            if ($betRatio) {
+                                                $betRatio->update($ratio);
+                                                $updatedRatioIds[] = $betRatio->id;
+                                            }
+                                        } else {
+                                            // Create new ratio
+                                            $newRatio = $record->betRatios()->create($ratio);
+                                            $updatedRatioIds[] = $newRatio->id;
+                                        }
+                                    }
+                                    
+                                    // Delete ratios that weren't updated or created
+                                    $ratiosToDelete = array_diff($existingRatioIds, $updatedRatioIds);
+                                    if (!empty($ratiosToDelete)) {
+                                        \App\Models\BetRatio::whereIn('id', $ratiosToDelete)->delete();
+                                    }
+                                }
+                                
+                                // Save lowWinNumbers if present
+                                if (isset($data['lowWinNumbers'])) {
+                                    // Get existing low win number IDs to determine which ones to keep
+                                    $existingLowWinIds = $record->lowWinNumbers->pluck('id')->toArray();
+                                    $updatedLowWinIds = [];
+                                    
+                                    foreach ($data['lowWinNumbers'] as $low) {
+                                        if (isset($low['id'])) {
+                                            // Update existing low win number
+                                            $lowWin = \App\Models\LowWinNumber::find($low['id']);
+                                            if ($lowWin) {
+                                                $lowWin->update($low);
+                                                $updatedLowWinIds[] = $lowWin->id;
+                                            }
+                                        } else {
+                                            // Create new low win number
+                                            $newLowWin = $record->lowWinNumbers()->create($low);
+                                            $updatedLowWinIds[] = $newLowWin->id;
+                                        }
+                                    }
+                                    
+                                    // Delete low win numbers that weren't updated or created
+                                    $lowWinsToDelete = array_diff($existingLowWinIds, $updatedLowWinIds);
+                                    if (!empty($lowWinsToDelete)) {
+                                        \App\Models\LowWinNumber::whereIn('id', $lowWinsToDelete)->delete();
+                                    }
+                                }
+                                
+                                // Save winning numbers if present and draw is closed
+                                if (!$data['is_open'] && (isset($data['s2_winning_number']) || isset($data['s3_winning_number']) || isset($data['d4_winning_number']))) {
+                                    $record->result()->updateOrCreate([], [
+                                        's2_winning_number' => $data['s2_winning_number'] ?? null,
+                                        's3_winning_number' => $data['s3_winning_number'] ?? null,
+                                        'd4_winning_number' => $data['d4_winning_number'] ?? null,
+                                        'draw_date' => $data['draw_date'],
+                                        'draw_time' => $data['draw_time'],
+                                    ]);
+                                }
+                                
+                                // Refresh the record to get the latest data
+                                $record->refresh();
+                                
+                                // Add a success notification with details
+                                \Filament\Notifications\Notification::make()
+                                    ->success()
+                                    ->title('Draw Updated Successfully')
+                                    ->body('Draw for ' . $record->draw_date->format('M d, Y') . ' at ' . $record->draw_time . ' has been updated.')
+                                    ->send();
+                                
+                                return $record;
+                            } catch (\Exception $e) {
+                                // Handle any errors
+                                \Filament\Notifications\Notification::make()
+                                    ->danger()
+                                    ->title('Error Updating Draw')
+                                    ->body('An error occurred: ' . $e->getMessage())
+                                    ->send();
+                                    
+                                throw $e;
                             }
                         }),
                     DeleteAction::make()
@@ -719,10 +811,10 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
         // This will force Filament to re-query the table data
         $this->resetTable();
     }
-    
+
     /**
      * Handle the refresh event
-     * 
+     *
      * @return void
      */
     #[On('refresh')]

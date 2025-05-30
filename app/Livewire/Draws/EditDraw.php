@@ -92,7 +92,7 @@ class EditDraw extends Component implements Forms\Contracts\HasForms
                     Repeater::make('betRatios')
                         ->label('Bet Ratios')
                         ->schema([
-                            Grid::make(4)->schema([
+                            Grid::make(5)->schema([
                                 Select::make('location_id')
                                     ->label('Location')
                                     ->relationship('location', 'name')
@@ -100,12 +100,24 @@ class EditDraw extends Component implements Forms\Contracts\HasForms
                                 Select::make('game_type_id')
                                     ->label('Game Type')
                                     ->relationship('gameType', 'name')
-                                    ->required(),
+                                    ->required()
+                                    ->live(),
                                 TextInput::make('bet_number')
                                     ->label('Bet Number')
                                     ->required(),
+                                Select::make('sub_selection')
+                                    ->label('Subtype (for D4 only)')
+                                    ->options([
+                                        'S2' => 'D4-S2 (Last 2 digits)',
+                                        'S3' => 'D4-S3 (Last 3 digits)',
+                                    ])
+                                    ->placeholder('None (Regular number)')
+                                    ->helperText('For D4 numbers, you can specify a subtype')
+                                    ->visible(fn (callable $get) => \App\Models\GameType::find($get('game_type_id'))?->code === 'D4')
+                                    ->nullable(),
                                 TextInput::make('max_amount')
                                     ->label('Max Amount')
+                                    ->helperText('Set to 0 to mark as sold out')
                                     ->numeric()
                                     ->required(),
                             ])

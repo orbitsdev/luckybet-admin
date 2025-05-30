@@ -1,7 +1,7 @@
 <div>
     <x-admin>
         <div class="flex justify-between items-center mb-4">
-            <span class="text-lg font-medium text-gray-700">Bet Ratios: 
+            <span class="text-lg font-medium text-gray-700">Bet Ratios:
                 <span class="ml-2 inline-block bg-primary-100 text-primary-800 text-lg font-semibold px-2.5 py-0.5 rounded">
                     {{ \Carbon\Carbon::parse($this->filterDate)->format('F j, Y') }}
                 </span>
@@ -22,7 +22,7 @@
                     <div class="text-2xl font-bold text-gray-800">{{ number_format($ratioStats['total_ratios'] ?? 0) }}</div>
                 </div>
             </div>
-            
+
             <!-- Total Max Amount -->
             <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
                 <div class="flex items-center justify-center mb-2">
@@ -50,7 +50,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Most Common Game Type -->
             <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
                 <div class="flex items-center justify-center mb-2">
@@ -77,7 +77,7 @@
             </div>
         </div>
 
-        <!-- Main content section with table and detailed stats side by side -->
+        {{-- <!-- Main content section with table and detailed stats side by side -->
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
             <!-- Left column: Detailed Statistics -->
             <div class="lg:col-span-1">
@@ -175,8 +175,8 @@
                     </div>
                 </div>
                 @endif
-            </div>
-            
+            </div> --}}
+
             <!-- Right column: Bet Ratios table -->
             <div class="lg:col-span-4">
                 <div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">

@@ -41,7 +41,7 @@ class DatabaseSeeder extends Seeder
 
             // 6. Create draws (past, current, and future)
             // DrawSeeder::class,
-            
+
             // 7. Create test data for reports (draws, bets, and results)
             ReportTestSeeder::class,
 
