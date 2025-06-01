@@ -545,6 +545,46 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
                         ->tooltip('View detailed information about this draw')
                         ->url(fn (Draw $record) => route('manage.draws.view', ['draw' => $record->id]))
                         ->openUrlInNewTab(false),
+                    Action::make('viewBetRatios')
+                        ->label('View Bet Ratios')
+                        ->icon('heroicon-o-currency-dollar')
+                        ->color('success')
+                        ->tooltip('View bet ratios for this draw')
+                        ->modalHeading(fn (Draw $record) => 'Bet Ratios - ' . $record->draw_date->format('M d, Y') . ' at ' . $record->draw_time)
+                        ->modalContent(function (Draw $record) {
+                            return view('livewire.draws.partials.bet-ratios-modal', ['draw' => $record->load('betRatios.gameType')]);
+                        })
+                        ->modalWidth('4xl')
+                        ->modalSubmitAction(false)
+                        ->modalCancelAction(fn ($action) => $action->label('Close'))
+                        ->disabledForm(),
+                    Action::make('viewLowWinNumbers')
+                        ->label('View Low Win Numbers')
+                        ->icon('heroicon-o-chart-pie')
+                        ->color('success')
+                        ->tooltip('View low win numbers for this draw')
+                        ->modalHeading(fn (Draw $record) => 'Low Win Numbers - ' . $record->draw_date->format('M d, Y') . ' at ' . $record->draw_time)
+                        ->modalContent(function (Draw $record) {
+                            return view('livewire.draws.partials.low-win-numbers-modal', ['draw' => $record->load('lowWinNumbers.gameType')]);
+                        })
+                        ->modalWidth('3xl')
+                        ->modalSubmitAction(false)
+                        ->modalCancelAction(fn ($action) => $action->label('Close'))
+                        ->disabledForm(),
+                    Action::make('viewWinningNumbers')
+                        ->label('View Winning Numbers')
+                        ->icon('heroicon-o-trophy')
+                        ->color('success')
+                        ->tooltip('View winning numbers for this draw')
+                        ->visible(fn (Draw $record) => $record->result()->exists())
+                        ->modalHeading(fn (Draw $record) => 'Winning Numbers - ' . $record->draw_date->format('M d, Y') . ' at ' . $record->draw_time)
+                        ->modalContent(function (Draw $record) {
+                            return view('livewire.draws.partials.winning-numbers-modal', ['draw' => $record->load('result')]);
+                        })
+                        ->modalWidth('md')
+                        ->modalSubmitAction(false)
+                        ->modalCancelAction(fn ($action) => $action->label('Close'))
+                        ->disabledForm(),
                     Action::make('edit')
                         ->label('Manage Draw')
                         ->icon('heroicon-o-pencil')
