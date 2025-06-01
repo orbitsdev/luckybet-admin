@@ -35,7 +35,8 @@ class Bet extends Model
         'is_combination',
         'd4_sub_selection',
         'commission_rate',
-        'commission_amount'
+        'commission_amount',
+        'receipt_id'
     ];
 
     protected $casts = [
@@ -84,6 +85,11 @@ class Bet extends Model
     public function commission()
     {
         return $this->hasOne(Commission::class, 'bet_id');
+    }
+
+    public function receipt()
+    {
+        return $this->belongsTo(Receipt::class);
     }
 
     /**
