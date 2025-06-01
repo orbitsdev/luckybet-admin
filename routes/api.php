@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\GameTypeController;
 use App\Http\Controllers\Api\CoordinatorReportController;
 use App\Http\Controllers\Api\DropdownController;
 use App\Http\Controllers\Api\TellerReportController;
+use App\Http\Controllers\Api\ReceiptController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -37,6 +38,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/betting/claim-ticket/{ticket_id}', [BettingController::class, 'claimByTicketId']);
     Route::get('/betting/claimed', [BettingController::class, 'listClaimedBets']);
     Route::get('/betting/hits', [BettingController::class, 'listHitBets']);
+
+    // Receipt API (Cart System)
+    Route::get('/receipts/draft', [ReceiptController::class, 'getDraft']);
+    Route::get('/receipts', [ReceiptController::class, 'index']);
+    Route::get('/receipts/{receipt}', [ReceiptController::class, 'show']);
+    Route::post('/receipts/{receipt}/bets', [ReceiptController::class, 'addBet']);
+    Route::delete('/receipts/{receipt}/bets/{bet}', [ReceiptController::class, 'removeBet']);
+    Route::put('/receipts/{receipt}/bets/{bet}', [ReceiptController::class, 'updateBet']);
+    Route::post('/receipts/{receipt}/place', [ReceiptController::class, 'placeReceipt']);
+    Route::post('/receipts/{receipt}/cancel', [ReceiptController::class, 'cancelReceipt']);
 
 
     // Reports
