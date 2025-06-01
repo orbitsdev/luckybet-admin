@@ -1,5 +1,5 @@
 <div>
-  
+
 <div x-data="{
     sidebarOpen: true,
     usersOpen: true,
@@ -160,26 +160,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
                             </svg>
                         </button>
-                        <div x-cloak x-show="usersOpen" class="pl-6 mt-1 space-y-1">
-                            <a href="#"
-                                class="group flex items-center px-4 py-2.5 text-sm text-gray-600 rounded-md nav-item hover:pl-5 transition-all duration-200">
-                                <span
-                                    class="w-1.5 h-1.5 rounded-full opacity-0 group-hover:opacity-100 bg-primary-500 mr-3 transition-all duration-200"></span>
-                                <span class="font-medium">Coordinators</span>
-                            </a>
-                            <a href="#"
-                                class="group flex items-center px-4 py-2.5 text-sm text-gray-600 rounded-md nav-item hover:pl-5 transition-all duration-200">
-                                <span
-                                    class="w-1.5 h-1.5 rounded-full opacity-0 group-hover:opacity-100 bg-primary-500 mr-3 transition-all duration-200"></span>
-                                <span class="font-medium">Tellers</span>
-                            </a>
-                            <a href="#"
-                                class="group flex items-center px-4 py-2.5 text-sm text-gray-600 rounded-md nav-item hover:pl-5 transition-all duration-200">
-                                <span
-                                    class="w-1.5 h-1.5 rounded-full opacity-0 group-hover:opacity-100 bg-primary-500 mr-3 transition-all duration-200"></span>
-                                <span class="font-medium">Customers</span>
-                            </a>
-                        </div>
+
                     </div>
 
                     <!-- Reports Dropdown -->
@@ -315,20 +296,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
                             </svg>
                         </button>
-                        <div x-show="usersOpen" x-collapse class=" rounded-lg mt-2 mb-2 p-2 space-y-2">
-                            <a href="#"
-                                class="block pl-12 pr-5 py-2.5 text-gray-600 rounded-lg nav-item border-l-4 border-primary-400 bg-gray-50">
-                                Coordinators
-                            </a>
-                            <a href="#"
-                                class="block pl-12 pr-5 py-2.5 text-gray-600 rounded-lg nav-item border-l-4 border-primary-400 bg-gray-50">
-                                Tellers
-                            </a>
-                            <a href="#"
-                                class="block pl-12 pr-5 py-2.5 text-gray-600 rounded-lg nav-item border-l-4 border-primary-400 bg-gray-50">
-                                Customers
-                            </a>
-                        </div>
+                       
                     </div>
 
                     <!-- Reports Dropdown -->
