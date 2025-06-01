@@ -17,8 +17,8 @@
                         <span class="text-2xl font-bold text-red-600 audiowide-regular">LUCKY<span class="text-gray-800">BET</span></span>
                     </div> --}}
 
-                    <a href="#"
-                        class="group flex items-center px-5 py-3.5 rounded-lg font-bold text-base text-gray-700 nav-item active">
+                    <a href="{{ route('dashboard') }}"
+                        class="group flex items-center px-5 py-3.5 rounded-lg font-bold text-base text-gray-700 nav-item {{ request()->routeIs('dashboard') ? 'bg-gradient-to-r from-red-50 to-red-100' : '' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                             stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-3">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -29,8 +29,8 @@
 
                     <!-- Users Dropdown -->
                     <div class="space-y-1 mt-4 mb-4">
-                        <button @click="usersOpen = !usersOpen; console.log('Users dropdown toggled:', usersOpen)"
-                            class="group w-full flex items-center justify-between px-5 py-3.5 rounded-lg text-base text-gray-700 nav-item hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-200">
+                        <button @click.prevent="usersOpen = !usersOpen; console.log('Users dropdown toggled:', usersOpen)"
+                            class="group w-full flex items-center justify-between px-5 py-3.5 rounded-lg text-base text-gray-700 nav-item {{ request()->routeIs('manage.users*') ? 'bg-gradient-to-r from-red-50 to-red-100' : 'hover:bg-red-50' }} focus:outline-none focus:ring-2 focus:ring-red-200">
                             <div class="flex items-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                     stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-3">
@@ -47,22 +47,22 @@
                             </svg>
                         </button>
                         <div x-cloak x-show="usersOpen" class="pl-6 mt-1 space-y-1">
-                            <a href="#"
-                                class="group flex items-center px-4 py-2.5 text-sm text-gray-600 rounded-md nav-item hover:pl-5 transition-all duration-200">
+                            <a href="{{ route('manage.users') }}?filter=coordinator"
+                                class="group flex items-center px-4 py-2.5 text-sm rounded-md nav-item hover:pl-5 transition-all duration-200 {{ request()->routeIs('manage.users') && request()->query('filter') == 'coordinator' ? 'text-gray-600' : 'text-gray-600' }}">
                                 <span
-                                    class="w-1.5 h-1.5 rounded-full opacity-0 group-hover:opacity-100 bg-primary-500 mr-3 transition-all duration-200"></span>
+                                    class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('manage.users') && request()->query('filter') == 'coordinator' ? 'opacity-100 bg-red-500' : 'opacity-0 group-hover:opacity-100 bg-primary-500' }} mr-3 transition-all duration-200"></span>
                                 <span class="font-medium">Coordinators</span>
                             </a>
-                            <a href="#"
-                                class="group flex items-center px-4 py-2.5 text-sm text-gray-600 rounded-md nav-item hover:pl-5 transition-all duration-200">
+                            <a href="{{ route('manage.users') }}?filter=teller"
+                                class="group flex items-center px-4 py-2.5 text-sm rounded-md nav-item hover:pl-5 transition-all duration-200 {{ request()->routeIs('manage.users') && request()->query('filter') == 'teller' ? 'text-gray-600' : 'text-gray-600' }}">
                                 <span
-                                    class="w-1.5 h-1.5 rounded-full opacity-0 group-hover:opacity-100 bg-primary-500 mr-3 transition-all duration-200"></span>
+                                    class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('manage.users') && request()->query('filter') == 'teller' ? 'opacity-100 bg-red-500' : 'opacity-0 group-hover:opacity-100 bg-primary-500' }} mr-3 transition-all duration-200"></span>
                                 <span class="font-medium">Tellers</span>
                             </a>
-                            <a href="#"
-                                class="group flex items-center px-4 py-2.5 text-sm text-gray-600 rounded-md nav-item hover:pl-5 transition-all duration-200">
+                            <a href="{{ route('manage.users') }}?filter=customer"
+                                class="group flex items-center px-4 py-2.5 text-sm rounded-md nav-item hover:pl-5 transition-all duration-200 {{ request()->routeIs('manage.users') && request()->query('filter') == 'customer' ? 'text-gray-600' : 'text-gray-600' }}">
                                 <span
-                                    class="w-1.5 h-1.5 rounded-full opacity-0 group-hover:opacity-100 bg-primary-500 mr-3 transition-all duration-200"></span>
+                                    class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('manage.users') && request()->query('filter') == 'customer' ? 'opacity-100 bg-red-500' : 'opacity-0 group-hover:opacity-100 bg-primary-500' }} mr-3 transition-all duration-200"></span>
                                 <span class="font-medium">Customers</span>
                             </a>
                         </div>
@@ -71,8 +71,8 @@
                     <!-- Reports Dropdown -->
                     <div class="space-y-1 mt-4">
                         <button
-                            @click="reportsOpen = !reportsOpen; console.log('Reports dropdown toggled:', reportsOpen)"
-                            class="group w-full flex items-center justify-between px-5 py-3.5 rounded-lg text-base text-gray-700 nav-item hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-200">
+                            @click.prevent="reportsOpen = !reportsOpen; console.log('Reports dropdown toggled:', reportsOpen)"
+                            class="group w-full flex items-center justify-between px-5 py-3.5 rounded-lg text-base text-gray-700 nav-item {{ request()->routeIs('reports.*') ? 'bg-gradient-to-r from-red-50 to-red-100' : 'hover:bg-red-50' }} focus:outline-none focus:ring-2 focus:ring-red-200">
                             <div class="flex items-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                     stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-3">
@@ -89,22 +89,22 @@
                             </svg>
                         </button>
                         <div x-cloak x-show="reportsOpen" class="pl-6 mt-1 space-y-1">
-                            <a href="#"
-                                class="group flex items-center px-4 py-2.5 text-sm text-gray-600 rounded-md nav-item hover:pl-5 transition-all duration-200">
+                            <a href="{{ route('reports.summary') }}"
+                                class="group flex items-center px-4 py-2.5 text-sm rounded-md nav-item hover:pl-5 transition-all duration-200 {{ request()->routeIs('reports.summary') ? 'bg-gradient-to-r from-red-50 to-red-100' : 'text-gray-600' }}">
                                 <span
-                                    class="w-1.5 h-1.5 rounded-full opacity-0 group-hover:opacity-100 bg-primary-500 mr-3 transition-all duration-200"></span>
+                                    class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('reports.summary') ? 'opacity-100 bg-red-500' : 'opacity-0 group-hover:opacity-100 bg-primary-500' }} mr-3 transition-all duration-200"></span>
                                 <span class="font-medium">Coordinator Report</span>
                             </a>
-                            <a href="#"
-                                class="group flex items-center px-4 py-2.5 text-sm text-gray-600 rounded-md nav-item hover:pl-5 transition-all duration-200">
+                            <a href="{{ route('reports.tellers') }}"
+                                class="group flex items-center px-4 py-2.5 text-sm rounded-md nav-item hover:pl-5 transition-all duration-200 {{ request()->routeIs('reports.tellers') ? 'bg-gradient-to-r from-red-50 to-red-100' : 'text-gray-600' }}">
                                 <span
-                                    class="w-1.5 h-1.5 rounded-full opacity-0 group-hover:opacity-100 bg-primary-500 mr-3 transition-all duration-200"></span>
+                                    class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('reports.tellers') ? 'opacity-100 bg-red-500' : 'opacity-0 group-hover:opacity-100 bg-primary-500' }} mr-3 transition-all duration-200"></span>
                                 <span class="font-medium">Teller Report</span>
                             </a>
-                            <a href="#"
-                                class="group flex items-center px-4 py-2.5 text-sm text-gray-600 rounded-md nav-item hover:pl-5 transition-all duration-200">
+                            <a href="{{ route('reports.tellers-summary') }}"
+                                class="group flex items-center px-4 py-2.5 text-sm rounded-md nav-item hover:pl-5 transition-all duration-200 {{ request()->routeIs('reports.tellers-summary') ? 'bg-gradient-to-r from-red-50 to-red-100' : 'text-gray-600' }}">
                                 <span
-                                    class="w-1.5 h-1.5 rounded-full opacity-0 group-hover:opacity-100 bg-primary-500 mr-3 transition-all duration-200"></span>
+                                    class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('reports.tellers-summary') ? 'opacity-100 bg-red-500' : 'opacity-0 group-hover:opacity-100 bg-primary-500' }} mr-3 transition-all duration-200"></span>
                                 <span class="font-medium">Sales Summary</span>
                             </a>
                         </div>
@@ -117,7 +117,7 @@
                     <div class="pt-1"></div>
 
                     <!-- Draw Link -->
-                    <a href="#" class="group flex items-center px-5 py-3.5 rounded-lg text-base nav-item">
+                    <a href="{{ route('manage.draws') }}" class="group flex items-center px-5 py-3.5 rounded-lg text-base nav-item {{ request()->routeIs('manage.draws*') ? 'bg-gradient-to-r from-red-50 to-red-100' : '' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                             stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-3">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -127,7 +127,7 @@
                     </a>
 
                     <!-- Bet Ratio Link -->
-                    <a href="#" class="group flex items-center px-5 py-3.5 rounded-lg text-base nav-item">
+                    <a href="{{ route('manage.bet-ratios') }}" class="group flex items-center px-5 py-3.5 rounded-lg text-base nav-item {{ request()->routeIs('manage.bet-ratios*') ? 'bg-gradient-to-r from-red-50 to-red-100' : '' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                             stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-3">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -137,7 +137,7 @@
                     </a>
 
                     <!-- Sold Out Link -->
-                    <a href="#" class="group flex items-center px-5 py-3.5 rounded-lg text-base nav-item">
+                    <a href="{{ route('manage.sold-out-numbers') }}" class="group flex items-center px-5 py-3.5 rounded-lg text-base nav-item {{ request()->routeIs('manage.sold-out-numbers*') ? 'bg-gradient-to-r from-red-50 to-red-100' : '' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                             stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-3">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -147,7 +147,7 @@
                     </a>
 
                     <!-- Low Win Link -->
-                    <a href="#" class="group flex items-center px-5 py-3.5 rounded-lg text-base nav-item">
+                    <a href="{{ route('manage.low-win-numbers') }}" class="group flex items-center px-5 py-3.5 rounded-lg text-base nav-item {{ request()->routeIs('manage.low-win-numbers*') ? 'bg-gradient-to-r from-red-50 to-red-100' : '' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                             stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-3">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14" />
@@ -172,8 +172,8 @@
                 </div> --}}
                 <nav class="px-3 border-red-400 py-4 border-t-4 ">
                     <!-- Dashboard Link -->
-                    <a href="#"
-                        class="group flex items-center px-6 py-4 rounded-lg font-bold text-base text-gray-700 nav-item active relative bg-red-50">
+                    <a href="{{ route('dashboard') }}"
+                        class="group flex items-center px-6 py-4 rounded-lg font-bold text-base text-gray-700 nav-item relative {{ request()->routeIs('dashboard') ? 'bg-gradient-to-r from-red-50 to-red-100' : '' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                             stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-3">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -184,8 +184,8 @@
 
                     <!-- Users Dropdown -->
                     <div class="space-y-1 mt-4">
-                        <button @click="usersOpen = !usersOpen"
-                            class="group w-full flex items-center justify-between px-6 py-4 rounded-lg text-base text-gray-700 nav-item focus:outline-none focus:ring-2 focus:ring-red-200">
+                        <button @click.prevent="usersOpen = !usersOpen"
+                            class="group w-full flex items-center justify-between px-6 py-4 rounded-lg text-base text-gray-700 nav-item {{ request()->routeIs('manage.users*') ? 'bg-gradient-to-r from-red-50 to-red-100' : '' }} focus:outline-none focus:ring-2 focus:ring-red-200">
                             <div class="flex items-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                     stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-3">
@@ -202,16 +202,16 @@
                             </svg>
                         </button>
                         <div x-show="usersOpen" x-collapse class=" rounded-lg mt-2 mb-2 p-2 space-y-2">
-                            <a href="#"
-                                class="block pl-12 pr-5 py-2.5 text-gray-600 rounded-lg nav-item border-l-4 border-primary-400 bg-gray-50">
+                            <a href="{{ route('manage.users') }}?filter=coordinator"
+                                class="block pl-12 pr-5 py-2.5 rounded-lg nav-item {{ request()->routeIs('manage.users') && request()->query('filter') == 'coordinator' ? 'bg-gradient-to-r from-red-50 to-red-100' : 'text-gray-600 border-l-4 border-primary-400 bg-gray-50' }}">
                                 Coordinators
                             </a>
-                            <a href="#"
-                                class="block pl-12 pr-5 py-2.5 text-gray-600 rounded-lg nav-item border-l-4 border-primary-400 bg-gray-50">
+                            <a href="{{ route('manage.users') }}?filter=teller"
+                                class="block pl-12 pr-5 py-2.5 rounded-lg nav-item {{ request()->routeIs('manage.users') && request()->query('filter') == 'teller' ? 'bg-gradient-to-r from-red-50 to-red-100' : 'text-gray-600 border-l-4 border-primary-400 bg-gray-50' }}">
                                 Tellers
                             </a>
-                            <a href="#"
-                                class="block pl-12 pr-5 py-2.5 text-gray-600 rounded-lg nav-item border-l-4 border-primary-400 bg-gray-50">
+                            <a href="{{ route('manage.users') }}?filter=customer"
+                                class="block pl-12 pr-5 py-2.5 rounded-lg nav-item {{ request()->routeIs('manage.users') && request()->query('filter') == 'customer' ? 'bg-gradient-to-r from-red-50 to-red-100' : 'text-gray-600 border-l-4 border-primary-400 bg-gray-50' }}">
                                 Customers
                             </a>
                         </div>
@@ -219,8 +219,8 @@
 
                     <!-- Reports Dropdown -->
                     <div class="space-y-1 mt-4">
-                        <button @click="reportsOpen = !reportsOpen"
-                            class="group w-full flex items-center justify-between px-6 py-4 rounded-lg text-base text-gray-700 nav-item focus:outline-none focus:ring-2 focus:ring-red-200">
+                        <button @click.prevent="reportsOpen = !reportsOpen"
+                            class="group w-full flex items-center justify-between px-6 py-4 rounded-lg text-base text-gray-700 nav-item {{ request()->routeIs('reports.*') ? 'bg-gradient-to-r from-red-50 to-red-100' : '' }} focus:outline-none focus:ring-2 focus:ring-red-200">
                             <div class="flex items-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                     stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-3">
@@ -237,16 +237,16 @@
                             </svg>
                         </button>
                         <div x-show="reportsOpen" x-collapse class=" rounded-lg mt-2 mb-2 p-2 space-y-2">
-                            <a href="#"
-                                class="block pl-12 pr-5 py-2.5 text-gray-600 rounded-lg nav-item border-l-4 border-primary-400 bg-gray-50">
+                            <a href="{{ route('reports.summary') }}"
+                                class="block pl-12 pr-5 py-2.5 rounded-lg nav-item {{ request()->routeIs('reports.summary') ? 'bg-gradient-to-r from-red-50 to-red-100' : 'hover:bg-red-50 bg-gray-50' }}">
                                 Coordinator Report
                             </a>
-                            <a href="#"
-                                class="block pl-12 pr-5 py-2.5 text-gray-600 rounded-lg nav-item border-l-4 border-primary-400 bg-gray-50">
+                            <a href="{{ route('reports.tellers') }}"
+                                class="block pl-12 pr-5 py-2.5 rounded-lg nav-item {{ request()->routeIs('reports.tellers') ? 'bg-gradient-to-r from-red-50 to-red-100' : 'hover:bg-red-50 bg-gray-50' }}">
                                 Teller Report
                             </a>
-                            <a href="#"
-                                class="block pl-12 pr-5 py-2.5 text-gray-600 rounded-lg nav-item border-l-4 border-primary-400 bg-gray-50">
+                            <a href="{{ route('reports.tellers-summary') }}"
+                                class="block pl-12 pr-5 py-2.5 rounded-lg nav-item {{ request()->routeIs('reports.tellers-summary') ? 'bg-gradient-to-r from-red-50 to-red-100' : 'hover:bg-red-50 bg-gray-50' }}">
                                 Sales Summary
                             </a>
                         </div>
@@ -256,8 +256,8 @@
                         MANAGEMENT</h3>
 
                     <!-- Draws Link -->
-                    <a href="#"
-                        class="group flex items-center px-6 py-4 rounded-lg text-base text-gray-700 hover:text-red-600 hover:bg-red-50 hover:border-l-4 hover:border-red-500 transition-all duration-300 ease-in-out nav-item">
+                    <a href="{{ route('manage.draws') }}"
+                        class="group flex items-center px-6 py-4 rounded-lg text-base text-gray-700 transition-all duration-300 ease-in-out nav-item {{ request()->routeIs('manage.draws*') ? 'bg-gradient-to-r from-red-50 to-red-100' : 'hover:bg-red-50' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                             stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-3">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -267,8 +267,8 @@
                     </a>
 
                     <!-- Bet Ratio Link -->
-                    <a href="#"
-                        class="group flex items-center px-6 py-4 rounded-lg text-base text-gray-700 hover:text-red-600 hover:bg-red-50 hover:border-l-4 hover:border-red-500 transition-all duration-300 ease-in-out nav-item">
+                    <a href="{{ route('manage.bet-ratios') }}"
+                        class="group flex items-center px-6 py-4 rounded-lg text-base text-gray-700 transition-all duration-300 ease-in-out nav-item {{ request()->routeIs('manage.bet-ratios*') ? 'bg-gradient-to-r from-red-50 to-red-100' : 'hover:bg-red-50' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                             stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-3">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -278,8 +278,8 @@
                     </a>
 
                     <!-- Sold Out Link -->
-                    <a href="#"
-                        class="group flex items-center px-5 py-3.5 rounded-lg text-base text-gray-700 hover:text-red-600 hover:bg-red-50 hover:border-l-4 hover:border-red-500 transition-all duration-300 ease-in-out nav-item">
+                    <a href="{{ route('manage.sold-out-numbers') }}"
+                        class="group flex items-center px-6 py-4 rounded-lg text-base text-gray-700 transition-all duration-300 ease-in-out nav-item {{ request()->routeIs('manage.sold-out-numbers*') ? 'bg-gradient-to-r from-red-50 to-red-100' : 'hover:bg-red-50' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                             stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-3">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -289,8 +289,8 @@
                     </a>
 
                     <!-- Low Win Link -->
-                    <a href="#"
-                        class="group flex items-center px-5 py-3.5 rounded-lg text-base text-gray-700 hover:text-red-600 hover:bg-red-50 hover:border-l-4 hover:border-red-500 transition-all duration-300 ease-in-out nav-item">
+                    <a href="{{ route('manage.low-win-numbers') }}"
+                        class="group flex items-center px-6 py-4 rounded-lg text-base text-gray-700 transition-all duration-300 ease-in-out nav-item {{ request()->routeIs('manage.low-win-numbers*') ? 'bg-gradient-to-r from-red-50 to-red-100' : 'hover:bg-red-50' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                             stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-3">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14" />
