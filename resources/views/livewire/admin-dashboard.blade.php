@@ -6,42 +6,32 @@
                 <h1 class="text-2xl font-bold text-gray-800">Admin Dashboard</h1>
                 <p class="text-gray-600">Welcome to the LuckyBet Admin Dashboard</p>
             </div>
-            
+
             <!-- Date Selection UI -->
-            <div class="mt-4 md:mt-0">
-                <div class="flex items-center space-x-2">
-                    <button wire:click="setToday" class="px-3 py-1 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600 transition">
-                        Today
-                    </button>
-                    <button wire:click="setYesterday" class="px-3 py-1 bg-gray-500 text-white rounded-md text-sm hover:bg-gray-600 transition">
-                        Yesterday
-                    </button>
-                    <button wire:click="toggleDatePicker" class="px-3 py-1 bg-green-500 text-white rounded-md text-sm hover:bg-green-600 transition flex items-center">
-                        <span>{{ \Carbon\Carbon::parse($selectedDate)->format('M d, Y') }}</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                    </button>
-                </div>
-                
-                @if($showDatePicker)
-                <div class="absolute mt-2 bg-white rounded-md shadow-lg p-4 z-10">
-                    <div class="flex justify-between items-center mb-2">
-                        <h3 class="font-medium">Select Date</h3>
-                        <button wire:click="toggleDatePicker" class="text-gray-500 hover:text-gray-700">
+            <div class=" md:mt-0 flex items-center ">
+                <!-- Date Display -->
+
+
+                <!-- Date Picker -->
+                <div>
+                    <div class="relative">
+                        <input
+                            id="date-picker"
+                            type="date"
+                            wire:model.live="selectedDate"
+                            wire:change="loadStats"
+                            class="pl-3 pr-10 py-2 border-gray-300 rounded-md shadow-sm focus:outline-none focus:border-gray-400 focus:ring-0"
+                        >
+                        <button
+                            type="button"
+                            onclick="document.getElementById('date-picker').showPicker()"
+                            class="absolute right-1 top-1/2 -translate-y-1/2 bg-primary-600 text-white p-1 rounded-md hover:bg-primary-700 transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
                         </button>
                     </div>
-                    <input 
-                        type="date" 
-                        wire:model.live="selectedDate"
-                        wire:change="loadStats"
-                        class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                    >
                 </div>
-                @endif
             </div>
         </div>
 
@@ -158,7 +148,7 @@
                                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
                                                     Open
                                                 </span>
-                                            @elseif($draw->result)
+                                            @elseif($draw->is_completed)
                                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
                                                     Completed
                                                 </span>
@@ -176,7 +166,7 @@
                                             <a href="{{ route('manage.draws.edit', $draw) }}" class="text-green-500 hover:underline">Edit</a>
                                         </td>
                                     </tr>
-                                @endforeach
+                            @endforeach
                             </tbody>
                         </table>
                     </div>
@@ -242,6 +232,7 @@
                             <div class="flex items-center justify-between">
                                 <div>
                                     <p class="font-medium text-gray-700">{{ $teller->name }}</p>
+                                    <p class="text-sm text-gray-500">{{ $teller->location_name ?? 'No location' }}</p>
                                     <p class="text-sm text-gray-500">{{ number_format($teller->bet_count) }} bets</p>
                                 </div>
                                 <div class="text-right">
@@ -262,7 +253,7 @@
 
             <!-- Game Type Distribution -->
             <div class="bg-white rounded-lg shadow-md p-4">
-                <h2 class="text-lg font-semibold text-gray-800 mb-4">Game Type Distribution - {{ \Carbon\Carbon::parse($selectedDate)->format('M d, Y') }}</h2>
+                <h2 class="text-lg font-semibold text-gray-800 mb-4">Bet Type Distribution - {{ \Carbon\Carbon::parse($selectedDate)->format('M d, Y') }}</h2>
 
                 @if(count($drawStats['gameTypeDistribution']) > 0)
                     <div class="space-y-4">

@@ -27,21 +27,21 @@ class ListBets extends Component implements HasForms, HasTable
 {
     use InteractsWithForms;
     use InteractsWithTable;
-    
+
     /**
      * The currently selected filter date
      *
      * @var string|null
      */
     public $filterDate;
-    
+
     /**
      * Statistics for the bets
      *
      * @var array
      */
     public array $betStats = [];
-    
+
     /**
      * Register Livewire event listeners using Livewire 3 syntax
      */
@@ -53,32 +53,32 @@ class ListBets extends Component implements HasForms, HasTable
             'filament.table.filters.reset' => 'handleFilterReset',
         ];
     }
-    
+
     /**
      * Handle Filament table filter changes
-     * 
+     *
      * @return void
      */
     public function handleFilterChange(): void
     {
         // Get the current filter date or default to today
         $betDate = $this->tableFilters['bet_date']['value'] ?? now()->toDateString();
-        
+
         // If the filter was cleared or reset, explicitly set to today
         if (empty($betDate) || $betDate === null) {
             $betDate = now()->toDateString();
             // Update the table filter value to today as well
             $this->tableFilters['bet_date']['value'] = $betDate;
         }
-        
+
         // Update filter date and recompute stats
         $this->filterDate = $betDate;
         $this->computeBetStats();
-        
+
         // Force a refresh to ensure UI is updated
         $this->dispatch('refresh');
     }
-    
+
     /**
      * Handle explicit filter reset events
      * This is triggered when the user clicks the reset button
@@ -90,19 +90,19 @@ class ListBets extends Component implements HasForms, HasTable
         // Set filter date to today
         $today = now()->toDateString();
         $this->filterDate = $today;
-        
+
         // Update the table filter value to today
         if (isset($this->tableFilters['bet_date'])) {
             $this->tableFilters['bet_date']['value'] = $today;
         }
-        
+
         // Recompute stats with today's date
         $this->computeBetStats();
-        
+
         // Force a refresh of the component
         $this->dispatch('refresh');
     }
-    
+
     /**
      * Initialize component state
      *
@@ -114,10 +114,10 @@ class ListBets extends Component implements HasForms, HasTable
         if (!$this->filterDate) {
             $this->filterDate = now()->toDateString();
         }
-        
+
         $this->computeBetStats();
     }
-    
+
     /**
      * Compute bet statistics for the selected date
      *
@@ -128,12 +128,12 @@ class ListBets extends Component implements HasForms, HasTable
         // Use the current filter date or default to today
         $date = $this->filterDate ?: now()->format('Y-m-d');
         $this->filterDate = $date; // Ensure the property is set
-        
+
         // Query to get bet statistics - use select('*') to ensure all fields are retrieved
         $totalBets = Bet::select('*')->whereDate('bet_date', $date)->count();
         $totalAmount = Bet::select('*')->whereDate('bet_date', $date)->sum('amount');
         $totalWinningAmount = Bet::select('*')->whereDate('bet_date', $date)->sum('winning_amount');
-        
+
         // Get counts by game type - using selectRaw to include all necessary fields
         $gameTypeCounts = Bet::whereDate('bet_date', $date)
             ->join('game_types', 'bets.game_type_id', '=', 'game_types.id')
@@ -144,7 +144,7 @@ class ListBets extends Component implements HasForms, HasTable
             ->get()
             ->keyBy('code')
             ->toArray();
-        
+
         // Get counts by location - using aggregate functions that don't need the is_claimed attribute
         $locationCounts = Bet::whereDate('bet_date', $date)
             ->join('locations', 'bets.location_id', '=', 'locations.id')
@@ -155,7 +155,7 @@ class ListBets extends Component implements HasForms, HasTable
             ->get()
             ->keyBy('name')
             ->toArray();
-        
+
         // Get counts by teller - using aggregate functions that don't need the is_claimed attribute
         $tellerCounts = Bet::whereDate('bet_date', $date)
             ->join('users', 'bets.teller_id', '=', 'users.id')
@@ -166,7 +166,7 @@ class ListBets extends Component implements HasForms, HasTable
             ->get()
             ->keyBy('name')
             ->toArray();
-        
+
         $this->betStats = [
             'total_bets' => $totalBets,
             'total_amount' => $totalAmount,
@@ -176,10 +176,10 @@ class ListBets extends Component implements HasForms, HasTable
             'teller_counts' => $tellerCounts,
         ];
     }
-    
+
     /**
      * Handle the refresh event
-     * 
+     *
      * @return void
      */
     #[On('refresh')]
@@ -203,7 +203,7 @@ class ListBets extends Component implements HasForms, HasTable
                     ->time('h:i A')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('gameType.code')
-                    ->label('Game Type')
+                    ->label('Bet Type')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'S2' => 'success',
@@ -279,12 +279,12 @@ class ListBets extends Component implements HasForms, HasTable
                         if (!$data['bet_date']) {
                             return null;
                         }
-                        
+
                         return 'Date: ' . date('F j, Y', strtotime($data['bet_date']));
                     })
                     ->query(fn($query, $data) => $query->when($data['bet_date'] ?? null, fn($q, $date) => $q->whereDate('bet_date', $date))),
                 SelectFilter::make('game_type_id')
-                    ->label('Game Type')
+                    ->label('Bet Type')
                     ->relationship('gameType', 'name'),
                 SelectFilter::make('teller_id')
                     ->label('Teller')
@@ -317,7 +317,7 @@ class ListBets extends Component implements HasForms, HasTable
                     }),
             ],
              layout: FiltersLayout::AboveContent
-             
+
              )
             ->actions([
                 Tables\Actions\ViewAction::make(),
@@ -330,7 +330,7 @@ class ListBets extends Component implements HasForms, HasTable
             ])
             ->groups([
                 Group::make('gameType.code')
-                    ->label('Game Type')
+                    ->label('Bet Type')
                     ->titlePrefixedWithLabel(false)
                     ->getTitleFromRecordUsing(fn (Bet $record): string => $record->gameType?->code ?? 'Unknown'),
                 Group::make('teller.name')

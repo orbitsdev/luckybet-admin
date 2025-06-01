@@ -71,7 +71,7 @@
                         x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
                         class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl py-1 z-50"
                         style="display: none;">
-                        <a href="#"
+                        {{-- <a href="#"
                             class="block px-4 py-2 text-gray-700 rounded-md transition-colors duration-300 ease-in-out hover:bg-gradient-to-r hover:from-[#FC0204] hover:to-[#ff367a] hover:text-white hover:shadow-md">
                             <div class="flex items-center space-x-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -94,9 +94,10 @@
                                 </svg>
                                 <span>Settings</span>
                             </div>
-                        </a>
-                        <div class="border-t-2 border-[#FC0204] my-2 opacity-80 mx-2 rounded-full"></div>
-                        <a href="#"
+                        {{-- </a> --}}
+                        <div class="border-t-2 border-[#FC0204] my-2 opacity-80 mx-2 rounded-full"></div> --}}
+                        <a href="{{ route('logout') }}"
+                            onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
                             class="block px-4 py-2 text-gray-700 rounded-md transition-colors duration-300 ease-in-out hover:bg-gradient-to-r hover:from-[#FC0204] hover:to-[#ff367a] hover:text-white hover:shadow-md">
                             <div class="flex items-center space-x-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -107,6 +108,9 @@
                                 <span>Logout</span>
                             </div>
                         </a>
+                        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">
+                            @csrf
+                        </form>
                     </div>
                 </div>
             </div>

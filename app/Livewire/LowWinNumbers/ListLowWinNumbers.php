@@ -30,14 +30,14 @@ class ListLowWinNumbers extends Component implements HasForms, HasTable
 {
     use InteractsWithForms;
     use InteractsWithTable;
-    
+
     /**
      * The currently selected filter date
      *
      * @var string|null
      */
     public $filterDate;
-    
+
     /**
      * Statistics for low win numbers
      *
@@ -56,32 +56,32 @@ class ListLowWinNumbers extends Component implements HasForms, HasTable
             'filament.table.filters.reset' => 'handleFilterReset',
         ];
     }
-    
+
     /**
      * Handle Filament table filter changes
-     * 
+     *
      * @return void
      */
     public function handleFilterChange(): void
     {
         // Get the current filter date or default to today
         $drawDate = $this->tableFilters['draw_date']['value'] ?? now()->toDateString();
-        
+
         // If the filter was cleared or reset, explicitly set to today
         if (empty($drawDate) || $drawDate === null) {
             $drawDate = now()->toDateString();
             // Update the table filter value to today as well
             $this->tableFilters['draw_date']['value'] = $drawDate;
         }
-        
+
         // Update filter date and recompute stats
         $this->filterDate = $drawDate;
         $this->computeLowWinStats();
-        
+
         // Force a refresh to ensure UI is updated
         $this->dispatch('refresh');
     }
-    
+
     /**
      * Handle explicit filter reset events
      * This is triggered when the user clicks the reset button
@@ -93,15 +93,15 @@ class ListLowWinNumbers extends Component implements HasForms, HasTable
         // Set filter date to today
         $today = now()->toDateString();
         $this->filterDate = $today;
-        
+
         // Update the table filter value to today
         if (isset($this->tableFilters['draw_date'])) {
             $this->tableFilters['draw_date']['value'] = $today;
         }
-        
+
         // Recompute stats with today's date
         $this->computeLowWinStats();
-        
+
         // Force a refresh of the component
         $this->dispatch('refresh');
     }
@@ -117,7 +117,7 @@ class ListLowWinNumbers extends Component implements HasForms, HasTable
         if (!$this->filterDate) {
             $this->filterDate = now()->toDateString();
         }
-        
+
         $this->computeLowWinStats();
     }
 
@@ -131,13 +131,13 @@ class ListLowWinNumbers extends Component implements HasForms, HasTable
         // Use the current filter date or default to today
         $date = $this->filterDate ?: now()->format('Y-m-d');
         $this->filterDate = $date; // Ensure the property is set
-        
+
         $query = LowWinNumber::query()
             ->whereHas('draw', function ($query) use ($date) {
                 $query->whereDate('draw_date', $date);
             })
             ->with(['gameType', 'location', 'user']);
-        
+
         $this->lowWinStats = [
             'total_low_win_numbers' => $query->count(),
             'total_amount' => $query->sum('winning_amount'),
@@ -164,7 +164,7 @@ class ListLowWinNumbers extends Component implements HasForms, HasTable
 
     /**
      * Handle the refresh event
-     * 
+     *
      * @return void
      */
     #[On('refresh')]
@@ -173,7 +173,7 @@ class ListLowWinNumbers extends Component implements HasForms, HasTable
         // This method will be automatically called when the 'refresh' event is dispatched
         // No need to do anything here as Livewire will automatically re-render the component
     }
-    
+
     /**
      * Update statistics when filter date changes
      *
@@ -208,7 +208,7 @@ class ListLowWinNumbers extends Component implements HasForms, HasTable
                     ->collapsible()
             ])
             ->defaultGroup('location.name')
-           
+
             ->columns([
                 Tables\Columns\TextColumn::make('draw.draw_date')
                     ->label('Draw Date')
@@ -218,7 +218,7 @@ class ListLowWinNumbers extends Component implements HasForms, HasTable
                     ->label('Draw Time')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('gameType.name')
-                    ->label('Game Type')
+                    ->label('Bet Type')
                     ->formatStateUsing(function ($state, LowWinNumber $record) {
                         // Support for D4 sub-selection display
                         if ($record->gameType && $record->gameType->code === 'D4' && $record->d4_sub_selection) {
@@ -273,7 +273,7 @@ class ListLowWinNumbers extends Component implements HasForms, HasTable
                         if (!$data['draw_date']) {
                             return null;
                         }
-                        
+
                         return 'Date: ' . date('F j, Y', strtotime($data['draw_date']));
                     })
                     ->query(function (Builder $query, array $data) {
@@ -284,7 +284,7 @@ class ListLowWinNumbers extends Component implements HasForms, HasTable
                         });
                     }),
                 SelectFilter::make('game_type_id')
-                    ->label('Game Type')
+                    ->label('Bet Type')
                     ->relationship('gameType', 'name')
                     ->searchable()
                     ->preload(),
@@ -305,14 +305,14 @@ class ListLowWinNumbers extends Component implements HasForms, HasTable
                     ->relationship('location', 'name')
                     ->searchable()
                     ->preload(),
-               
+
             ],
             layout: FiltersLayout::AboveContent
             )
             ->actions([
                  Tables\Actions\ActionGroup::make([
-                  
-                    
+
+
                         Tables\Actions\Action::make('edit')
                     ->label('Edit')
                     ->icon('heroicon-o-pencil')
@@ -321,7 +321,7 @@ class ListLowWinNumbers extends Component implements HasForms, HasTable
                             Forms\Components\Grid::make(2)
                                 ->schema([
                                     Forms\Components\Select::make('game_type_id')
-                                        ->label('Game Type')
+                                        ->label('Bet Type')
                                         ->relationship('gameType', 'name')
                                         ->required()
                                         ->default($record->game_type_id)
@@ -337,7 +337,7 @@ class ListLowWinNumbers extends Component implements HasForms, HasTable
                                         ->visible(function (callable $get) use ($record) {
                                             $gameTypeId = $get('game_type_id') ?: $record->game_type_id;
                                             if (!$gameTypeId) return false;
-                                            
+
                                             $gameType = GameType::find($gameTypeId);
                                             return $gameType && $gameType->code === 'D4';
                                         }),
@@ -376,7 +376,7 @@ class ListLowWinNumbers extends Component implements HasForms, HasTable
                             ->success()
                             ->send();
                     }),
-                    
+
                  ])
             ])
             ->headerActions([
@@ -399,7 +399,7 @@ class ListLowWinNumbers extends Component implements HasForms, HasTable
                         Forms\Components\Grid::make(2)
                             ->schema([
                                 Forms\Components\Select::make('game_type_id')
-                                    ->label('Game Type')
+                                    ->label('Bet Type')
                                     ->relationship('gameType', 'name')
                                     ->required()
                                     ->reactive()
@@ -413,7 +413,7 @@ class ListLowWinNumbers extends Component implements HasForms, HasTable
                                     ->visible(function (callable $get) {
                                         $gameTypeId = $get('game_type_id');
                                         if (!$gameTypeId) return false;
-                                        
+
                                         $gameType = GameType::find($gameTypeId);
                                         return $gameType && $gameType->code === 'D4';
                                     }),

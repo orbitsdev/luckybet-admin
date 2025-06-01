@@ -63,7 +63,7 @@ class WinningAmountResource extends Resource
                     ->label('Location')
                     ->collapsible(),
                 Tables\Grouping\Group::make('gameType.name')
-                    ->label('Game Type')
+                    ->label('Bet Type')
                     ->collapsible(),
                 Tables\Grouping\Group::make('gameType.code')
                     ->label('Game Code')
@@ -76,7 +76,7 @@ class WinningAmountResource extends Resource
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('gameType.name')
-                    ->label('Game Type')
+                    ->label('Bet Type')
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('gameType.code')

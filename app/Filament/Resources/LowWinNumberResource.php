@@ -68,7 +68,7 @@ class LowWinNumberResource extends Resource
                     ->label('Location')
                     ->collapsible(),
                 Tables\Grouping\Group::make('gameType.name')
-                    ->label('Game Type')
+                    ->label('Bet Type')
                     ->collapsible(),
             ])
             ->defaultGroup('location.name')
@@ -78,7 +78,7 @@ class LowWinNumberResource extends Resource
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('gameType.name')
-                    ->label('Game Type')
+                    ->label('Bet Type')
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('amount')
@@ -117,7 +117,7 @@ class LowWinNumberResource extends Resource
                     }),
                 Tables\Filters\SelectFilter::make('game_type_id')
                     ->relationship('gameType', 'name')
-                    ->label('Game Type'),
+                    ->label('Bet Type'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
@@ -129,7 +129,7 @@ class LowWinNumberResource extends Resource
                 ]),
             ]);
     }
-    
+
     public static function getPages(): array
     {
         return [
@@ -137,5 +137,5 @@ class LowWinNumberResource extends Resource
             'create' => Pages\CreateLowWinNumber::route('/create'),
             'edit' => Pages\EditLowWinNumber::route('/{record}/edit'),
         ];
-    }    
+    }
 }

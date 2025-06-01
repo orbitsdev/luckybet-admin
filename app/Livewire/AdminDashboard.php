@@ -20,7 +20,6 @@ class AdminDashboard extends Component
     public $locationStats = [];
     public $userStats = [];
     public $selectedDate;
-    public $showDatePicker = false;
 
     public function mount()
     {
@@ -96,13 +95,25 @@ class AdminDashboard extends Component
         $today = Carbon::parse($this->selectedDate);
         $tomorrow = $today->copy()->addDay();
 
-        // Get today's draws
+        // Get completed draw IDs using a separate query
+        $completedDrawIds = DB::table('results')
+            ->join('draws', 'results.draw_id', '=', 'draws.id')
+            ->whereDate('draws.draw_date', $today)
+            ->pluck('draws.id')
+            ->toArray();
+
+        // Get today's draws without trying to eager load the result relationship
         $todayDraws = Draw::whereDate('draw_date', $today)
             ->orderBy('draw_time')
-            ->with(['result', 'betRatios' => function ($query) {
+            ->with(['betRatios' => function ($query) {
                 $query->where('max_amount', 0);
             }])
             ->get();
+        
+        // Add a completed flag to each draw based on the IDs we collected
+        foreach ($todayDraws as $draw) {
+            $draw->is_completed = in_array($draw->id, $completedDrawIds);
+        }
 
         // Get tomorrow's draws
         $tomorrowDraws = Draw::whereDate('draw_date', $tomorrow)
@@ -155,15 +166,17 @@ class AdminDashboard extends Component
         // Get top 5 tellers by bet amount using DB facade to avoid Eloquent model issues
         $topTellers = DB::table('users')
             ->join('bets', 'users.id', '=', 'bets.teller_id')
+            ->leftJoin('locations', 'bets.location_id', '=', 'locations.id')
             ->select(
                 'users.id',
                 'users.name',
+                'locations.name as location_name',
                 DB::raw('COUNT(bets.id) as bet_count'),
                 DB::raw('SUM(bets.amount) as total_amount')
             )
             ->whereDate('bets.bet_date', $today)
             ->where('users.role', 'teller')
-            ->groupBy('users.id', 'users.name')
+            ->groupBy('users.id', 'users.name', 'locations.name')
             ->orderByDesc('total_amount')
             ->limit(5)
             ->get();
@@ -203,11 +216,7 @@ class AdminDashboard extends Component
         $this->loadStats();
     }
     
-    // Method to toggle date picker visibility
-    public function toggleDatePicker()
-    {
-        $this->showDatePicker = !$this->showDatePicker;
-    }
+    // Date picker is now directly used in the view
     
     public function render()
     {

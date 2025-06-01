@@ -32,26 +32,26 @@ class EditDraw extends Component implements HasForms
     {
         // Set the record property
         $this->record = $draw;
-        
+
         // Load relationships before filling the form
         $this->record->load(['betRatios', 'lowWinNumbers', 'result']);
-        
+
         // Prepare data for the form
         $formData = $this->record->attributesToArray();
-        
+
         // Add bet ratios data
         $formData['betRatios'] = $this->record->betRatios->toArray();
-        
+
         // Add low win numbers data
         $formData['lowWinNumbers'] = $this->record->lowWinNumbers->toArray();
-        
+
         // Add result data if available
         if ($this->record->result) {
             $formData['s2_winning_number'] = $this->record->result->s2_winning_number;
             $formData['s3_winning_number'] = $this->record->result->s3_winning_number;
             $formData['d4_winning_number'] = $this->record->result->d4_winning_number;
         }
-        
+
         $this->form->fill($formData);
     }
 
@@ -109,7 +109,7 @@ class EditDraw extends Component implements HasForms
                                                     ->relationship('location', 'name')
                                                     ->required(),
                                                 Select::make('game_type_id')
-                                                    ->label('Game Type')
+                                                    ->label('Bet Type')
                                                     ->relationship('gameType', 'name')
                                                     ->required()
                                                     ->live(),
@@ -149,7 +149,7 @@ class EditDraw extends Component implements HasForms
                                                     ->relationship('location', 'name')
                                                     ->required(),
                                                 Select::make('game_type_id')
-                                                    ->label('Game Type')
+                                                    ->label('Bet Type')
                                                     ->relationship('gameType', 'name')
                                                     ->required(),
                                                 TextInput::make('bet_number')
@@ -198,20 +198,20 @@ class EditDraw extends Component implements HasForms
     public function save(): void
     {
         $data = $this->form->getState();
-        
+
         try {
             // Update the draw record
             $this->record->update([
                 'is_open' => $data['is_open'],
                 'is_active' => $data['is_active'],
             ]);
-            
+
             // Save betRatios if present
             if (isset($data['betRatios'])) {
                 // Get existing bet ratio IDs to determine which ones to keep
                 $existingRatioIds = $this->record->betRatios->pluck('id')->toArray();
                 $updatedRatioIds = [];
-                
+
                 foreach ($data['betRatios'] as $ratio) {
                     if (isset($ratio['id'])) {
                         // Update existing ratio
@@ -226,20 +226,20 @@ class EditDraw extends Component implements HasForms
                         $updatedRatioIds[] = $newRatio->id;
                     }
                 }
-                
+
                 // Delete ratios that weren't updated or created
                 $ratiosToDelete = array_diff($existingRatioIds, $updatedRatioIds);
                 if (!empty($ratiosToDelete)) {
                     \App\Models\BetRatio::whereIn('id', $ratiosToDelete)->delete();
                 }
             }
-            
+
             // Save lowWinNumbers if present
             if (isset($data['lowWinNumbers'])) {
                 // Get existing low win number IDs to determine which ones to keep
                 $existingLowWinIds = $this->record->lowWinNumbers->pluck('id')->toArray();
                 $updatedLowWinIds = [];
-                
+
                 foreach ($data['lowWinNumbers'] as $low) {
                     if (isset($low['id'])) {
                         // Update existing low win number
@@ -254,14 +254,14 @@ class EditDraw extends Component implements HasForms
                         $updatedLowWinIds[] = $newLowWin->id;
                     }
                 }
-                
+
                 // Delete low win numbers that weren't updated or created
                 $lowWinsToDelete = array_diff($existingLowWinIds, $updatedLowWinIds);
                 if (!empty($lowWinsToDelete)) {
                     \App\Models\LowWinNumber::whereIn('id', $lowWinsToDelete)->delete();
                 }
             }
-            
+
             // Save winning numbers if present and draw is closed
             if (!$data['is_open'] && (isset($data['s2_winning_number']) || isset($data['s3_winning_number']) || isset($data['d4_winning_number']))) {
                 $this->record->result()->updateOrCreate([], [
@@ -272,20 +272,20 @@ class EditDraw extends Component implements HasForms
                     'draw_time' => $this->record->draw_time,
                 ]);
             }
-            
+
             // Refresh the record to get the latest data
             $this->record->refresh();
-            
+
             // Add a success notification
             Notification::make()
                 ->success()
                 ->title('Draw Updated Successfully')
                 ->body('Draw for ' . $this->record->draw_date->format('M d, Y') . ' at ' . $this->record->draw_time . ' has been updated.')
                 ->send();
-                
+
             // Redirect back to the manage draws page
             redirect()->route('manage.draws');
-            
+
         } catch (\Exception $e) {
             // Handle any errors
             Notification::make()

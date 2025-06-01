@@ -48,7 +48,7 @@ class RestrictionsRelationManager extends RelationManager
             ->recordTitleAttribute('number')
             ->columns([
                 Tables\Columns\TextColumn::make('gameType.name')
-                    ->label('Game Type')
+                    ->label('Bet Type')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('number')
                     ->label('Bet Number')

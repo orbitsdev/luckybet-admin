@@ -25,7 +25,7 @@ use App\Livewire\Reports\Coordinator\CoordinatorSalesSummary;
 use App\Livewire\Reports\Coordinator\CoordinatorTellerSalesSummary;
 
 Route::get('/', function () {
-    return route('dashboard');
+    return redirect()->route('dashboard');
 });
 
 Route::middleware([
@@ -57,7 +57,7 @@ Route::middleware([
         Route::get('low-win-numbers', ListLowWinNumbers::class)->name('low-win-numbers');
         Route::get('sold-out-numbers', ListSoldOutNumbers::class)->name('sold-out-numbers');
 
-// after manage draw improvment 
+// after manage draw improvment
 
 
 

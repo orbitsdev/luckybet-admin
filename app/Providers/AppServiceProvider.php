@@ -44,7 +44,8 @@ class AppServiceProvider extends ServiceProvider
 
     public function configureModel(){
         Model::unguard();
-        Model::shouldBeStrict();
+        // Disable strict mode completely to allow lazy loading
+        // We're not using any strict mode features to ensure compatibility
     }
 
     public function configureFilament(){

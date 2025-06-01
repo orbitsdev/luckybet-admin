@@ -71,7 +71,7 @@ class DrawResource extends Resource
                                                 ->relationship('location', 'name')
                                                 ->required(),
                                             Forms\Components\Select::make('game_type_id')
-                                                ->label('Game Type')
+                                                ->label('Bet Type')
                                                 ->relationship('gameType', 'name')
                                                 ->required(),
                                             Forms\Components\TextInput::make('bet_number')
@@ -100,7 +100,7 @@ class DrawResource extends Resource
                                                 ->relationship('location', 'name')
                                                 ->required(),
                                             Forms\Components\Select::make('game_type_id')
-                                                ->label('Game Type')
+                                                ->label('Bet Type')
                                                 ->relationship('gameType', 'name')
                                                 ->required(),
                                             Forms\Components\TextInput::make('bet_number')
@@ -158,12 +158,12 @@ class DrawResource extends Resource
                             if ($operation === 'create') {
                                 return true;
                             }
-                            
+
                             // Hide when the draw is still open - use the live toggle value
                             if ($operation === 'edit') {
                                 return $get('is_open') === true;
                             }
-                            
+
                             return false;
                         }),
                 ])
@@ -178,7 +178,7 @@ class DrawResource extends Resource
                 Tables\Columns\TextColumn::make('draw_date')
                     ->date()
                     ->sortable(),
-                 
+
                 Tables\Columns\TextColumn::make('draw_time')
                     ->time('h:i A')
                     ->label('Draw Time')

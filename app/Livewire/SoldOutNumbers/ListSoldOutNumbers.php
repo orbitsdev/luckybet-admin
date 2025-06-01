@@ -147,7 +147,7 @@ class ListSoldOutNumbers extends Component implements HasForms, HasTable
                     ->time('h:i A')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('gameType.name')
-                    ->label('Game Type')
+                    ->label('Bet Type')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'S2' => 'success',
@@ -208,7 +208,7 @@ class ListSoldOutNumbers extends Component implements HasForms, HasTable
                         });
                     }),
                 SelectFilter::make('game_type_id')
-                    ->label('Game Type')
+                    ->label('Bet Type')
                     ->relationship('gameType', 'name')
                     ->searchable()
                     ->preload(),

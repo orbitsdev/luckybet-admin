@@ -47,7 +47,7 @@ class BetResource extends Resource
                                     ->searchable()
                                     ->preload(),
                                 Forms\Components\Select::make('game_type_id')
-                                    ->label('Game Type')
+                                    ->label('Bet Type')
                                     ->relationship('gameType', 'name')
                                     ->required()
                                     ->live()
@@ -80,14 +80,14 @@ class BetResource extends Resource
                                     ->mask(function ($get) {
                                         $gameType = GameType::find($get('game_type_id'));
                                         if (!$gameType) return null;
-                                        
+
                                         // Create a mask with the correct number of digits (9's)
                                         return str_repeat('9', $gameType->digit_count);
                                     })
                                     ->placeholder(function ($get) {
                                         $gameType = GameType::find($get('game_type_id'));
                                         if (!$gameType) return 'Select game type first';
-                                        
+
                                         return "Enter {$gameType->digit_count} digits";
                                     }),
                                 Forms\Components\TextInput::make('amount')
@@ -133,24 +133,24 @@ class BetResource extends Resource
                                 // Get the game type ID and draw ID
                                 $gameTypeId = $get('game_type_id');
                                 $drawId = $get('draw_id');
-                                
+
                                 // If either is not set, hide the field
                                 if (!$gameTypeId || !$drawId) {
                                     return false;
                                 }
-                                
+
                                 // Check if game type is D4
                                 $gameType = GameType::find($gameTypeId);
                                 if (!$gameType || $gameType->code !== 'D4') {
                                     return false;
                                 }
-                                
+
                                 // Check if draw time is 9 PM
                                 $draw = \App\Models\Draw::find($drawId);
                                 if (!$draw) {
                                     return false;
                                 }
-                                
+
                                 // Check if the draw time is 9 PM (21:00:00)
                                 $drawTime = \Carbon\Carbon::createFromFormat('H:i:s', $draw->draw_time);
                                 return $drawTime->format('H:i') === '21:00';
@@ -244,7 +244,7 @@ class BetResource extends Resource
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('gameType.name')
-                    ->label('Game Type')
+                    ->label('Bet Type')
                     ->sortable()
                     ->badge(),
                 Tables\Columns\TextColumn::make('amount')
@@ -379,8 +379,8 @@ class BetResource extends Resource
                     ->searchable(),
                 Tables\Filters\SelectFilter::make('game_type_id')
                     ->relationship('gameType', 'name')
-                    ->label('Game Type')
-                    ->indicator('Game Type')
+                    ->label('Bet Type')
+                    ->indicator('Bet Type')
                     ->preload()
                     ->searchable(),
                 Tables\Filters\SelectFilter::make('teller_id')

@@ -33,7 +33,7 @@ class BetRatioResource extends Resource
                     ->searchable(),
                 Forms\Components\Select::make('game_type_id')
                     ->relationship('gameType', 'name')
-                    ->label('Game Type')
+                    ->label('Bet Type')
                     ->required()
                     ->searchable(),
                 Forms\Components\TextInput::make('bet_number')
@@ -55,7 +55,7 @@ class BetRatioResource extends Resource
                     ->label('Location')
                     ->searchable()
                     ->nullable(),
-            
+
                         Forms\Components\Section::make('D4 (4-Digit) Settings')
                             ->schema([
                                 Forms\Components\TextInput::make('d4_limit')
@@ -76,8 +76,8 @@ class BetRatioResource extends Resource
                             ]),
 
        ]   );
-                
-            
+
+
     }
 
     public static function table(Table $table): Table
@@ -99,7 +99,7 @@ class BetRatioResource extends Resource
                     ->time('h:i A')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('gameType.name')
-                    ->label('Game Type')
+                    ->label('Bet Type')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('bet_number')
                     ->label('Bet Number')
@@ -130,8 +130,8 @@ class BetRatioResource extends Resource
                     ->searchable(),
                 Tables\Filters\SelectFilter::make('game_type_id')
                     ->relationship('gameType', 'name')
-                    ->label('Game Type')
-                    ->indicator('Game Type')
+                    ->label('Bet Type')
+                    ->indicator('Bet Type')
                     ->preload()
                     ->searchable(),
                 Tables\Filters\SelectFilter::make('draw_id')
@@ -157,14 +157,14 @@ class BetRatioResource extends Resource
                 ]),
             ]);
     }
-    
+
     public static function getRelations(): array
     {
         return [
             RelationManagers\RestrictionsRelationManager::class,
         ];
     }
-    
+
     public static function getPages(): array
     {
         return [
@@ -172,5 +172,5 @@ class BetRatioResource extends Resource
             'create' => Pages\CreateBetRatio::route('/create'),
             'edit' => Pages\EditBetRatio::route('/{record}/edit'),
         ];
-    }    
+    }
 }
