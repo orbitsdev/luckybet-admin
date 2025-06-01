@@ -188,10 +188,120 @@ class AdminDashboard extends Component
             ->get()
             ->keyBy('role')
             ->toArray();
+            
+        // Get recent winners (bets that match winning numbers)
+        // We need to use a more complex approach to handle D4 sub-selections correctly
+        // First, get all potential winning bets with their results
+        $potentialWinners = DB::table('bets')
+            ->leftJoin('users', 'bets.customer_id', '=', 'users.id') // Make this a left join to include bets without customers
+            ->join('draws', 'bets.draw_id', '=', 'draws.id')
+            ->join('results', 'draws.id', '=', 'results.draw_id')
+            ->join('game_types', 'bets.game_type_id', '=', 'game_types.id')
+            ->leftJoin('locations', 'bets.location_id', '=', 'locations.id')
+            ->select(
+                'bets.id',
+                'users.id as user_id',
+                'users.name',
+                'bets.bet_number',
+                'bets.amount',
+                'bets.winning_amount',
+                'bets.is_claimed',
+                'bets.teller_id', // Add teller_id for fallback name
+                'game_types.id as game_type_id',
+                'game_types.name as game_type',
+                'game_types.code as game_type_code',
+                'bets.d4_sub_selection',
+                'locations.name as location_name',
+                'results.s2_winning_number',
+                'results.s3_winning_number',
+                'results.d4_winning_number'
+            )
+            ->whereDate('bets.bet_date', $today)
+            ->where('bets.is_rejected', false)
+            ->whereNotNull('results.id')
+            ->get();
+            
+        // Now filter the winners using PHP to handle the D4 sub-selections properly
+        $winners = collect();
+        foreach ($potentialWinners as $bet) {
+            $isWinner = false;
+            
+            // Check based on game type
+            switch ($bet->game_type_id) {
+                case 1: // S2
+                    $isWinner = $bet->bet_number === $bet->s2_winning_number;
+                    break;
+                    
+                case 2: // S3
+                    $isWinner = $bet->bet_number === $bet->s3_winning_number;
+                    break;
+                    
+                case 3: // D4
+                    // First check exact D4 match
+                    if ($bet->bet_number === $bet->d4_winning_number) {
+                        $isWinner = true;
+                        break;
+                    }
+                    
+                    // Then check D4 sub-selections if applicable
+                    if ($bet->d4_sub_selection && $bet->d4_winning_number) {
+                        $sub = strtoupper($bet->d4_sub_selection);
+                        if ($sub === 'S2') {
+                            // Check if the last 2 digits of D4 winning number match the bet number
+                            $lastTwoDigits = substr($bet->d4_winning_number, -2);
+                            $paddedBetNumber = str_pad($bet->bet_number, 2, '0', STR_PAD_LEFT);
+                            $isWinner = $lastTwoDigits === $paddedBetNumber;
+                        } elseif ($sub === 'S3') {
+                            // Check if the last 3 digits of D4 winning number match the bet number
+                            $lastThreeDigits = substr($bet->d4_winning_number, -3);
+                            $paddedBetNumber = str_pad($bet->bet_number, 3, '0', STR_PAD_LEFT);
+                            $isWinner = $lastThreeDigits === $paddedBetNumber;
+                        }
+                    }
+                    break;
+            }
+            
+            if ($isWinner) {
+                // If winning_amount is null or 0, calculate a default winning amount based on the bet amount
+                // This ensures we have something to display even if winning amounts aren't set
+                if (empty($bet->winning_amount)) {
+                    // Use a default multiplier based on game type
+                    $multiplier = 0;
+                    switch ($bet->game_type_id) {
+                        case 1: // S2
+                            $multiplier = 70; // Example multiplier for S2
+                            break;
+                        case 2: // S3
+                            $multiplier = 500; // Example multiplier for S3
+                            break;
+                        case 3: // D4
+                            $multiplier = 3500; // Example multiplier for D4
+                            if ($bet->d4_sub_selection) {
+                                $multiplier = ($bet->d4_sub_selection === 'S2') ? 70 : 500;
+                            }
+                            break;
+                    }
+                    $bet->winning_amount = $bet->amount * $multiplier;
+                }
+                
+                // If name is null (no customer), use a placeholder
+                if (empty($bet->name)) {
+                    // Try to get teller name as a fallback
+                    $tellerName = DB::table('users')->where('id', $bet->teller_id)->value('name');
+                    $bet->name = $tellerName ? "Walk-in (Teller: {$tellerName})" : 'Walk-in Customer';
+                }
+                
+                $winners->push($bet);
+            }
+        }
+        
+        // Sort by winning amount and limit to top 5
+        $recentWinners = $winners->sortByDesc('winning_amount')->take(5)->values();
 
         $this->userStats = [
             'topTellers' => $topTellers,
             'userCounts' => $userCounts,
+            'recentWinners' => $recentWinners,
         ];
     }
 

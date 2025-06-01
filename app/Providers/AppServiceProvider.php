@@ -2,12 +2,14 @@
 
 namespace App\Providers;
 
+use App\Models\User;
+use Filament\Support\Assets\Css;
+use Filament\Support\Colors\Color;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\ServiceProvider;
-use Filament\Support\Facades\FilamentColor;
-use Filament\Support\Colors\Color;
-use Filament\Support\Assets\Css;
 use Filament\Support\Facades\FilamentAsset;
+use Filament\Support\Facades\FilamentColor;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -16,7 +18,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        
+
         $this->configureTelescope();
     }
 
@@ -25,13 +27,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        
+
         $this->configureModel();
         $this->configureFilament();
-       
 
 
-       
+
+
     }
 
     public function configureTelescope(): void
@@ -49,7 +51,7 @@ class AppServiceProvider extends ServiceProvider
     }
 
     public function configureFilament(){
-        FilamentColor::register([  
+        FilamentColor::register([
             //indigo
             'indigo' => Color::Indigo,
             'danger' => Color::Red,
@@ -65,5 +67,15 @@ class AppServiceProvider extends ServiceProvider
         FilamentAsset::register([
             Css::make('custom-styles', asset('css/custom.css')),
         ]);
+    }
+
+    public function configGates(){
+        Gate::define('admin', function (User $user) {
+            return $user->role === 'admin';
+        });
+        
+        Gate::define('coordinator', function (User $user) {
+            return $user->role === 'coordinator';
+        });
     }
 }

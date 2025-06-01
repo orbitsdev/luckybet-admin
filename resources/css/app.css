@@ -65,6 +65,20 @@
 
 @tailwind components;
 @tailwind utilities;
+
+/* Custom styles for active navigation links */
+.nav-item.text-white svg,
+.nav-item.text-white span,
+.nav-item.text-white * {
+    color: white !important;
+}
+
+/* Force white text for all elements inside active nav items */
+.bg-gradient-to-r.from-red-500.to-pink-500 span,
+.bg-gradient-to-r.from-red-500.to-pink-500 svg,
+.bg-gradient-to-r.from-red-500.to-pink-500 * {
+    color: white !important;
+}
 @tailwind variants;
 
 

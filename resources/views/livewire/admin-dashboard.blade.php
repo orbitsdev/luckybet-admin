@@ -220,8 +220,8 @@
             </div>
         </div>
 
-        <!-- Top Tellers and Game Type Distribution -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Top Tellers, Recent Winners and Game Type Distribution -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Top Tellers -->
             <div class="bg-white rounded-lg shadow-md p-4">
                 <h2 class="text-lg font-semibold text-gray-800 mb-4">Top Tellers - {{ \Carbon\Carbon::parse($selectedDate)->format('M d, Y') }}</h2>
@@ -247,6 +247,41 @@
                 @else
                     <div class="text-center py-4 text-gray-500">
                         No teller data available
+                    </div>
+                @endif
+            </div>
+
+            <!-- Recent Winners -->
+            <div class="bg-white rounded-lg shadow-md p-4">
+                <h2 class="text-lg font-semibold text-gray-800 mb-4">Recent Winners - {{ \Carbon\Carbon::parse($selectedDate)->format('M d, Y') }}</h2>
+
+                @if(count($userStats['recentWinners']) > 0)
+                    <div class="space-y-4">
+                        @foreach($userStats['recentWinners'] as $winner)
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="font-medium text-gray-700">{{ $winner->name }}</p>
+                                    <p class="text-sm text-gray-500">{{ $winner->location_name ?? 'No location' }}</p>
+                                    <div class="flex items-center space-x-2">
+                                        <span class="px-2 py-0.5 bg-blue-100 text-blue-800 text-xs rounded-full">{{ $winner->game_type }}{{ $winner->d4_sub_selection ? '-'.$winner->d4_sub_selection : '' }}</span>
+                                        <span class="text-sm text-gray-500">{{ $winner->bet_number }}</span>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-bold text-green-600">₱{{ number_format($winner->winning_amount) }}</p>
+                                    <p class="text-xs {{ $winner->is_claimed ? 'text-green-500' : 'text-yellow-500' }}">
+                                        {{ $winner->is_claimed ? 'Claimed' : 'Unclaimed' }}
+                                    </p>
+                                </div>
+                            </div>
+                            @if(!$loop->last)
+                                <hr class="border-gray-200">
+                            @endif
+                        @endforeach
+                    </div>
+                @else
+                    <div class="text-center py-4 text-gray-500">
+                        No winners data available
                     </div>
                 @endif
             </div>
