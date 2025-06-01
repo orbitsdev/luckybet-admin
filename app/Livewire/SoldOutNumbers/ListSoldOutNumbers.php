@@ -28,14 +28,14 @@ class ListSoldOutNumbers extends Component implements HasForms, HasTable
 {
     use InteractsWithForms;
     use InteractsWithTable;
-    
+
     /**
      * The currently selected filter date
      *
      * @var string|null
      */
     public $filterDate;
-    
+
     /**
      * Statistics for sold out numbers
      *
@@ -54,7 +54,7 @@ class ListSoldOutNumbers extends Component implements HasForms, HasTable
         if (!$this->filterDate) {
             $this->filterDate = now()->toDateString();
         }
-        
+
         $this->computeSoldOutStats();
     }
 
@@ -68,7 +68,7 @@ class ListSoldOutNumbers extends Component implements HasForms, HasTable
         // Use the current filter date or default to today
         $date = $this->filterDate ?: now()->format('Y-m-d');
         $this->filterDate = $date; // Ensure the property is set
-        
+
         // Query to get sold out numbers statistics (BetRatio with max_amount = 0)
         $query = BetRatio::query()
             ->where('max_amount', 0)
@@ -76,10 +76,10 @@ class ListSoldOutNumbers extends Component implements HasForms, HasTable
                 $query->whereDate('draw_date', $date);
             })
             ->with(['gameType', 'location', 'user']);
-        
+
         // Get total count
         $totalSoldOut = $query->count();
-        
+
         // Get counts by game type
         $gameTypeCounts = BetRatio::where('max_amount', 0)
             ->whereHas('draw', function ($q) use ($date) {
@@ -92,7 +92,7 @@ class ListSoldOutNumbers extends Component implements HasForms, HasTable
             ->get()
             ->keyBy('name')
             ->toArray();
-        
+
         // Get counts by location
         $locationCounts = BetRatio::where('max_amount', 0)
             ->whereHas('draw', function ($q) use ($date) {
@@ -105,7 +105,7 @@ class ListSoldOutNumbers extends Component implements HasForms, HasTable
             ->get()
             ->keyBy('name')
             ->toArray();
-        
+
         $this->soldOutStats = [
             'total_sold_out' => $totalSoldOut,
             'game_type_counts' => $gameTypeCounts,
@@ -115,7 +115,7 @@ class ListSoldOutNumbers extends Component implements HasForms, HasTable
 
     /**
      * Handle the refresh event
-     * 
+     *
      * @return void
      */
     #[On('refresh')]
@@ -197,7 +197,7 @@ class ListSoldOutNumbers extends Component implements HasForms, HasTable
                         if (!$data['draw_date']) {
                             return null;
                         }
-                        
+
                         return 'Date: ' . date('F j, Y', strtotime($data['draw_date']));
                     })
                     ->query(function (Builder $query, array $data) {

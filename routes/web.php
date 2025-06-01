@@ -10,6 +10,7 @@ use App\Livewire\Users\CreateUser;
 use App\Livewire\Draws\ManageDraws;
 use Illuminate\Support\Facades\Route;
 use App\Livewire\Reports\SalesSummary;
+use App\Livewire\Draws\ViewDrawDetails;
 use App\Livewire\Reports\ReportByTeller;
 use App\Livewire\BetRatios\ListBetRatios;
 use App\Livewire\Locations\ListLocations;
@@ -44,6 +45,7 @@ Route::middleware([
         Route::get('draws', ManageDraws::class)->name('draws');
         Route::get('draws/create', CreateDraw::class)->name('draws.create');
         Route::get('draws/{draw}/edit', EditDraw::class)->name('draws.edit');
+        Route::get('draws/{draw}/view', ViewDrawDetails::class)->name('draws.view');
 
 
         //
