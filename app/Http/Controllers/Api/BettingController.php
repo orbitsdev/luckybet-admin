@@ -64,11 +64,19 @@ class BettingController extends Controller
 
             $ticketId = strtoupper(Str::random(6));
 
-            // 0. Check if number is explicitly marked as sold out
-            $isSoldOut = \App\Models\SoldOutNumber::where('draw_id', $data['draw_id'])
+            // 0. Check if number is explicitly marked as sold out (BetRatio with max_amount=0)
+            $isSoldOut = BetRatio::where('draw_id', $data['draw_id'])
                 ->where('game_type_id', $data['game_type_id'])
                 ->where('location_id', $user->location_id)
                 ->where('bet_number', $data['bet_number'])
+                ->where('max_amount', 0)
+                ->when(isset($data['d4_sub_selection']), function ($query) use ($data) {
+                    // If this is a D4 subtype bet, check for sold out with matching subtype
+                    return $query->where(function ($q) use ($data) {
+                        $q->where('sub_selection', $data['d4_sub_selection'])
+                          ->orWhereNull('sub_selection');
+                    });
+                })
                 ->exists();
 
             if ($isSoldOut) {
