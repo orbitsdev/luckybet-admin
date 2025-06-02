@@ -391,26 +391,11 @@ class TellerReportController extends Controller
                 ->where('is_rejected', false)
                 ->sum('amount');
 
-            // Calculate total commission for today (sum commission_amount, or fallback to amount * commission_rate or 0.15)
-            $bets = Bet::where('teller_id', $user->id)
-                ->whereDate('bet_date', $today)
-                ->where('is_rejected', false)
-                ->get();
-
-            $totalCommission = 0;
-            $commissionRates = [];
-            foreach ($bets as $bet) {
-                // Handles both Eloquent models and arrays
-                $rate = isset($bet->commission_rate) ? $bet->commission_rate : (isset($bet['commission_rate']) ? $bet['commission_rate'] : 0.15);
-                $commissionRates[] = $rate;
-                $commissionAmount = isset($bet->commission_amount) 
-                    ? $bet->commission_amount 
-                    : (isset($bet['commission_amount']) 
-                        ? $bet['commission_amount'] 
-                        : (($bet->amount ?? ($bet['amount'] ?? 0)) * $rate));
-                $totalCommission += $commissionAmount;
-            }
-            $averageCommissionRate = count($commissionRates) ? array_sum($commissionRates) / count($commissionRates) : 0.15;
+            // Use fixed commission rate of 15%
+            $commissionRate = 0.15;
+            
+            // Calculate total commission for today using fixed rate
+            $totalCommission = $sales * $commissionRate;
 
             // Get cancellation count for today
             $cancellations = Bet::where('teller_id', $user->id)
@@ -434,10 +419,10 @@ class TellerReportController extends Controller
                 'sales_formatted' => $formatNumber($sales),
                 'total_commission' => $totalCommission,
                 'total_commission_formatted' => $formatNumber($totalCommission),
-                'average_commission_rate' => $averageCommissionRate,
-                'average_commission_rate_formatted' => ($averageCommissionRate * 100) . '%',
-                'commission_rate' => $averageCommissionRate, // for resource compatibility
-                'commission_rate_formatted' => ($averageCommissionRate * 100) . '%',
+                'average_commission_rate' => $commissionRate,
+                'average_commission_rate_formatted' => ($commissionRate * 100) . '%',
+                'commission_rate' => $commissionRate, // for resource compatibility
+                'commission_rate_formatted' => ($commissionRate * 100) . '%',
                 'cancellations' => $cancellations,
                 'cancellations_formatted' => (string) $cancellations,
             ];
