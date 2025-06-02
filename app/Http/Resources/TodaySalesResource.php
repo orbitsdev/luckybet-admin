@@ -17,6 +17,8 @@ class TodaySalesResource extends JsonResource
         return [
             'sales' => $this['sales'],
             'sales_formatted' => $this['sales_formatted'],
+            'total_commission' => $this['total_commission'],
+            'total_commission_formatted' => $this['total_commission_formatted'],
             'commission_rate' => $this['commission_rate'],
             'commission_rate_formatted' => $this['commission_rate_formatted'],
             'cancellations' => $this['cancellations'],
