@@ -162,26 +162,6 @@ class ReceiptController extends Controller
             
             DB::beginTransaction();
             
-            // Check if number is explicitly marked as sold out (BetRatio with max_amount=0)
-            $isSoldOut = BetRatio::where('draw_id', $data['draw_id'])
-                ->where('game_type_id', $data['game_type_id'])
-                ->where('location_id', $user->location_id)
-                ->where('bet_number', $data['bet_number'])
-                ->where('max_amount', 0)
-                ->when(isset($data['d4_sub_selection']), function ($query) use ($data) {
-                    // If this is a D4 subtype bet, check for sold out with matching subtype
-                    return $query->where(function ($q) use ($data) {
-                        $q->where('sub_selection', $data['d4_sub_selection'])
-                          ->orWhereNull('sub_selection');
-                    });
-                })
-                ->exists();
-                
-            if ($isSoldOut) {
-                DB::rollBack();
-                return ApiResponse::error('This number is sold out', 422);
-            }
-            
             // BET RATIO (CAP/SOLD OUT) CHECK
             $totalBetForNumber = Bet::where('draw_id', $data['draw_id'])
                 ->where('game_type_id', $data['game_type_id'])
@@ -202,14 +182,9 @@ class ReceiptController extends Controller
                 })
                 ->value('max_amount');
                 
-            if ($cap !== null) {
-                if ($cap === 0) {
-                    DB::rollBack();
-                    return ApiResponse::error('This number is marked as sold out', 422);
-                } elseif (($totalBetForNumber + $data['amount']) > $cap) {
-                    DB::rollBack();
-                    return ApiResponse::error('This number has reached its maximum bet limit', 422);
-                }
+            if ($cap !== null && ($totalBetForNumber + $data['amount']) > $cap) {
+                DB::rollBack();
+                return ApiResponse::error('Sold Out', 422);
             }
             
             // LOW WIN OVERRIDE / WINNING AMOUNT LOGIC

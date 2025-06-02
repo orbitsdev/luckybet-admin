@@ -88,7 +88,7 @@ class BettingController extends Controller
                 ->where('location_id', $user->location_id)
                 ->where('bet_number', $data['bet_number'])
                 ->when(isset($data['d4_sub_selection']), function ($query) use ($data) {
-                    // If this is a D4 subtype bet, check for sold out with matching subtype
+                    // If this is a D4 subtype bet, check for cap with matching subtype
                     return $query->where(function ($q) use ($data) {
                         $q->where('sub_selection', $data['d4_sub_selection'])
                           ->orWhereNull('sub_selection');
