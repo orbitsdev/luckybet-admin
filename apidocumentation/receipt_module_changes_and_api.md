@@ -464,9 +464,13 @@ Retrieves a paginated list of receipts.
 
 **Query Parameters:**
 - `status` (optional): Filter by receipt status (`placed`, `draft`, `cancelled`)  
+- `date` (optional): Filter by specific date (format: YYYY-MM-DD)
 - `from_date` (optional): Filter by start date (format: YYYY-MM-DD)
 - `to_date` (optional): Filter by end date (format: YYYY-MM-DD)
 - `page` (optional): Page number for pagination
+- `per_page` (optional): Number of items per page (default: 15, max: 100)
+
+**Note:** If no date filter is provided, the API defaults to showing receipts from today's date only.
 
 **Response Example:**
 ```json

@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\BetResource;
 use App\Http\Resources\ReceiptResource;
+use Carbon\Carbon;
 
 class ReceiptController extends Controller
 {
@@ -72,6 +73,17 @@ class ReceiptController extends Controller
     {
         $user = $request->user();
         
+        $validated = $request->validate([
+            'status' => 'sometimes|string|in:draft,placed,cancelled',
+            'from_date' => 'sometimes|date',
+            'to_date' => 'sometimes|date',
+            'date' => 'sometimes|date',
+            'page' => 'sometimes|integer|min:1',
+            'per_page' => 'sometimes|integer|min:1|max:100',
+        ]);
+        
+        $perPage = $validated['per_page'] ?? 15;
+        
         $query = Receipt::query()
             ->with(['teller', 'location'])
             ->orderBy('created_at', 'desc');
@@ -86,21 +98,25 @@ class ReceiptController extends Controller
             $query->where('status', $request->status);
         }
         
+        // Filter by single date if provided, or use today's date if no date filters are provided
+        if ($request->filled('date')) {
+            $query->whereDate('receipt_date', $request->date);
+        } 
         // Filter by date range if provided
-        if ($request->has('from_date') && $request->has('to_date')) {
+        elseif ($request->filled('from_date') && $request->filled('to_date')) {
             $query->whereBetween('receipt_date', [$request->from_date, $request->to_date]);
         }
+        // Default to today if no date filter is provided
+        else {
+            $query->whereDate('receipt_date', Carbon::today()->format('Y-m-d'));
+        }
         
-        $receipts = $query->paginate(15);
+        $receipts = $query->paginate($perPage);
         
-        return ApiResponse::success(
-            ReceiptResource::collection($receipts)
-                ->additional(['meta' => [
-                    'total' => $receipts->total(),
-                    'per_page' => $receipts->perPage(),
-                    'current_page' => $receipts->currentPage(),
-                    'last_page' => $receipts->lastPage(),
-                ]])
+        return ApiResponse::paginated(
+            $receipts, 
+            'Receipts retrieved',
+            ReceiptResource::class
         );
     }
     

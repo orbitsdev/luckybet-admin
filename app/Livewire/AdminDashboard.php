@@ -288,7 +288,7 @@ class AdminDashboard extends Component
                 if (empty($bet->name)) {
                     // Try to get teller name as a fallback
                     $tellerName = DB::table('users')->where('id', $bet->teller_id)->value('name');
-                    $bet->name = $tellerName ? "Walk-in (Teller: {$tellerName})" : 'Walk-in Customer';
+                    $bet->name = $tellerName ? "(Teller: {$tellerName})" : ' Customer';
                 }
                 
                 $winners->push($bet);
