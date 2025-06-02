@@ -439,8 +439,8 @@ class ReceiptController extends Controller
             $receipt->total_amount = $receipt->calculateTotalAmount();
             $receipt->save(); // This will trigger the observer to generate ticket_id
             
-            // Update all bets to have the same ticket_id
-            $receipt->bets()->update([
+            // Update only bets that don't already have a ticket_id
+            $receipt->bets()->whereNull('ticket_id')->update([
                 'ticket_id' => $receipt->ticket_id
             ]);
             
