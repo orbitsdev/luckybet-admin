@@ -166,7 +166,9 @@ class ResultController extends Controller
     {
         // Find winning bets for this game type
         // We don't update them directly, but create a collection to process
-        $winningBets = Bet::where('draw_id', $drawId)
+        // Apply the placed scope to only include finalized bets with receipts in 'placed' status or legacy bets without receipt_id
+        $winningBets = Bet::placed() // Use the placed scope
+           ->where('draw_id', $drawId)
            ->where('game_type_id', $gameTypeId)
            ->where('is_claimed', false)
            ->where('is_rejected', false)

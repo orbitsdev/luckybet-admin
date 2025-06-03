@@ -31,6 +31,7 @@ class CoordinatorReportController extends Controller
             $date = $request->date ?? now()->toDateString();
             
             // Get teller summary using raw SQL for better performance
+            // Apply the placed scope logic: bets with receipts in 'placed' status or legacy bets without receipt_id
             $tellerSummary = DB::select("
                 SELECT 
                     b.teller_id,
@@ -44,8 +45,10 @@ class CoordinatorReportController extends Controller
                     COUNT(DISTINCT b.id) as total_bets
                 FROM bets b
                 JOIN users u ON b.teller_id = u.id
+                LEFT JOIN receipts r ON b.receipt_id = r.id
                 WHERE DATE(b.bet_date) = ?
                 AND b.location_id = ?
+                AND (r.status = 'placed' OR b.receipt_id IS NULL)
                 GROUP BY b.teller_id, u.name, u.username
                 ORDER BY u.name ASC
             ", [$date, $user->location_id]);
@@ -95,6 +98,7 @@ class CoordinatorReportController extends Controller
             }
             
             // Get draw type breakdown
+            // Apply the placed scope logic: bets with receipts in 'placed' status or legacy bets without receipt_id
             $drawTypeSummary = DB::select("
                 SELECT 
                     d.type,
@@ -102,9 +106,10 @@ class CoordinatorReportController extends Controller
                     SUM(b.amount) as total_amount
                 FROM bets b
                 JOIN draws d ON b.draw_id = d.id
+                LEFT JOIN receipts r ON b.receipt_id = r.id
                 WHERE DATE(b.bet_date) = ?
                 AND b.location_id = ?
-                AND b.status IN ('active', 'won', 'lost')
+                AND (r.status = 'placed' OR b.receipt_id IS NULL)
                 GROUP BY d.type
                 ORDER BY total_amount DESC
             ", [$date, $user->location_id]);

@@ -41,9 +41,9 @@ class AdminDashboard extends Component
         $today = Carbon::parse($this->selectedDate);
 
         $this->todayStats = [
-            'totalBets' => Bet::whereDate('bet_date', $today)->count(),
-            'totalAmount' => Bet::whereDate('bet_date', $today)->sum('amount'),
-            'totalWinningAmount' => Bet::whereDate('bet_date', $today)
+            'totalBets' => Bet::placed()->whereDate('bet_date', $today)->count(),
+            'totalAmount' => Bet::placed()->whereDate('bet_date', $today)->sum('amount'),
+            'totalWinningAmount' => Bet::placed()->whereDate('bet_date', $today)
                 ->where('is_claimed', true)
                 ->sum('winning_amount'),
             'soldOutNumbers' => BetRatio::where('max_amount', 0)
@@ -71,12 +71,12 @@ class AdminDashboard extends Component
         $endOfWeek = $selectedDate->copy()->endOfWeek();
 
         $this->weekStats = [
-            'totalBets' => Bet::whereBetween('bet_date', [$startOfWeek, $endOfWeek])->count(),
-            'totalAmount' => Bet::whereBetween('bet_date', [$startOfWeek, $endOfWeek])->sum('amount'),
-            'totalWinningAmount' => Bet::whereBetween('bet_date', [$startOfWeek, $endOfWeek])
+            'totalBets' => Bet::placed()->whereBetween('bet_date', [$startOfWeek, $endOfWeek])->count(),
+            'totalAmount' => Bet::placed()->whereBetween('bet_date', [$startOfWeek, $endOfWeek])->sum('amount'),
+            'totalWinningAmount' => Bet::placed()->whereBetween('bet_date', [$startOfWeek, $endOfWeek])
                 ->where('is_claimed', true)
                 ->sum('winning_amount'),
-            'dailyBets' => Bet::select(
+            'dailyBets' => Bet::placed()->select(
                     DB::raw('DATE(bet_date) as date'),
                     DB::raw('COUNT(*) as count'),
                     DB::raw('SUM(amount) as total_amount')
@@ -124,7 +124,7 @@ class AdminDashboard extends Component
             ->get();
 
         // Get game type distribution
-        $gameTypeDistribution = Bet::join('game_types', 'bets.game_type_id', '=', 'game_types.id')
+        $gameTypeDistribution = Bet::placed()->join('game_types', 'bets.game_type_id', '=', 'game_types.id')
             ->select('game_types.name', DB::raw('COUNT(*) as count'))
             ->whereDate('bet_date', $today)
             ->groupBy('game_types.name')
@@ -149,6 +149,13 @@ class AdminDashboard extends Component
             ->addSelect(DB::raw('SUM(bets.amount) as total_amount'))
             ->leftJoin('bets', 'locations.id', '=', 'bets.location_id')
             ->whereDate('bets.bet_date', $today)
+            ->whereExists(function($query) {
+                $query->select(DB::raw(1))
+                      ->from('receipts')
+                      ->whereRaw('receipts.id = bets.receipt_id')
+                      ->where('receipts.status', 'placed');
+            })
+            ->orWhereNull('bets.receipt_id')
             ->groupBy('locations.id', 'locations.name')
             ->orderByDesc('total_amount')
             ->limit(5)
@@ -167,6 +174,7 @@ class AdminDashboard extends Component
         $topTellers = DB::table('users')
             ->join('bets', 'users.id', '=', 'bets.teller_id')
             ->leftJoin('locations', 'bets.location_id', '=', 'locations.id')
+            ->leftJoin('receipts', 'bets.receipt_id', '=', 'receipts.id')
             ->select(
                 'users.id',
                 'users.name',
@@ -176,6 +184,10 @@ class AdminDashboard extends Component
             )
             ->whereDate('bets.bet_date', $today)
             ->where('users.role', 'teller')
+            ->where(function($query) {
+                $query->where('receipts.status', 'placed')
+                      ->orWhereNull('bets.receipt_id');
+            })
             ->groupBy('users.id', 'users.name', 'locations.name')
             ->orderByDesc('total_amount')
             ->limit(5)
@@ -198,6 +210,11 @@ class AdminDashboard extends Component
             ->join('results', 'draws.id', '=', 'results.draw_id')
             ->join('game_types', 'bets.game_type_id', '=', 'game_types.id')
             ->leftJoin('locations', 'bets.location_id', '=', 'locations.id')
+            ->leftJoin('receipts', 'bets.receipt_id', '=', 'receipts.id')
+            ->where(function($query) {
+                $query->where('receipts.status', 'placed')
+                      ->orWhereNull('bets.receipt_id');
+            })
             ->select(
                 'bets.id',
                 'users.id as user_id',

@@ -27,9 +27,16 @@ class ViewDrawDetails extends Component
     
     public function calculateBetStats(): void
     {
-        // Get total counts and sums directly from the database
+        // Get total counts and sums directly from the database with placed scope applied
         $totalStats = DB::table('bets')
             ->where('draw_id', $this->draw->id)
+            ->where(function($query) {
+                $query->whereExists(function($subquery) {
+                    $subquery->from('receipts')
+                        ->whereColumn('receipts.id', 'bets.receipt_id')
+                        ->where('receipts.status', 'placed');
+                })->orWhereNull('receipt_id'); // Include legacy bets without receipt_id
+            })
             ->select(
                 DB::raw('COUNT(*) as total_bets'),
                 DB::raw('SUM(amount) as total_amount'),
@@ -37,10 +44,17 @@ class ViewDrawDetails extends Component
             )
             ->first();
             
-        // Get game type statistics
+        // Get game type statistics with placed scope applied
         $gameTypeStats = DB::table('bets')
             ->join('game_types', 'bets.game_type_id', '=', 'game_types.id')
             ->where('bets.draw_id', $this->draw->id)
+            ->where(function($query) {
+                $query->whereExists(function($subquery) {
+                    $subquery->from('receipts')
+                        ->whereColumn('receipts.id', 'bets.receipt_id')
+                        ->where('receipts.status', 'placed');
+                })->orWhereNull('bets.receipt_id'); // Include legacy bets without receipt_id
+            })
             ->select(
                 'game_types.code as game_type',
                 'bets.d4_sub_selection as sub_selection',
@@ -58,10 +72,17 @@ class ViewDrawDetails extends Component
             })
             ->keyBy('game_type');
             
-        // Get location statistics (limit to top 10)
+        // Get location statistics (limit to top 10) with placed scope applied
         $locationStats = DB::table('bets')
             ->join('locations', 'bets.location_id', '=', 'locations.id')
             ->where('bets.draw_id', $this->draw->id)
+            ->where(function($query) {
+                $query->whereExists(function($subquery) {
+                    $subquery->from('receipts')
+                        ->whereColumn('receipts.id', 'bets.receipt_id')
+                        ->where('receipts.status', 'placed');
+                })->orWhereNull('bets.receipt_id'); // Include legacy bets without receipt_id
+            })
             ->select(
                 'locations.name as location',
                 DB::raw('COUNT(*) as count'),
@@ -73,10 +94,17 @@ class ViewDrawDetails extends Component
             ->get()
             ->keyBy('location');
             
-        // Get teller statistics (limit to top 10)
+        // Get teller statistics (limit to top 10) with placed scope applied
         $tellerStats = DB::table('bets')
             ->join('users', 'bets.teller_id', '=', 'users.id')
             ->where('bets.draw_id', $this->draw->id)
+            ->where(function($query) {
+                $query->whereExists(function($subquery) {
+                    $subquery->from('receipts')
+                        ->whereColumn('receipts.id', 'bets.receipt_id')
+                        ->where('receipts.status', 'placed');
+                })->orWhereNull('bets.receipt_id'); // Include legacy bets without receipt_id
+            })
             ->select(
                 'users.name as teller',
                 DB::raw('COUNT(*) as count'),
@@ -98,11 +126,25 @@ class ViewDrawDetails extends Component
             'has_more_locations' => DB::table('bets')
                 ->join('locations', 'bets.location_id', '=', 'locations.id')
                 ->where('bets.draw_id', $this->draw->id)
+                ->where(function($query) {
+                    $query->whereExists(function($subquery) {
+                        $subquery->from('receipts')
+                            ->whereColumn('receipts.id', 'bets.receipt_id')
+                            ->where('receipts.status', 'placed');
+                    })->orWhereNull('bets.receipt_id'); // Include legacy bets without receipt_id
+                })
                 ->distinct()
                 ->count('locations.id') > 10,
             'has_more_tellers' => DB::table('bets')
                 ->join('users', 'bets.teller_id', '=', 'users.id')
                 ->where('bets.draw_id', $this->draw->id)
+                ->where(function($query) {
+                    $query->whereExists(function($subquery) {
+                        $subquery->from('receipts')
+                            ->whereColumn('receipts.id', 'bets.receipt_id')
+                            ->where('receipts.status', 'placed');
+                    })->orWhereNull('bets.receipt_id'); // Include legacy bets without receipt_id
+                })
                 ->distinct()
                 ->count('users.id') > 10,
         ];

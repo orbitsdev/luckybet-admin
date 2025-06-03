@@ -222,7 +222,7 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
             ->where('draw_date', $date)
             ->with([
                 'bets' => function($query) {
-                    $query->with(['teller:id,name', 'gameType:id,code,name', 'location:id,name']);
+                    $query->placed()->with(['teller:id,name', 'gameType:id,code,name', 'location:id,name']);
                 },
                 'result'
             ])
