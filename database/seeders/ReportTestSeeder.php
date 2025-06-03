@@ -6,6 +6,7 @@ use App\Models\Bet;
 use App\Models\Draw;
 use App\Models\User;
 use App\Models\Result;
+use App\Models\Receipt;
 use App\Models\GameType;
 use App\Models\Location;
 use App\Models\BetRatio;
@@ -118,6 +119,15 @@ class ReportTestSeeder extends Seeder
                 // Get the result for this draw
                 $result = $draw->result;
                 
+                // Create a receipt for this teller and draw
+                $receipt = Receipt::create([
+                    'teller_id' => $teller->id,
+                    'location_id' => $location->id,
+                    'receipt_date' => $testDate->format('Y-m-d'),
+                    'status' => 'placed',
+                    'total_amount' => 0, // Will be calculated after bets are created
+                ]);
+                
                 // Create S2 bets (some winning, some losing)
                 $this->createBets(
                     $teller->id, 
@@ -129,7 +139,9 @@ class ReportTestSeeder extends Seeder
                     10, // Min amount
                     50, // Max amount
                     $result->s2_winning_number, // Winning number
-                    2 // Number of winning bets
+                    2, // Number of winning bets
+                    false, // Include D4 sub-selections
+                    $receipt->id // Receipt ID
                 );
                 
                 // Create S3 bets (some winning, some losing)
@@ -143,7 +155,9 @@ class ReportTestSeeder extends Seeder
                     20, // Min amount
                     100, // Max amount
                     $result->s3_winning_number, // Winning number
-                    1 // Number of winning bets
+                    1, // Number of winning bets
+                    false, // Include D4 sub-selections
+                    $receipt->id // Receipt ID
                 );
                 
                 // Create D4 bets (some winning, some losing)
@@ -158,8 +172,14 @@ class ReportTestSeeder extends Seeder
                     200, // Max amount
                     $result->d4_winning_number, // Winning number
                     1, // Number of winning bets
-                    true // Include D4 sub-selections
+                    true, // Include D4 sub-selections
+                    $receipt->id // Receipt ID
                 );
+                
+                // Update the receipt's total amount
+                $receipt->update([
+                    'total_amount' => $receipt->calculateTotalAmount()
+                ]);
             }
         }
         
@@ -183,7 +203,8 @@ class ReportTestSeeder extends Seeder
         int $maxAmount, 
         string $winningNumber, 
         int $winningBetsCount,
-        bool $includeD4SubSelection = false
+        bool $includeD4SubSelection = false,
+        int $receiptId = null
     ): void {
         // Create winning bets
         for ($i = 0; $i < $winningBetsCount; $i++) {
@@ -206,6 +227,7 @@ class ReportTestSeeder extends Seeder
             }
             
             Bet::create([
+                'receipt_id' => $receiptId,
                 'bet_number' => $betNumber,
                 'amount' => $amount,
                 'winning_amount' => $winningAmount,
@@ -247,6 +269,7 @@ class ReportTestSeeder extends Seeder
             }
             
             Bet::create([
+                'receipt_id' => $receiptId,
                 'bet_number' => $betNumber,
                 'amount' => $amount,
                 'winning_amount' => 0, // Losing bet
