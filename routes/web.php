@@ -25,21 +25,40 @@ use App\Livewire\SoldOutNumbers\ListSoldOutNumbers;
 use App\Livewire\Reports\Coordinator\TellerBetsReport;
 use App\Livewire\Reports\Coordinator\CoordinatorSalesSummary;
 use App\Livewire\Reports\Coordinator\CoordinatorTellerSalesSummary;
+use App\Livewire\Coordinator\CoordinatorDashboard;
+use App\Livewire\Coordinator\ManageTellers;
+use App\Livewire\Coordinator\ManageBets;
+use App\Livewire\Coordinator\ViewDraws;
 
+// Guest users are redirected to login
 Route::get('/', function () {
-    return redirect()->route('dashboard');
-});
+    return redirect()->route('login');
+})->middleware('guest');
 
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),
     'verified',
 ])->group(function () {
+    // Redirect to appropriate dashboard based on role
+    Route::get('/', function() {
+        if (auth()->check()) {
+            if (auth()->user()->role === 'coordinator') {
+                return redirect()->route('coordinator.dashboard');
+            } elseif (auth()->user()->role === 'admin') {
+                return redirect()->route('dashboard');
+            } else {
+                // Handle other roles or default case
+                return redirect()->route('login')->with('error', 'No dashboard available for your role.');
+            }
+        }
+        return redirect()->route('login');
+    });
+    
+    // Admin Dashboard
+    Route::get('/dashboard', AdminDashboard::class)->name('dashboard')->middleware('can:admin');
 
-
-    Route::get('/dashboard', AdminDashboard::class)->name('dashboard');
-
-    Route::prefix('/manage')->name('manage.')->group(function(){
+    Route::prefix('/manage')->name('manage.')->middleware('can:admin')->group(function(){
         Route::get('locations', ListLocations::class)->name('locations');
 
         Route::get('users', ListUsers::class)->name('users');
@@ -67,7 +86,7 @@ Route::middleware([
 
     });
 
-    Route::prefix('/reports')->name('reports.')->group(function(){
+    Route::prefix('/reports')->name('reports.')->middleware('can:admin')->group(function(){
         //coordinator
         Route::get('coordinator/summary', CoordinatorSalesSummary::class)->name('summary');
         Route::get('coordinator/teller-sales-summary/{coordinator_id}', CoordinatorTellerSalesSummary::class)->name('teller-sales-summary');
@@ -77,6 +96,23 @@ Route::middleware([
         Route::get('winning-report', WinningReport::class)->name('winning-report');
     });
 
+    // Coordinator Routes
+    Route::middleware(['auth:sanctum', 'can:coordinator'])->prefix('/coordinator')->name('coordinator.')->group(function() {
+        Route::get('/dashboard', CoordinatorDashboard::class)->name('dashboard');
+        Route::get('/tellers', ManageTellers::class)->name('tellers');
+        Route::get('/bets', ManageBets::class)->name('bets');
+        Route::get('/draws', ViewDraws::class)->name('draws');
+        
+        // Coordinator Reports
+        Route::prefix('/reports')->name('reports.')->group(function() {
+            Route::get('/daily', function() { 
+                return view('livewire.coordinator.reports.daily'); 
+            })->name('daily');
+            Route::get('/teller', function() { 
+                return view('livewire.coordinator.reports.teller'); 
+            })->name('teller');
+        });
+    });
 
 
 });

@@ -30,6 +30,7 @@ class AppServiceProvider extends ServiceProvider
 
         $this->configureModel();
         $this->configureFilament();
+        $this->configGates();
 
 
 
