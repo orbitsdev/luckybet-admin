@@ -95,7 +95,7 @@
                                 <span>Settings</span>
                             </div>
                         {{-- </a> --}}
-                        <div class="border-t-2 border-[#FC0204] my-2 opacity-80 mx-2 rounded-full"></div> --}}
+                        <div class="border-t-2 border-[#FC0204] my-2 opacity-80 mx-2 rounded-full"></div> 
                         <a href="{{ route('logout') }}"
                             onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
                             class="block px-4 py-2 text-gray-700 rounded-md transition-colors duration-300 ease-in-out hover:bg-gradient-to-r hover:from-[#FC0204] hover:to-[#ff367a] hover:text-white hover:shadow-md">
