@@ -99,12 +99,15 @@ class ReceiptController extends Controller
             $query->where('status', $request->status);
         }
         
-        // Search by receipt number or ticket_id
+        // Search by receipt number, ticket_id, or bet ticket_id
         if ($request->filled('search')) {
             $searchTerm = $request->search;
             $query->where(function($q) use ($searchTerm) {
                 $q->where('receipt_number', 'like', '%' . $searchTerm . '%')
-                  ->orWhere('ticket_id', 'like', '%' . $searchTerm . '%');
+                  ->orWhere('ticket_id', 'like', '%' . $searchTerm . '%')
+                  ->orWhereHas('bets', function($betQuery) use ($searchTerm) {
+                      $betQuery->where('ticket_id', 'like', '%' . $searchTerm . '%');
+                  });
             });
         }
         
@@ -486,7 +489,10 @@ class ReceiptController extends Controller
             ->with(['teller', 'location', 'bets.gameType', 'bets.draw'])
             ->where(function($q) use ($validated) {
                 $q->where('receipt_number', $validated['search'])
-                  ->orWhere('ticket_id', $validated['search']);
+                  ->orWhere('ticket_id', $validated['search'])
+                  ->orWhereHas('bets', function($betQuery) use ($validated) {
+                      $betQuery->where('ticket_id', $validated['search']);
+                  });
             });
             
         // If not admin/coordinator, only show own receipts

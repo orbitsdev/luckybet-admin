@@ -465,7 +465,7 @@ Finds a specific receipt by its receipt number or ticket ID.
 **Authentication Required:** Yes
 
 **Query Parameters:**
-- `search` (required): The receipt number or ticket ID to search for
+- `search` (required): The receipt number, receipt ticket ID, or bet ticket ID to search for
 
 **Response Example:**
 ```json
@@ -548,7 +548,7 @@ Retrieves a paginated list of receipts.
 - `date` (optional): Filter by specific date (format: YYYY-MM-DD)
 - `from_date` (optional): Filter by start date (format: YYYY-MM-DD)
 - `to_date` (optional): Filter by end date (format: YYYY-MM-DD)
-- `search` (optional): Search for receipts by receipt number or ticket ID
+- `search` (optional): Search for receipts by receipt number, receipt ticket ID, or bet ticket ID
 - `page` (optional): Page number for pagination
 - `per_page` (optional): Number of items per page (default: 15, max: 100)
 
