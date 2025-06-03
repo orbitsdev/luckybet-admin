@@ -179,6 +179,6 @@ class ManageTellers extends Component
         return view('livewire.coordinator.manage-tellers', [
             'tellers' => $tellers,
             'locations' => \App\Models\Location::orderBy('name')->get(),
-        ])->layout('components.coordinator');
+        ]);
     }
 }

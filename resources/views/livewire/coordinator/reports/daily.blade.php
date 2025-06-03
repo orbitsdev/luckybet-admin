@@ -1,4 +1,5 @@
 <div>
+    <x-admin>
     <h2 class="text-2xl font-semibold text-gray-800 mb-6">Daily Sales Report</h2>
     
     <!-- Date Filter -->
@@ -272,7 +273,7 @@
                             <td class="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
                                 ₱12,345.00
                             </td>
-                            <td class="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider text-green-600">
+                            <td class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-green-600">
                                 ₱33,333.00
                             </td>
                         </tr>
@@ -389,7 +390,7 @@
                             <td class="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
                                 ₱12,345.00
                             </td>
-                            <td class="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider text-green-600">
+                            <td class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-green-600">
                                 ₱33,333.00
                             </td>
                         </tr>
@@ -398,4 +399,5 @@
             </div>
         </div>
     </div>
+    </x-admin>
 </div>

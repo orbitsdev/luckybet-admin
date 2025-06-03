@@ -175,6 +175,6 @@ class ViewDraws extends Component
         return view('livewire.coordinator.view-draws', [
             'draws' => $draws,
             'drawTimes' => ['2PM', '5PM', '9PM'],
-        ])->layout('components.coordinator');
+        ]);
     }
 }

@@ -27,8 +27,7 @@ use App\Livewire\Reports\Coordinator\CoordinatorSalesSummary;
 use App\Livewire\Reports\Coordinator\CoordinatorTellerSalesSummary;
 use App\Livewire\Coordinator\CoordinatorDashboard;
 use App\Livewire\Coordinator\ManageTellers;
-use App\Livewire\Coordinator\ManageBets;
-use App\Livewire\Coordinator\ViewDraws;
+use App\Livewire\Coordinator\Reports\WinningReport as CoordinatorWinningReport;
 
 // Guest users are redirected to login
 Route::get('/', function () {
@@ -41,22 +40,24 @@ Route::middleware([
     'verified',
 ])->group(function () {
     // Redirect to appropriate dashboard based on role
-    Route::get('/', function() {
-        if (auth()->check()) {
-            if (auth()->user()->role === 'coordinator') {
-                return redirect()->route('coordinator.dashboard');
-            } elseif (auth()->user()->role === 'admin') {
-                return redirect()->route('dashboard');
-            } else {
-                // Handle other roles or default case
-                return redirect()->route('login')->with('error', 'No dashboard available for your role.');
+    Route::get('/dashboard', function() {
+
+            switch(auth()->user()->role){
+                case 'admin':
+                    return redirect()->route('main.dashboard');
+                case 'coordinator':
+
+                    return redirect()->route('coordinator.dashboard');
+                default:
+                    return redirect()->route('login');
             }
-        }
-        return redirect()->route('login');
-    });
-    
+    })->name('dashboard');
+
     // Admin Dashboard
-    Route::get('/dashboard', AdminDashboard::class)->name('dashboard')->middleware('can:admin');
+    Route::get('/main/dashboard', AdminDashboard::class)->name('main.dashboard')->middleware('can:admin');
+
+
+ 
 
     Route::prefix('/manage')->name('manage.')->middleware('can:admin')->group(function(){
         Route::get('locations', ListLocations::class)->name('locations');
@@ -98,19 +99,25 @@ Route::middleware([
 
     // Coordinator Routes
     Route::middleware(['auth:sanctum', 'can:coordinator'])->prefix('/coordinator')->name('coordinator.')->group(function() {
+        // Dashboard
         Route::get('/dashboard', CoordinatorDashboard::class)->name('dashboard');
-        Route::get('/tellers', ManageTellers::class)->name('tellers');
-        Route::get('/bets', ManageBets::class)->name('bets');
-        Route::get('/draws', ViewDraws::class)->name('draws');
         
-        // Coordinator Reports
+        // Teller Management
+        Route::get('/tellers', ManageTellers::class)->name('tellers');
+        
+        // Game Management
+        Route::get('/draws', \App\Livewire\Coordinator\ViewDraws::class)->name('draws');
+        Route::get('/winning-amounts', \App\Livewire\Coordinator\ListWinningAmount::class)->name('winning-amounts');
+        Route::get('/bet-ratios', \App\Livewire\Coordinator\ListBetRatios::class)->name('bet-ratios');
+        Route::get('/sold-out-numbers', \App\Livewire\Coordinator\ListSoldOutNumbers::class)->name('sold-out-numbers');
+        Route::get('/low-win-numbers', \App\Livewire\Coordinator\ListLowWinNumbers::class)->name('low-win-numbers');
+        Route::get('/bets', \App\Livewire\Coordinator\ManageBets::class)->name('bets');
+        
+        // Reports
         Route::prefix('/reports')->name('reports.')->group(function() {
-            Route::get('/daily', function() { 
-                return view('livewire.coordinator.reports.daily'); 
-            })->name('daily');
-            Route::get('/teller', function() { 
-                return view('livewire.coordinator.reports.teller'); 
-            })->name('teller');
+            Route::get('/daily', \App\Livewire\Reports\Coordinator\CoordinatorSalesSummary::class)->name('daily');
+            Route::get('/teller', \App\Livewire\Reports\Coordinator\CoordinatorTellerSalesSummary::class)->name('teller');
+            Route::get('/winning', \App\Livewire\Reports\Coordinator\CoordinatorWinningReport::class)->name('winning');
         });
     });
 

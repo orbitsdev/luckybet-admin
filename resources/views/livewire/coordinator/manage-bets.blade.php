@@ -1,7 +1,5 @@
 <div>
-
-
-</x-admin>
+    <x-admin>
     <h2 class="text-2xl font-semibold text-gray-800 mb-6">Manage Bets</h2>
     
     <!-- Filters -->
@@ -330,5 +328,5 @@
             </div>
         </div>
     </div>
-    <x-admin>
+    </x-admin>
 </div>

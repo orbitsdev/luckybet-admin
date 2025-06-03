@@ -165,6 +165,6 @@ class ManageBets extends Component
             'tellers' => $tellers,
             'gameTypes' => GameType::orderBy('name')->get(),
             'locations' => Location::orderBy('name')->get(),
-        ])->layout('components.coordinator');
+        ]);
     }
 }
