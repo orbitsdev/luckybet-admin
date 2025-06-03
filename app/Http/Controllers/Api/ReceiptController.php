@@ -85,7 +85,7 @@ class ReceiptController extends Controller
         $perPage = $validated['per_page'] ?? 15;
         
         $query = Receipt::query()
-            ->with(['teller', 'location'])
+            ->with(['teller', 'location', 'bets.gameType', 'bets.draw'])
             ->orderBy('created_at', 'desc');
             
         // If not admin/coordinator, only show own receipts
