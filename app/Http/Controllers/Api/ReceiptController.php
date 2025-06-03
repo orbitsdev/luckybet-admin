@@ -479,7 +479,7 @@ class ReceiptController extends Controller
     }
     
     /**
-     * Find receipt by receipt number
+     * Find receipt by receipt number or ticket ID
      */
     public function findByReceiptNumber(Request $request)
     {
@@ -490,31 +490,41 @@ class ReceiptController extends Controller
         ]);
         
         try {
+            // Log the search term for debugging
+            \Log::info('Searching for receipt with term: ' . $validated['search']);
+            
             $query = Receipt::query()
                 ->with(['teller', 'location', 'bets.gameType', 'bets.draw'])
                 ->where(function($q) use ($validated) {
-                    $q->where('ticket_id', $validated['search'])
+                    $q->where('ticket_id', '=', $validated['search'])
                       ->orWhereHas('bets', function($betQuery) use ($validated) {
-                          $betQuery->where('ticket_id', $validated['search']);
+                          $betQuery->where('ticket_id', '=', $validated['search']);
                       });
                 });
+                
+            // If not admin/coordinator, only show own receipts
+            if ($user->role !== 'admin' && $user->role !== 'coordinator') {
+                $query->where('teller_id', $user->id);
+            }
+            
+            // Get the receipt
+            $receipt = $query->first();
+            
+            // Log the query results for debugging
+            \Log::info('Receipt search query completed. Receipt found: ' . ($receipt ? 'Yes' : 'No'));
+            
+            if (!$receipt) {
+                // Log more details about the failed search
+                \Log::info('Receipt not found with search term: ' . $validated['search']);
+                return ApiResponse::error('Receipt not found', 404);
+            }
+            
+            return ApiResponse::success(new ReceiptResource($receipt));
+            
         } catch (\Exception $e) {
             \Log::error('Find receipt error: ' . $e->getMessage());
             return ApiResponse::error('An error occurred while searching for the receipt', 500);
         }
-            
-        // If not admin/coordinator, only show own receipts
-        if ($user->role !== 'admin' && $user->role !== 'coordinator') {
-            $query->where('teller_id', $user->id);
-        }
-        
-        $receipt = $query->first();
-        
-        if (!$receipt) {
-            return ApiResponse::error('Receipt not found', 404);
-        }
-        
-        return ApiResponse::success(new ReceiptResource($receipt));
     }
     
     /**
