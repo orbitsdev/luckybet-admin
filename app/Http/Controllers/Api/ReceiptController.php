@@ -80,6 +80,7 @@ class ReceiptController extends Controller
             'date' => 'sometimes|date',
             'page' => 'sometimes|integer|min:1',
             'per_page' => 'sometimes|integer|min:1|max:100',
+            'search' => 'sometimes|string'
         ]);
         
         $perPage = $validated['per_page'] ?? 15;
@@ -98,6 +99,15 @@ class ReceiptController extends Controller
             $query->where('status', $request->status);
         }
         
+        // Search by receipt number or ticket_id
+        if ($request->filled('search')) {
+            $searchTerm = $request->search;
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('receipt_number', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('ticket_id', 'like', '%' . $searchTerm . '%');
+            });
+        }
+        
         // Filter by single date if provided, or use today's date if no date filters are provided
         if ($request->filled('date')) {
             $query->whereDate('receipt_date', $request->date);
@@ -107,7 +117,8 @@ class ReceiptController extends Controller
             $query->whereBetween('receipt_date', [$request->from_date, $request->to_date]);
         }
         // Default to today if no date filter is provided
-        else {
+        // Skip date filtering if we're searching by receipt number or search term
+        elseif (!$request->filled('search')) {
             $query->whereDate('receipt_date', Carbon::today()->format('Y-m-d'));
         }
         
@@ -458,6 +469,38 @@ class ReceiptController extends Controller
             DB::rollBack();
             return ApiResponse::error('Failed to finalize receipt: ' . $e->getMessage(), 500);
         }
+    }
+    
+    /**
+     * Find receipt by receipt number
+     */
+    public function findByReceiptNumber(Request $request)
+    {
+        $user = $request->user();
+        
+        $validated = $request->validate([
+            'search' => 'required|string',
+        ]);
+        
+        $query = Receipt::query()
+            ->with(['teller', 'location', 'bets.gameType', 'bets.draw'])
+            ->where(function($q) use ($validated) {
+                $q->where('receipt_number', $validated['search'])
+                  ->orWhere('ticket_id', $validated['search']);
+            });
+            
+        // If not admin/coordinator, only show own receipts
+        if ($user->role !== 'admin' && $user->role !== 'coordinator') {
+            $query->where('teller_id', $user->id);
+        }
+        
+        $receipt = $query->first();
+        
+        if (!$receipt) {
+            return ApiResponse::error('Receipt not found', 404);
+        }
+        
+        return ApiResponse::success(new ReceiptResource($receipt));
     }
     
     /**

@@ -15,9 +15,10 @@ The Receipt Module introduces a cart-based workflow that allows tellers to group
 ## API Endpoints
 
 | Method | Endpoint                           | Purpose                                       |
-|--------|------------------------------------|--------------------------------------------|
+|--------|------------------------------------|--------------------------------------------|  
 | GET    | `/api/receipts/draft`              | Get or create current teller's draft receipt |
 | GET    | `/api/receipts`                    | List finalized receipts with pagination      |
+| GET    | `/api/receipts/find`               | Find receipt by receipt number or ticket ID  |
 | GET    | `/api/receipts/{receipt}`          | Get details of a specific receipt            |
 | POST   | `/api/receipts/{receipt}/bets`     | Add a bet to a draft receipt                 |
 | DELETE | `/api/receipts/{receipt}/bets/{bet}` | Remove a bet from a draft receipt          |
@@ -53,6 +54,7 @@ All API endpoints follow a consistent response format:
 |--------|------------------------------------|--------------------------------------------|  
 | GET    | `/api/receipts/draft`              | Get or create current teller's draft receipt |
 | GET    | `/api/receipts`                    | List finalized receipts with pagination      |
+| GET    | `/api/receipts/find`               | Find receipt by receipt number or ticket ID  |
 | GET    | `/api/receipts/{receipt}`          | Get details of a specific receipt            |
 | POST   | `/api/receipts/{receipt}/bets`     | Add a bet to a draft receipt                 |
 | DELETE | `/api/receipts/{receipt}/bets/{bet}` | Remove a bet from a draft receipt          |
@@ -454,7 +456,86 @@ Retrieves detailed information about a specific receipt.
 }
 ```
 
-### 8. List Receipts
+### 8. Find Receipt by Number or Ticket ID
+
+Finds a specific receipt by its receipt number or ticket ID.
+
+**Endpoint:** `GET /api/receipts/find`
+
+**Authentication Required:** Yes
+
+**Query Parameters:**
+- `search` (required): The receipt number or ticket ID to search for
+
+**Response Example:**
+```json
+{
+  "status": true,
+  "message": "Success",
+  "data": {
+    "id": 12,
+    "ticket_id": "LB-250602-0945-A7D4",
+    "status": "placed",
+    "receipt_date": "2025-06-02",
+    "receipt_date_formatted": "Jun 02, 2025",
+    "total_amount": 1000,
+    "total_amount_formatted": "1,000",
+    "bets": [
+      {
+        "id": 101,
+        "ticket_id": "LB-250602-0945-A7D4",
+        "bet_number": "123",
+        "amount": "1000",
+        "amount_formatted": "1,000",
+        "winning_amount": 5000,
+        "winning_amount_formatted": "5,000",
+        "is_low_win": false,
+        "is_claimed": false,
+        "is_rejected": false,
+        "is_combination": true,
+        "is_winner": false,
+        "d4_sub_selection": "S3",
+        "bet_date": "2025-06-02",
+        "bet_date_formatted": "Jun 02, 2025 09:45 AM",
+        "game_type": {
+          "id": 1,
+          "name": "D4",
+          "code": "D4"
+        },
+        "draw": {
+          "id": 10,
+          "draw_time": "14:00",
+          "draw_date": "2025-06-02",
+          "is_open": true
+        }
+      }
+    ],
+    "teller": {
+      "id": 5,
+      "name": "Jane Doe",
+      "username": "jane_teller",
+      "role": "teller"
+    },
+    "location": {
+      "id": 2,
+      "name": "Tacurong Branch"
+    },
+    "created_at": "2025-06-02T01:30:45.000000Z",
+    "created_at_formatted": "Jun 02, 2025 1:30 AM"
+  }
+}
+```
+
+**Error Response (Receipt Not Found):**
+```json
+{
+  "status": false,
+  "message": "Receipt not found",
+  "data": null
+}
+```
+
+### 9. List Receipts
 
 Retrieves a paginated list of receipts.
 
@@ -467,10 +548,11 @@ Retrieves a paginated list of receipts.
 - `date` (optional): Filter by specific date (format: YYYY-MM-DD)
 - `from_date` (optional): Filter by start date (format: YYYY-MM-DD)
 - `to_date` (optional): Filter by end date (format: YYYY-MM-DD)
+- `search` (optional): Search for receipts by receipt number or ticket ID
 - `page` (optional): Page number for pagination
 - `per_page` (optional): Number of items per page (default: 15, max: 100)
 
-**Note:** If no date filter is provided, the API defaults to showing receipts from today's date only.
+**Note:** If no date filter is provided and no search term is used, the API defaults to showing receipts from today's date only. When searching with the `search` parameter, the date filter is not applied.
 
 **Response Example:**
 ```json

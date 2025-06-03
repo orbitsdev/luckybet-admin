@@ -41,6 +41,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Receipt API (Cart System)
     Route::get('/receipts/draft', [ReceiptController::class, 'getDraft']);
+    Route::get('/receipts/find', [ReceiptController::class, 'findByReceiptNumber']);
     Route::get('/receipts', [ReceiptController::class, 'index']);
     Route::get('/receipts/{receipt}', [ReceiptController::class, 'show']);
     Route::post('/receipts/{receipt}/bets', [ReceiptController::class, 'addBet']);
