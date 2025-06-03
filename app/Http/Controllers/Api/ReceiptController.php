@@ -99,16 +99,20 @@ class ReceiptController extends Controller
             $query->where('status', $request->status);
         }
         
-        // Search by receipt number, ticket_id, or bet ticket_id
+        // Search by ticket_id or bet ticket_id
         if ($request->filled('search')) {
-            $searchTerm = $request->search;
-            $query->where(function($q) use ($searchTerm) {
-                $q->where('receipt_number', 'like', '%' . $searchTerm . '%')
-                  ->orWhere('ticket_id', 'like', '%' . $searchTerm . '%')
-                  ->orWhereHas('bets', function($betQuery) use ($searchTerm) {
-                      $betQuery->where('ticket_id', 'like', '%' . $searchTerm . '%');
-                  });
-            });
+            try {
+                $searchTerm = $request->search;
+                $query->where(function($q) use ($searchTerm) {
+                    $q->where('ticket_id', 'like', '%' . $searchTerm . '%')
+                      ->orWhereHas('bets', function($betQuery) use ($searchTerm) {
+                          $betQuery->where('ticket_id', 'like', '%' . $searchTerm . '%');
+                      });
+                });
+            } catch (\Exception $e) {
+                // Log the error but continue with the query without the search filter
+                \Log::error('Search error: ' . $e->getMessage());
+            }
         }
         
         // Filter by single date if provided, or use today's date if no date filters are provided
@@ -485,15 +489,19 @@ class ReceiptController extends Controller
             'search' => 'required|string',
         ]);
         
-        $query = Receipt::query()
-            ->with(['teller', 'location', 'bets.gameType', 'bets.draw'])
-            ->where(function($q) use ($validated) {
-                $q->where('receipt_number', $validated['search'])
-                  ->orWhere('ticket_id', $validated['search'])
-                  ->orWhereHas('bets', function($betQuery) use ($validated) {
-                      $betQuery->where('ticket_id', $validated['search']);
-                  });
-            });
+        try {
+            $query = Receipt::query()
+                ->with(['teller', 'location', 'bets.gameType', 'bets.draw'])
+                ->where(function($q) use ($validated) {
+                    $q->where('ticket_id', $validated['search'])
+                      ->orWhereHas('bets', function($betQuery) use ($validated) {
+                          $betQuery->where('ticket_id', $validated['search']);
+                      });
+                });
+        } catch (\Exception $e) {
+            \Log::error('Find receipt error: ' . $e->getMessage());
+            return ApiResponse::error('An error occurred while searching for the receipt', 500);
+        }
             
         // If not admin/coordinator, only show own receipts
         if ($user->role !== 'admin' && $user->role !== 'coordinator') {
