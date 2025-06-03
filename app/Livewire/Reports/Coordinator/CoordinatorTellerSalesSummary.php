@@ -128,7 +128,8 @@ class CoordinatorTellerSalesSummary extends Component implements HasForms, HasAc
         $tellerIds = $tellers->pluck('id')->toArray();
 
         // Get all bets for all tellers under this coordinator on this date
-        $bets = Bet::whereIn('teller_id', $tellerIds)
+        // Only include bets with receipts in 'placed' status
+        $bets = Bet::placed()->whereIn('teller_id', $tellerIds)
             ->whereIn('draw_id', $drawIds)
             ->where('is_rejected', false)
             ->with(['draw', 'gameType', 'teller'])

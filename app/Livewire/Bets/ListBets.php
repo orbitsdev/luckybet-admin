@@ -130,12 +130,14 @@ class ListBets extends Component implements HasForms, HasTable
         $this->filterDate = $date; // Ensure the property is set
 
         // Query to get bet statistics - use select('*') to ensure all fields are retrieved
-        $totalBets = Bet::select('*')->whereDate('bet_date', $date)->count();
-        $totalAmount = Bet::select('*')->whereDate('bet_date', $date)->sum('amount');
-        $totalWinningAmount = Bet::select('*')->whereDate('bet_date', $date)->sum('winning_amount');
+        // Only include bets with receipts in 'placed' status
+        $totalBets = Bet::placed()->select('*')->whereDate('bet_date', $date)->count();
+        $totalAmount = Bet::placed()->select('*')->whereDate('bet_date', $date)->sum('amount');
+        $totalWinningAmount = Bet::placed()->select('*')->whereDate('bet_date', $date)->sum('winning_amount');
 
         // Get counts by game type - using selectRaw to include all necessary fields
-        $gameTypeCounts = Bet::whereDate('bet_date', $date)
+        // Only include bets with receipts in 'placed' status
+        $gameTypeCounts = Bet::placed()->whereDate('bet_date', $date)
             ->join('game_types', 'bets.game_type_id', '=', 'game_types.id')
             ->select('game_types.code', 'game_types.name')
             ->selectRaw('COUNT(*) as count')
@@ -146,7 +148,8 @@ class ListBets extends Component implements HasForms, HasTable
             ->toArray();
 
         // Get counts by location - using aggregate functions that don't need the is_claimed attribute
-        $locationCounts = Bet::whereDate('bet_date', $date)
+        // Only include bets with receipts in 'placed' status
+        $locationCounts = Bet::placed()->whereDate('bet_date', $date)
             ->join('locations', 'bets.location_id', '=', 'locations.id')
             ->select('locations.name')
             ->selectRaw('COUNT(*) as count')
@@ -157,7 +160,8 @@ class ListBets extends Component implements HasForms, HasTable
             ->toArray();
 
         // Get counts by teller - using aggregate functions that don't need the is_claimed attribute
-        $tellerCounts = Bet::whereDate('bet_date', $date)
+        // Only include bets with receipts in 'placed' status
+        $tellerCounts = Bet::placed()->whereDate('bet_date', $date)
             ->join('users', 'bets.teller_id', '=', 'users.id')
             ->select('users.name')
             ->selectRaw('COUNT(*) as count')
@@ -192,7 +196,7 @@ class ListBets extends Component implements HasForms, HasTable
     public function table(Table $table): Table
     {
         return $table
-            ->query(Bet::query()->select('bets.*')->with(['draw', 'gameType', 'teller', 'location']))
+            ->query(Bet::placed()->select('bets.*')->with(['draw', 'gameType', 'teller', 'location']))
             ->columns([
                 Tables\Columns\TextColumn::make('draw.draw_date')
                     ->label('Draw Date')
@@ -217,7 +221,7 @@ class ListBets extends Component implements HasForms, HasTable
                     ->placeholder('-')
                     ->badge()
                     ->color('purple')
-                    ->visible(fn ($livewire) => Bet::whereNotNull('d4_sub_selection')->exists()),
+                    ->visible(fn ($livewire) => Bet::placed()->whereNotNull('d4_sub_selection')->exists()),
                 Tables\Columns\TextColumn::make('bet_number')
                     ->label('Bet Number')
                     ->searchable(),

@@ -85,7 +85,8 @@ class BettingController extends Controller
             }
 
             // 1. BET RATIO (CAP/SOLD OUT) CHECK - must include location_id
-            $totalBetForNumber = Bet::where('draw_id', $data['draw_id'])
+            // Only include bets with receipts in 'placed' status
+            $totalBetForNumber = Bet::placed()->where('draw_id', $data['draw_id'])
                 ->where('game_type_id', $data['game_type_id'])
                 ->where('location_id', $user->location_id)
                 ->where('bet_number', $data['bet_number'])
@@ -203,7 +204,7 @@ class BettingController extends Controller
 
         $date = $request->filled('date') ? $request->date : Carbon::today()->format('Y-m-d');
 
-        $query = Bet::with(['draw', 'customer', 'location', 'gameType'])
+        $query = Bet::placed()->with(['draw', 'customer', 'location', 'gameType'])
             ->where('teller_id', $user->id)
             ->whereDate('bet_date', $date)
 
@@ -291,7 +292,7 @@ class BettingController extends Controller
 
         $date = $request->filled('date') ? $request->date : Carbon::today()->format('Y-m-d');
 
-        $query = Bet::with(['draw', 'customer', 'location', 'gameType'])
+        $query = Bet::placed()->with(['draw', 'customer', 'location', 'gameType'])
             ->where('teller_id', $user->id)
             ->where('is_rejected', true)
             ->whereHas('draw', function($query) use ($date) {
@@ -413,7 +414,7 @@ class BettingController extends Controller
         $perPage = $validated['per_page'] ?? 20;
 
         // We need to eager load results for is_winner calculation
-        $query = Bet::with(['draw', 'customer', 'location', 'gameType', 'draw.result'])
+        $query = Bet::placed()->with(['draw', 'customer', 'location', 'gameType', 'draw.result'])
             ->where('teller_id', $user->id)
             ->where('is_claimed', true)
             ->when($request->filled('search'), function ($q) use ($request) {
@@ -491,7 +492,7 @@ class BettingController extends Controller
         $date = $request->filled('date') ? $request->date : today()->toDateString();
 
 
-        $query = Bet::with(['draw', 'customer', 'location', 'gameType', 'draw.result'])
+        $query = Bet::placed()->with(['draw', 'customer', 'location', 'gameType', 'draw.result'])
             ->where('teller_id', $user->id)
             ->where('is_rejected', false)
             ->whereDate('bet_date', $date)

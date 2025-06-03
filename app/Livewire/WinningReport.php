@@ -67,6 +67,7 @@ class WinningReport extends Component
 
     public function calculateStatistics()
     {
+        // Using placed scope to only include bets with receipts in 'placed' status
         $winningBets = $this->getWinningBetsQuery()->get();
 
         $this->totalWinners = $winningBets->count();
@@ -103,7 +104,7 @@ class WinningReport extends Component
 
     protected function getWinningBetsQuery()
     {
-        return Bet::with([
+        return Bet::placed()->with([
             'draw.result', 'gameType', 'teller.coordinator', 'location', 'customer'
         ])
         ->whereHas('draw.result')

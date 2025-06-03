@@ -95,16 +95,16 @@ class TellerSalesReport extends Component
             })
             ->withCount([
                 'bets as total_sales' => function ($query) {
-                    $query->whereDate('created_at', $this->date)
+                    $query->placed()->whereDate('created_at', $this->date)
                         ->select(DB::raw('SUM(amount)'));
                 },
                 'bets as total_hits' => function ($query) {
-                    $query->whereDate('created_at', $this->date)
+                    $query->placed()->whereDate('created_at', $this->date)
                         ->whereNotNull('winning_amount')
                         ->select(DB::raw('SUM(winning_amount)'));
                 },
                 'bets as total_commission' => function ($query) {
-                    $query->whereDate('created_at', $this->date)
+                    $query->placed()->whereDate('created_at', $this->date)
                         ->select(DB::raw('SUM(commission_amount)'));
                 },
             ])

@@ -61,8 +61,8 @@ class TellerBetsReport extends Component implements HasForms, HasActions
 
         $drawIds = $draws->pluck('id')->toArray();
 
-        // Start building the query
-        $betsQuery = Bet::where('teller_id', $this->tellerId)
+        // Start building the query - only include bets with receipts in 'placed' status
+        $betsQuery = Bet::placed()->where('teller_id', $this->tellerId)
             ->whereIn('draw_id', $drawIds)
             ->with(['draw', 'gameType']);
 

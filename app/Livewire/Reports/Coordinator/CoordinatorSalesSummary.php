@@ -105,8 +105,8 @@ class CoordinatorSalesSummary extends Component implements HasForms, HasActions
                     continue; // Skip coordinators with no tellers
                 }
 
-                // Get bets for these tellers
-                $betsQuery = Bet::whereIn('teller_id', $tellerIds)
+                // Get bets for these tellers - only include bets with receipts in 'placed' status
+                $betsQuery = Bet::placed()->whereIn('teller_id', $tellerIds)
                     ->whereIn('draw_id', $drawIds)
                     ->where('is_rejected', false);
 
@@ -167,15 +167,15 @@ class CoordinatorSalesSummary extends Component implements HasForms, HasActions
 
         // We already have the draws from above, no need to query again
 
-        // Check if there are any bets for these draws and tellers
-        $betCount = Bet::whereIn('draw_id', $drawIds)
+        // Check if there are any bets for these draws and tellers - only include bets with receipts in 'placed' status
+        $betCount = Bet::placed()->whereIn('draw_id', $drawIds)
             ->whereIn('teller_id', $tellerIds)
             ->count();
 
         $this->debugInfo['bet_count'] = $betCount;
 
-        // Get all bets for these tellers on this date
-        $betsQuery = Bet::whereIn('teller_id', $tellerIds)
+        // Get all bets for these tellers on this date - only include bets with receipts in 'placed' status
+        $betsQuery = Bet::placed()->whereIn('teller_id', $tellerIds)
             ->whereIn('draw_id', $drawIds)
             ->where('is_rejected', false);
 
@@ -354,21 +354,21 @@ class CoordinatorSalesSummary extends Component implements HasForms, HasActions
 
                 $tellerIds = $tellers->pluck('id')->toArray();
 
-                $activeTellerCount = Bet::whereIn('teller_id', $tellerIds)
+                $activeTellerCount = Bet::placed()->whereIn('teller_id', $tellerIds)
                     ->whereIn('draw_id', $draws)
                     ->where('is_rejected', false)
                     ->select('teller_id')
                     ->distinct()
                     ->count();
 
-                // Get bet count
-                $betCount = Bet::whereIn('teller_id', $tellerIds)
+                // Get bet count - only include bets with receipts in 'placed' status
+                $betCount = Bet::placed()->whereIn('teller_id', $tellerIds)
                     ->whereIn('draw_id', $draws)
                     ->where('is_rejected', false)
                     ->count();
 
-                // Get winning bet count
-                $winningBetCount = Bet::whereIn('teller_id', $tellerIds)
+                // Get winning bet count - only include bets with receipts in 'placed' status
+                $winningBetCount = Bet::placed()->whereIn('teller_id', $tellerIds)
                     ->whereIn('draw_id', $draws)
                     ->where('is_rejected', false)
                     ->whereNotNull('winning_amount')
@@ -389,8 +389,8 @@ class CoordinatorSalesSummary extends Component implements HasForms, HasActions
                 // Get teller data for the table - using the same calculation as CoordinatorTellerSalesSummary
                 $tellerData = [];
                 foreach ($tellers as $teller) {
-                    // Get all bets for this teller on this date
-                    $betsQuery = Bet::where('teller_id', $teller->id)
+                    // Get all bets for this teller on this date - only include bets with receipts in 'placed' status
+                    $betsQuery = Bet::placed()->where('teller_id', $teller->id)
                         ->whereIn('draw_id', $draws)
                         ->where('is_rejected', false);
 

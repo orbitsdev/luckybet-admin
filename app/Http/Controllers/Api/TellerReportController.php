@@ -41,7 +41,8 @@ class TellerReportController extends Controller
         $draws = $drawsQuery->get();
 
         // Query all bets for the date (optionally filter by teller/location)
-        $betsQuery = Bet::whereDate('bet_date', $date);
+        // Only include bets with receipts in 'placed' status
+        $betsQuery = Bet::placed()->whereDate('bet_date', $date);
         if ($tellerId) $betsQuery->where('teller_id', $tellerId);
         if ($locationId) $betsQuery->where('location_id', $locationId);
         $bets = $betsQuery->get();
@@ -385,8 +386,8 @@ class TellerReportController extends Controller
             $user = $request->user();
             $today = now()->toDateString();
 
-            // Get total sales for today
-            $sales = Bet::where('teller_id', $user->id)
+            // Get total sales for today - only include bets with receipts in 'placed' status
+            $sales = Bet::placed()->where('teller_id', $user->id)
                 ->whereDate('bet_date', $today)
                 ->where('is_rejected', false)
                 ->sum('amount');
@@ -397,8 +398,8 @@ class TellerReportController extends Controller
             // Calculate total commission for today using fixed rate
             $totalCommission = $sales * $commissionRate;
 
-            // Get cancellation count for today
-            $cancellations = Bet::where('teller_id', $user->id)
+            // Get cancellation count for today - only include bets with receipts in 'placed' status
+            $cancellations = Bet::placed()->where('teller_id', $user->id)
                 ->whereDate('bet_date', $today)
                 ->where('is_rejected', true)
                 ->count();
@@ -460,8 +461,8 @@ class TellerReportController extends Controller
 
             $gameType = $gameTypeId ? GameType::find($gameTypeId) : null;
 
-            // ✅ GROUPED query
-            $query = Bet::select('bet_number', 'game_type_id', 'draw_id', 'd4_sub_selection', DB::raw('SUM(amount) as total_amount'))
+            // ✅ GROUPED query - only include bets with receipts in 'placed' status
+            $query = Bet::placed()->select('bet_number', 'game_type_id', 'draw_id', 'd4_sub_selection', DB::raw('SUM(amount) as total_amount'))
                 ->where('teller_id', $user->id)
                 ->whereDate('bet_date', $date)
                 ->where('is_rejected', false)
@@ -470,8 +471,8 @@ class TellerReportController extends Controller
                 ->groupBy('bet_number', 'game_type_id', 'draw_id', 'd4_sub_selection')
                 ->orderBy('bet_number');
 
-            // Calculate total amount using the same query structure
-            $totalAmount = Bet::where('teller_id', $user->id)
+            // Calculate total amount using the same query structure - only include bets with receipts in 'placed' status
+            $totalAmount = Bet::placed()->where('teller_id', $user->id)
                 ->whereDate('bet_date', $date)
                 ->where('is_rejected', false)
                 ->when($gameTypeId, fn($q) => $q->where('game_type_id', $gameTypeId))
@@ -588,8 +589,8 @@ class TellerReportController extends Controller
         $date = $validated['date'] ?? now()->toDateString();
         $formattedDate = \Carbon\Carbon::parse($date)->format('F j, Y');
 
-        // Get all valid bets for this teller and date
-        $bets = Bet::where('teller_id', $user->id)
+        // Get all valid bets for this teller and date - only include bets with receipts in 'placed' status
+        $bets = Bet::placed()->where('teller_id', $user->id)
             ->whereDate('bet_date', $date)
             ->where('is_rejected', false)
             ->get();

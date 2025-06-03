@@ -240,4 +240,18 @@ class Bet extends Model
             ->first();
         return $lowWin !== null;
     }
+    
+    /**
+     * Scope a query to only include bets with receipts in 'placed' status.
+     * This ensures that only finalized bets are included in reports and calculations.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopePlaced($query)
+    {
+        return $query->whereHas('receipt', function($q) {
+            $q->where('status', 'placed');
+        })->orWhereNull('receipt_id'); // Include legacy bets without receipt_id
+    }
 }
