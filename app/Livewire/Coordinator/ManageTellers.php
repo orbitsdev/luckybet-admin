@@ -3,182 +3,160 @@
 namespace App\Livewire\Coordinator;
 
 use App\Models\User;
+use Filament\Tables;
 use Livewire\Component;
-use Livewire\WithPagination;
+use Filament\Tables\Table;
+use Filament\Forms\Form;
+use Illuminate\Contracts\View\View;
+use Filament\Forms\Contracts\HasForms;
+use Filament\Tables\Contracts\HasTable;
+use Filament\Notifications\Notification;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Contracts\View\View;
-use Illuminate\Validation\Rule;
+use Filament\Forms\Concerns\InteractsWithForms;
+use Filament\Tables\Concerns\InteractsWithTable;
 
-class ManageTellers extends Component
+class ManageTellers extends Component implements HasForms, HasTable
 {
-    use WithPagination;
-    
-    public $search = '';
-    public $sortField = 'name';
-    public $sortDirection = 'asc';
-    
-    // Form properties
-    public $name;
-    public $email;
-    public $password;
-    public $password_confirmation;
-    public $location_id;
-    
-    // Edit mode
-    public $editMode = false;
-    public $tellerId;
-    
-    // Modal states
-    public $showCreateModal = false;
-    public $showEditModal = false;
-    public $showDeleteModal = false;
-    
-    protected $rules = [
-        'name' => 'required|string|max:255',
-        'email' => 'required|email|max:255',
-        'password' => 'sometimes|min:8|confirmed',
-        'location_id' => 'required|exists:locations,id',
-    ];
-    
-    public function updatingSearch()
-    {
-        $this->resetPage();
-    }
-    
-    public function sortBy($field)
-    {
-        if ($this->sortField === $field) {
-            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
-        } else {
-            $this->sortField = $field;
-            $this->sortDirection = 'asc';
-        }
-    }
-    
-    public function openCreateModal()
-    {
-        $this->resetForm();
-        $this->showCreateModal = true;
-    }
-    
-    public function openEditModal($id)
-    {
-        $this->resetForm();
-        $this->editMode = true;
-        $this->tellerId = $id;
-        
-        $teller = User::findOrFail($id);
-        $this->name = $teller->name;
-        $this->email = $teller->email;
-        $this->location_id = $teller->location_id;
-        
-        $this->showEditModal = true;
-    }
-    
-    public function openDeleteModal($id)
-    {
-        $this->tellerId = $id;
-        $this->showDeleteModal = true;
-    }
-    
-    public function resetForm()
-    {
-        $this->editMode = false;
-        $this->tellerId = null;
-        $this->name = '';
-        $this->email = '';
-        $this->password = '';
-        $this->password_confirmation = '';
-        $this->location_id = null;
-        $this->resetErrorBag();
-    }
-    
-    public function createTeller()
-    {
-        // Add unique email validation for creation
-        $this->rules['email'] = 'required|email|max:255|unique:users,email';
-        $this->rules['password'] = 'required|min:8|confirmed';
-        
-        $this->validate();
-        
-        User::create([
-            'name' => $this->name,
-            'email' => $this->email,
-            'password' => Hash::make($this->password),
-            'role' => 'teller',
-            'coordinator_id' => Auth::id(),
-            'location_id' => $this->location_id,
-        ]);
-        
-        $this->showCreateModal = false;
-        $this->resetForm();
-        session()->flash('message', 'Teller created successfully.');
-    }
-    
-    public function updateTeller()
-    {
-        // Modify email validation for updates
-        $this->rules['email'] = [
-            'required',
-            'email',
-            'max:255',
-            Rule::unique('users', 'email')->ignore($this->tellerId),
-        ];
-        
-        // Make password optional for updates
-        $this->rules['password'] = 'nullable|min:8|confirmed';
-        
-        $this->validate();
-        
-        $teller = User::findOrFail($this->tellerId);
-        
-        $data = [
-            'name' => $this->name,
-            'email' => $this->email,
-            'location_id' => $this->location_id,
-        ];
-        
-        // Only update password if provided
-        if (!empty($this->password)) {
-            $data['password'] = Hash::make($this->password);
-        }
-        
-        $teller->update($data);
-        
-        $this->showEditModal = false;
-        $this->resetForm();
-        session()->flash('message', 'Teller updated successfully.');
-    }
-    
-    public function deleteTeller()
-    {
-        $teller = User::findOrFail($this->tellerId);
-        $teller->delete();
-        
-        $this->showDeleteModal = false;
-        session()->flash('message', 'Teller deleted successfully.');
-    }
-    
-    public function render(): View
+    use InteractsWithForms;
+    use InteractsWithTable;
+
+    public array $tellerStats = [];
+
+    public function mount()
     {
         $coordinatorId = Auth::id();
         
-        $tellers = User::where('role', 'teller')
-            ->where('coordinator_id', $coordinatorId)
-            ->when($this->search, function($query) {
-                return $query->where(function($q) {
-                    $q->where('name', 'like', '%' . $this->search . '%')
-                      ->orWhere('email', 'like', '%' . $this->search . '%');
-                });
-            })
-            ->with('location')
-            ->orderBy($this->sortField, $this->sortDirection)
-            ->paginate(10);
-            
-        return view('livewire.coordinator.manage-tellers', [
-            'tellers' => $tellers,
-            'locations' => \App\Models\Location::orderBy('name')->get(),
-        ]);
+        $this->tellerStats = [
+            'total' => User::where('role', 'teller')->where('coordinator_id', $coordinatorId)->count(),
+            'active' => User::where('role', 'teller')->where('coordinator_id', $coordinatorId)->where('is_active', true)->count(),
+            'inactive' => User::where('role', 'teller')->where('coordinator_id', $coordinatorId)->where('is_active', false)->count(),
+        ];
+    }
+
+    public function table(Table $table): Table
+    {
+        $coordinatorId = Auth::id();
+        $coordinator = Auth::user();
+        
+        return $table
+            ->query(
+                User::query()
+                    ->where('role', 'teller')
+                    ->where('coordinator_id', $coordinatorId)
+            )
+            ->headerActions([
+                Tables\Actions\Action::make('create')
+                    ->label('Create Teller')
+                    ->icon('heroicon-o-plus')
+                    ->url(route('coordinator.tellers.create')),
+            ])
+            ->columns([
+                Tables\Columns\ImageColumn::make('profile_photo_url')
+                    ->label('Photo')
+                    ->circular()
+                    ->defaultImageUrl(fn($record) => $record->profile_photo_url),
+                Tables\Columns\TextColumn::make('name')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('username')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('email')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('phone')
+                    ->searchable(),
+                Tables\Columns\IconColumn::make('is_active')
+                    ->boolean()
+                    ->label('Active'),
+                Tables\Columns\TextColumn::make('location.name')
+                    ->label('Location')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('commission.rate')
+                    ->label('Commission Rate')
+                    ->formatStateUsing(fn($state) => $state !== null ? $state . '%' : '-')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('created_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('updated_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+            ])
+            ->filters([
+                Tables\Filters\TernaryFilter::make('is_active')
+                    ->label('Active Status'),
+            ])
+            ->actions([
+                Tables\Actions\Action::make('manageCommission')
+                    ->label('Commission')
+                    ->button()
+                    ->icon('heroicon-o-currency-dollar')
+                    ->form([
+                        \Filament\Forms\Components\TextInput::make('commission_rate')
+                            ->label('Commission Rate (%)')
+                            ->numeric()
+                            ->required()
+                            ->minValue(0)
+                            ->maxValue(100)
+                            ->default(fn($record) => $record->commission->rate ?? null)
+                            ->helperText('Enter the commission rate for this teller.'),
+                    ])
+                    ->action(function ($record, $data) {
+                        if ($record->commission) {
+                            $record->commission->rate = $data['commission_rate'];
+                            $record->commission->save();
+                            Notification::make()
+                                ->title('Commission Updated')
+                                ->success()
+                                ->body('The commission rate for ' . $record->name . ' has been updated to ' . $data['commission_rate'] . '%.')
+                                ->send();
+                        }
+                    })
+                    ->modalWidth('md')
+                    ->modalHeading('Manage Commission')
+                    ->modalSubmitAction(fn ($action) => $action->label('Save'))
+                    ->modalCancelAction(fn ($action) => $action->label('Cancel'))
+                    ->closeModalByClickingAway(true),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\Action::make('view')
+                        ->color('success')
+                        ->icon('heroicon-m-eye')
+                        ->label('View')
+                        ->modalContent(function ($record) {
+                            return view('livewire.coordinator.view-teller-details', ['record' => $record]);
+                        })
+                        ->modalWidth('7xl')
+                        ->modalHeading('Teller Details')
+                        ->modalSubmitAction(false)
+                        ->modalCancelAction(fn ($action) => $action->label('Close'))
+                        ->disabledForm()
+                        ->closeModalByClickingAway(true),
+                    Tables\Actions\Action::make('edit')
+                        ->label('Edit')
+                        ->icon('heroicon-o-pencil')
+                        ->url(fn($record) => route('coordinator.tellers.edit', ['teller' => $record->id])),
+                    Tables\Actions\DeleteAction::make()
+                        ->action(function ($record) {
+                            $record->delete();
+                            Notification::make()
+                                ->title('Teller Deleted')
+                                ->success()
+                                ->body('The teller has been deleted successfully.')
+                                ->send();
+                        }),
+                ])
+            ])
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
+                ]),
+            ]);
+    }
+
+    public function render(): View
+    {
+        return view('livewire.coordinator.manage-tellers');
     }
 }

@@ -12,21 +12,25 @@ use App\Livewire\Draws\ManageDraws;
 use Illuminate\Support\Facades\Route;
 use App\Livewire\Reports\SalesSummary;
 use App\Livewire\Draws\ViewDrawDetails;
+
+use App\Livewire\Coordinator\EditTeller;
 use App\Livewire\Reports\ReportByTeller;
 use App\Livewire\BetRatios\ListBetRatios;
+
 use App\Livewire\Locations\ListLocations;
+use App\Livewire\Coordinator\CreateTeller;
+use App\Livewire\Coordinator\ManageTellers;
 use App\Livewire\Reports\TellerSalesReport;
 use App\Livewire\Commissions\ListCommission;
 use App\Livewire\Reports\TellerSalesSummary;
 use App\Livewire\Reports\ReportByCoordinator;
 use App\Livewire\LowWinNumbers\ListLowWinNumbers;
 use App\Livewire\WinningAmount\ListWinningAmount;
+use App\Livewire\Coordinator\CoordinatorDashboard;
 use App\Livewire\SoldOutNumbers\ListSoldOutNumbers;
 use App\Livewire\Reports\Coordinator\TellerBetsReport;
 use App\Livewire\Reports\Coordinator\CoordinatorSalesSummary;
 use App\Livewire\Reports\Coordinator\CoordinatorTellerSalesSummary;
-use App\Livewire\Coordinator\CoordinatorDashboard;
-use App\Livewire\Coordinator\ManageTellers;
 use App\Livewire\Coordinator\Reports\WinningReport as CoordinatorWinningReport;
 
 // Guest users are redirected to login
@@ -98,12 +102,15 @@ Route::middleware([
     });
 
     // Coordinator Routes
-    Route::middleware(['auth:sanctum', 'can:coordinator'])->prefix('/coordinator')->name('coordinator.')->group(function() {
+    Route::middleware(['auth:sanctum','can:coordinator'])->prefix('/coordinator')->name('coordinator.')->group(function() {
         // Dashboard
         Route::get('/dashboard', CoordinatorDashboard::class)->name('dashboard');
         
         // Teller Management
-        Route::get('/tellers', ManageTellers::class)->name('tellers');
+        Route::get('/tellers',ManageTellers::class)->name('tellers');
+        Route::get('/tellers/create',CreateTeller::class)->name('tellers.create');
+        Route::get('/tellers/{teller}/edit',EditTeller::class)->name('tellers.edit');
+        
         
         // Game Management
         Route::get('/draws', \App\Livewire\Coordinator\ViewDraws::class)->name('draws');
