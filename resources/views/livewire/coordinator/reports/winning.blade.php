@@ -1,4 +1,5 @@
 <div>
+    <x-admin>
     <div class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
         <!-- Page header -->
         <div class="sm:flex sm:justify-between sm:items-center mb-8">
@@ -7,53 +8,51 @@
                 <h1 class="text-2xl md:text-3xl font-bold">Winning Report</h1>
             </div>
         </div>
-
+        <div class="flex items-end justify-end space-x-2 mb-2 mt-4l">
+            <button wire:click="resetFilters" class="p-1 rounded bg-gray-500 hover:bg-gray-600 text-white flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                </svg>
+                <span class="ml-2">Reset Filters</span>
+            </button>
+        </div>
         <!-- Filters -->
         <div class="mb-6 bg-white rounded-lg shadow-md p-4">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <!-- Date Range Filter -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Date Filter -->
                 <div>
-                    <label for="dateRange" class="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
-                    <select wire:model.live="dateRange" id="dateRange" class="form-select w-full">
-                        <option value="today">Today</option>
-                        <option value="yesterday">Yesterday</option>
-                        <option value="this_week">This Week</option>
-                        <option value="last_week">Last Week</option>
-                        <option value="this_month">This Month</option>
-                        <option value="last_month">Last Month</option>
-                        <option value="custom">Custom Range</option>
-                    </select>
+                    <label for="date" class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                    <input type="date" wire:model.live="date" id="date" class="form-input w-full">
                 </div>
 
-                <!-- Custom Date Range -->
-                @if ($dateRange === 'custom')
+                <!-- Game Type Filter -->
                 <div>
-                    <label for="startDate" class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
-                    <input type="date" wire:model.live="startDate" id="startDate" class="form-input w-full">
-                </div>
-                <div>
-                    <label for="endDate" class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
-                    <input type="date" wire:model.live="endDate" id="endDate" class="form-input w-full">
-                </div>
-                @endif
-
-                <!-- Draw Filter -->
-                <div>
-                    <label for="selectedDraw" class="block text-sm font-medium text-gray-700 mb-1">Draw</label>
-                    <select wire:model.live="selectedDraw" id="selectedDraw" class="form-select w-full">
-                        <option value="">All Draws</option>
-                        @foreach ($draws as $draw)
-                            <option value="{{ $draw->id }}">{{ $draw->name }} ({{ $draw->time }})</option>
+                    <label for="game_type_id" class="block text-sm font-medium text-gray-700 mb-1">Game Type</label>
+                    <select wire:model.live="game_type_id" id="game_type_id" class="form-select w-full">
+                        <option value="">All Game Types</option>
+                        @foreach (\App\Models\GameType::all() as $gameType)
+                            <option value="{{ $gameType->id }}">{{ $gameType->name }}</option>
                         @endforeach
                     </select>
                 </div>
 
-                <!-- Search Button -->
-                <div class="flex items-end">
-                    <button wire:click="applyFilters" class="btn bg-red-500 hover:bg-red-600 text-white">
-                        <span class="hidden xs:block ml-2">Search</span>
-                    </button>
+                <!-- Teller Filter -->
+                <div>
+                    <label for="teller_id" class="block text-sm font-medium text-gray-700 mb-1">Teller</label>
+                    <select wire:model.live="teller_id" id="teller_id" class="form-select w-full">
+                        <option value="">All Tellers</option>
+                        @foreach (\App\Models\User::where('role', 'teller')
+                            ->whereHas('coordinator', function($query) {
+                                $query->where('id', auth()->id());
+                            })
+                            ->get() as $teller)
+                            <option value="{{ $teller->id }}">{{ $teller->name }}</option>
+                        @endforeach
+                    </select>
                 </div>
+
+                <!-- Search and Reset Buttons -->
+               
             </div>
         </div>
 
@@ -143,7 +142,7 @@
                             <tr>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $winningNumber->draw->name }} ({{ $winningNumber->draw->time }})</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $winningNumber->created_at->format('M d, Y') }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-red-600">{{ $winningNumber->number }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-red-600">{{ $winningNumber->bet_number }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ number_format($winningNumber->total_bets) }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ number_format($winningNumber->winning_bets) }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₱{{ number_format($winningNumber->total_sales, 2) }}</td>
@@ -175,9 +174,9 @@
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Teller</th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Draw</th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Number</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bet Number</th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payout</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Winning Amount</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
@@ -187,9 +186,9 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $bet->teller->name }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $bet->draw->name }} ({{ $bet->draw->time }})</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $bet->created_at->format('M d, Y') }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-red-600">{{ $bet->number }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-red-600">{{ $bet->bet_number }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₱{{ number_format($bet->amount, 2) }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₱{{ number_format($bet->payout, 2) }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₱{{ number_format($bet->winning_amount, 2) }}</td>
                             </tr>
                         @empty
                             <tr>
@@ -204,4 +203,5 @@
             </div>
         </div>
     </div>
+</x-admin>
 </div>

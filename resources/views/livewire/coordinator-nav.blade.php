@@ -1,4 +1,4 @@
-<div x-data="{ tellersOpen: false, gamesOpen: false, reportsOpen: false }">
+<div x-data="{ tellersOpen: true, gamesOpen: true, reportsOpen: true }">
      <!-- Sidebar and Main Content -->
      <div class="flex flex-1 overflow-hidden bg-white pt-16" @click.self="sidebarOpen = false">
         <!-- Mobile backdrop overlay -->
@@ -95,6 +95,12 @@
                                     class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('coordinator.reports.tellers') ? 'opacity-100 bg-red-500' : 'opacity-0 group-hover:opacity-100 bg-primary-500' }} mr-3 transition-all duration-200"></span>
                                 <span>Teller Sales Report</span>
                             </a>
+                            <a href="{{ route('coordinator.reports.winning') }}"
+                                class="group flex items-center px-4 py-2.5 text-sm rounded-md nav-item hover:pl-5 transition-all duration-200 {{ request()->routeIs('coordinator.reports.winning') ? 'text-red-600 bg-gradient-to-r from-red-50 to-red-100 font-medium border-l-2 border-red-500' : 'text-gray-600' }}">
+                                <span
+                                    class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('coordinator.reports.winning') ? 'opacity-100 bg-red-500' : 'opacity-0 group-hover:opacity-100 bg-primary-500' }} mr-3 transition-all duration-200"></span>
+                                <span>Winning Report</span>
+                            </a>
                         </div>
                     </div>
                 </nav>
@@ -180,6 +186,10 @@
                             <a href="{{ route('coordinator.reports.tellers') }}"
                                 class="block pl-12 pr-5 py-2.5 rounded-lg nav-item border-l-4 {{ request()->routeIs('coordinator.reports.tellers') ? 'text-red-600 bg-gradient-to-r from-red-50 to-red-100 font-medium border-red-500' : 'text-gray-600 hover:bg-red-50 hover:text-red-600 border-transparent' }}">
                                 Teller Sales Report
+                            </a>
+                            <a href="{{ route('coordinator.reports.winning') }}"
+                                class="block pl-12 pr-5 py-2.5 rounded-lg nav-item border-l-4 {{ request()->routeIs('coordinator.reports.winning') ? 'text-red-600 bg-gradient-to-r from-red-50 to-red-100 font-medium border-red-500' : 'text-gray-600 hover:bg-red-50 hover:text-red-600 border-transparent' }}">
+                                Winning Report
                             </a>
                         </div>
                     </div>

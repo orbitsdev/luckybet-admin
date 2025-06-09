@@ -44,7 +44,147 @@ class CoordinatorWinningReport extends Component implements HasForms, HasTable
 
     public function render(): ViewContract
     {
-        return view('livewire.coordinator.reports.winning');
+        // Get winning bets for tellers under this coordinator using the same approach as WinningReport
+        $query = Bet::query()
+            ->with(['draw.result', 'gameType', 'teller'])
+            ->whereHas('teller.coordinator', function ($query) {
+                $query->where('id', Auth::id());
+            })
+            ->whereHas('draw.result')
+            ->when($this->date, function ($query, $date) {
+                return $query->whereDate('created_at', $date);
+            })
+            ->when($this->game_type_id, function ($query, $game_type_id) {
+                return $query->where('game_type_id', $game_type_id);
+            })
+            ->when($this->teller_id, function ($query, $teller_id) {
+                return $query->where('teller_id', $teller_id);
+            })
+            // Identify winning bets by checking against results
+            ->where(function ($query) {
+                // For S2 game type
+                $query->where(function ($q) {
+                    $q->where('game_type_id', 1)
+                      ->whereRaw('EXISTS (SELECT 1 FROM results WHERE results.draw_id = bets.draw_id AND bets.bet_number = results.s2_winning_number)');
+                })
+                // For S3 game type
+                ->orWhere(function ($q) {
+                    $q->where('game_type_id', 2)
+                      ->whereRaw('EXISTS (SELECT 1 FROM results WHERE results.draw_id = bets.draw_id AND bets.bet_number = results.s3_winning_number)');
+                })
+                // For D4 game type - exact match
+                ->orWhere(function ($q) {
+                    $q->where('game_type_id', 3)
+                      ->whereRaw('EXISTS (SELECT 1 FROM results WHERE results.draw_id = bets.draw_id AND bets.bet_number = results.d4_winning_number)');
+                })
+                // For D4-S2 sub-selection - we need to compare the last 2 digits of D4 winning number
+                ->orWhere(function ($q) {
+                    $q->where('game_type_id', 3)
+                      ->where('d4_sub_selection', 'S2')
+                      ->whereRaw('EXISTS (SELECT 1 FROM results WHERE results.draw_id = bets.draw_id AND 
+                                RIGHT(results.d4_winning_number, 2) = LPAD(bets.bet_number, 2, "0"))');
+                })
+                // For D4-S3 sub-selection - we need to compare the last 3 digits of D4 winning number
+                ->orWhere(function ($q) {
+                    $q->where('game_type_id', 3)
+                      ->where('d4_sub_selection', 'S3')
+                      ->whereRaw('EXISTS (SELECT 1 FROM results WHERE results.draw_id = bets.draw_id AND 
+                                RIGHT(results.d4_winning_number, 3) = LPAD(bets.bet_number, 3, "0"))');
+                });
+            });
+
+        // Calculate summary statistics
+        // First, get all bets for this coordinator's tellers
+        $allBetsQuery = Bet::query()
+            ->whereHas('teller.coordinator', function ($query) {
+                $query->where('id', Auth::id());
+            })
+            ->when($this->date, function ($query, $date) {
+                return $query->whereDate('created_at', $date);
+            })
+            ->when($this->game_type_id, function ($query, $game_type_id) {
+                return $query->where('game_type_id', $game_type_id);
+            })
+            ->when($this->teller_id, function ($query, $teller_id) {
+                return $query->where('teller_id', $teller_id);
+            });
+            
+        $totalBets = $allBetsQuery->count();
+        $totalSales = $allBetsQuery->sum('amount');
+        
+        // Clone the winning bets query for counts and sums
+        $winningBetsQuery = clone $query;
+        $winningBets = $winningBetsQuery->count();
+        $totalPayouts = $winningBetsQuery->sum('winning_amount');
+
+        // Get winning numbers with pagination
+        $winningNumbers = Bet::query()
+            ->with(['draw', 'teller'])
+            ->whereHas('teller.coordinator', function ($query) {
+                $query->where('id', Auth::id());
+            })
+            ->whereHas('draw.result')
+            ->when($this->date, function ($query, $date) {
+                return $query->whereDate('created_at', $date);
+            })
+            ->when($this->game_type_id, function ($query, $game_type_id) {
+                return $query->where('game_type_id', $game_type_id);
+            })
+            ->when($this->teller_id, function ($query, $teller_id) {
+                return $query->where('teller_id', $teller_id);
+            })
+            // Use the same winning condition as above
+            ->where(function ($query) {
+                // For S2 game type
+                $query->where(function ($q) {
+                    $q->where('game_type_id', 1)
+                      ->whereRaw('EXISTS (SELECT 1 FROM results WHERE results.draw_id = bets.draw_id AND bets.bet_number = results.s2_winning_number)');
+                })
+                // For S3 game type
+                ->orWhere(function ($q) {
+                    $q->where('game_type_id', 2)
+                      ->whereRaw('EXISTS (SELECT 1 FROM results WHERE results.draw_id = bets.draw_id AND bets.bet_number = results.s3_winning_number)');
+                })
+                // For D4 game type - exact match
+                ->orWhere(function ($q) {
+                    $q->where('game_type_id', 3)
+                      ->whereRaw('EXISTS (SELECT 1 FROM results WHERE results.draw_id = bets.draw_id AND bets.bet_number = results.d4_winning_number)');
+                })
+                // For D4-S2 sub-selection
+                ->orWhere(function ($q) {
+                    $q->where('game_type_id', 3)
+                      ->where('d4_sub_selection', 'S2')
+                      ->whereRaw('EXISTS (SELECT 1 FROM results WHERE results.draw_id = bets.draw_id AND 
+                                RIGHT(results.d4_winning_number, 2) = LPAD(bets.bet_number, 2, "0"))');
+                })
+                // For D4-S3 sub-selection
+                ->orWhere(function ($q) {
+                    $q->where('game_type_id', 3)
+                      ->where('d4_sub_selection', 'S3')
+                      ->whereRaw('EXISTS (SELECT 1 FROM results WHERE results.draw_id = bets.draw_id AND 
+                                RIGHT(results.d4_winning_number, 3) = LPAD(bets.bet_number, 3, "0"))');
+                });
+            })
+            ->select('bet_number', 'draw_id', 
+                    DB::raw('COUNT(*) as total_bets'), 
+                    DB::raw('SUM(amount) as total_sales'), 
+                    DB::raw('COUNT(*) as winning_bets'), 
+                    DB::raw('SUM(winning_amount) as total_payouts'), 
+                    'created_at')
+            ->groupBy('bet_number', 'draw_id', 'created_at')
+            ->paginate(10);
+
+        // Get winning bets list with pagination
+        $winningBetsList = $query->paginate(10);
+
+        return view('livewire.coordinator.reports.winning', [
+            'totalBets' => $totalBets,
+            'totalSales' => $totalSales,
+            'winningBets' => $winningBets,
+            'totalPayouts' => $totalPayouts,
+            'winningNumbers' => $winningNumbers,
+            'winningBetsList' => $winningBetsList
+        ]);
     }
 
     public function form(Form $form): Form
@@ -88,7 +228,7 @@ class CoordinatorWinningReport extends Component implements HasForms, HasTable
                     ->whereHas('teller.coordinator', function ($query) {
                         $query->where('id', Auth::id());
                     })
-                    ->where('is_winner', true)
+                    ->whereHas('draw.result')
                     ->when($this->date, function ($query, $date) {
                         return $query->whereDate('bets.created_at', $date);
                     })
@@ -97,6 +237,38 @@ class CoordinatorWinningReport extends Component implements HasForms, HasTable
                     })
                     ->when($this->teller_id, function ($query, $teller_id) {
                         return $query->where('bets.teller_id', $teller_id);
+                    })
+                    // Identify winning bets by checking against results
+                    ->where(function ($query) {
+                        // For S2 game type
+                        $query->where(function ($q) {
+                            $q->where('bets.game_type_id', 1)
+                              ->whereRaw('EXISTS (SELECT 1 FROM results WHERE results.draw_id = bets.draw_id AND bets.bet_number = results.s2_winning_number)');
+                        })
+                        // For S3 game type
+                        ->orWhere(function ($q) {
+                            $q->where('bets.game_type_id', 2)
+                              ->whereRaw('EXISTS (SELECT 1 FROM results WHERE results.draw_id = bets.draw_id AND bets.bet_number = results.s3_winning_number)');
+                        })
+                        // For D4 game type - exact match
+                        ->orWhere(function ($q) {
+                            $q->where('bets.game_type_id', 3)
+                              ->whereRaw('EXISTS (SELECT 1 FROM results WHERE results.draw_id = bets.draw_id AND bets.bet_number = results.d4_winning_number)');
+                        })
+                        // For D4-S2 sub-selection
+                        ->orWhere(function ($q) {
+                            $q->where('bets.game_type_id', 3)
+                              ->where('bets.d4_sub_selection', 'S2')
+                              ->whereRaw('EXISTS (SELECT 1 FROM results WHERE results.draw_id = bets.draw_id AND 
+                                        RIGHT(results.d4_winning_number, 2) = LPAD(bets.bet_number, 2, "0"))');
+                        })
+                        // For D4-S3 sub-selection
+                        ->orWhere(function ($q) {
+                            $q->where('bets.game_type_id', 3)
+                              ->where('bets.d4_sub_selection', 'S3')
+                              ->whereRaw('EXISTS (SELECT 1 FROM results WHERE results.draw_id = bets.draw_id AND 
+                                        RIGHT(results.d4_winning_number, 3) = LPAD(bets.bet_number, 3, "0"))');
+                        });
                     })
                     ->select(
                         'bets.*',
@@ -167,6 +339,19 @@ class CoordinatorWinningReport extends Component implements HasForms, HasTable
     }
 
     public function refreshTable()
+    {
+        $this->resetTable();
+    }
+    
+    public function resetFilters()
+    {
+        $this->date = Carbon::today()->format('Y-m-d');
+        $this->game_type_id = null;
+        $this->teller_id = null;
+        $this->resetTable();
+    }
+    
+    public function applyFilters()
     {
         $this->resetTable();
     }

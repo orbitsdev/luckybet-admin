@@ -124,12 +124,12 @@ Route::middleware([
         Route::prefix('/reports')->name('reports.')->group(function() {
             // Route::get('/daily', \App\Livewire\Reports\Coordinator\CoordinatorSalesSummary::class)->name('daily');
             // Route::get('/teller', \App\Livewire\Reports\Coordinator\CoordinatorTellerSalesSummary::class)->name('teller');
-            // Route::get('/winning', \App\Livewire\Reports\Coordinator\CoordinatorWinningReport::class)->name('winning');
             
-            // Additional report routes mirroring admin functionality but using authenticated coordinator
+            // Report routes for coordinator
             Route::get('/teller-sales-summary', \App\Livewire\Reports\Coordinator\CoordinatorTellerSalesSummary::class)->name('teller-sales-summary');
             Route::get('/teller-bets-report/{teller_id}/{date?}', \App\Livewire\Reports\Coordinator\TellerBetsReport::class)->name('teller-bets-report');
             Route::get('/tellers', \App\Livewire\Reports\Coordinator\TellerSalesReport::class)->name('tellers');
+            Route::get('/winning', \App\Livewire\Reports\Coordinator\CoordinatorWinningReport::class)->name('winning');
         });
     });
 

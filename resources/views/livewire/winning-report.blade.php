@@ -3,7 +3,6 @@
         <div class="py-6">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 flex justify-between items-center">
                 <h1 class="text-2xl font-semibold text-gray-900">Winning Report</h1>
-                
                 <div class="flex items-center space-x-2">
                     <button wire:click="resetFilters" class="inline-flex items-center px-3 py-1 border border-gray-300 text-xs font-medium rounded-md shadow-sm text-gray-700 bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-gray-500">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
