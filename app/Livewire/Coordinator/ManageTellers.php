@@ -136,7 +136,7 @@ class ManageTellers extends Component implements HasForms, HasTable
                     Tables\Actions\Action::make('edit')
                         ->label('Edit')
                         ->icon('heroicon-o-pencil')
-                        ->url(fn($record) => route('coordinator.tellers.edit', ['teller' => $record->id])),
+                        ->url(fn($record) => route('coordinator.tellers.edit', ['record' => $record->id])),
                     Tables\Actions\DeleteAction::make()
                         ->action(function ($record) {
                             $record->delete();

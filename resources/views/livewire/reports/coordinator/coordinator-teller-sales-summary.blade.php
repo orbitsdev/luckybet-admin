@@ -1,7 +1,7 @@
 <div>
     <x-admin>
         <div class="p-4 bg-white rounded-lg shadow-md">
-            <div class="flex justify-between items-center mb-6">
+            {{-- <div class="flex justify-between items-center mb-6">
                 <div class="flex items-center space-x-3">
                     <a href="{{ route('reports.summary') }}" class="inline-flex items-center px-2 py-1 text-sm text-gray-700 hover:text-indigo-600">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -15,7 +15,7 @@
                     <label for="date" class="block text-sm font-medium text-gray-700">Date</label>
                     <input type="date" wire:model.live="date" id="date" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                 </div>
-            </div>
+            </div> --}}
             
             @if($coordinatorData)
                 <div class="mb-4 bg-indigo-50 p-4 rounded-lg">

@@ -39,7 +39,9 @@ class CreateTeller extends Component implements HasForms
                         Forms\Components\TextInput::make('username')
                             ->label('Username')
                             ->required()
-                            ->maxLength(255),
+                            ->maxLength(255)
+                            ->unique(table: User::class, column: 'username')
+                            ->helperText('Must be unique across all users'),
                     ])->columns(2),
                     Forms\Components\Group::make([
                       
@@ -47,7 +49,9 @@ class CreateTeller extends Component implements HasForms
                             ->label('Email Address')
                             ->email()
                             ->required()
-                            ->maxLength(255),
+                            ->maxLength(255)
+                            ->unique(table: User::class, column: 'email')
+                            ->helperText('Must be unique across all users'),
                         Forms\Components\TextInput::make('phone')
                                 ->label('Phone Number')
                                 ->prefixIcon('heroicon-o-phone')
@@ -106,16 +110,53 @@ class CreateTeller extends Component implements HasForms
 
     public function create()
     {
-        $data = $this->form->getState();
-        $data['coordinator_id'] = Auth::user()->id;
-        $data['location_id'] = Auth::user()->location_id;
-        $data['role'] = 'teller';
+        try {
+            // Validate the form data
+            $data = $this->form->getState();
+            $data['coordinator_id'] = Auth::user()->id;
+            $data['location_id'] = Auth::user()->location_id;
+            $data['role'] = 'teller';
 
-        $record = User::create($data);
+            // Create the user record
+            $record = User::create($data);
 
-        $this->form->model($record)->saveRelationships();
+            // Save relationships from the form
+            $this->form->model($record)->saveRelationships();
+            
+            // Ensure commission record exists with database default rate (15%)
+            if (!$record->commission) {
+                $record->commission()->create();
+            }
 
-        return redirect()->route('coordinator.tellers');
+            // Add success notification
+            session()->flash('success', 'Teller account created successfully with 15% commission rate.');
+
+            return redirect()->route('coordinator.tellers');
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Handle database exceptions like duplicate entries
+            $errorCode = $e->errorInfo[1] ?? null;
+            
+            if ($errorCode == 1062) { // MySQL duplicate entry error code
+                // Extract the duplicate field from the error message
+                $errorMessage = $e->getMessage();
+                if (str_contains($errorMessage, 'users.users_username_unique')) {
+                    $this->addError('data.username', 'This username is already taken. Please choose another one.');
+                } elseif (str_contains($errorMessage, 'users.users_email_unique')) {
+                    $this->addError('data.email', 'This email address is already registered. Please use another one.');
+                } else {
+                    $this->addError('general', 'A duplicate entry was detected. Please check your input and try again.');
+                }
+            } else {
+                // Generic database error
+                $this->addError('general', 'An error occurred while creating the teller. Please try again.');
+            }
+            
+            return null;
+        } catch (\Exception $e) {
+            // Handle other exceptions
+            $this->addError('general', 'An unexpected error occurred: ' . $e->getMessage());
+            return null;
+        }
     }
 
     public function render(): View

@@ -109,7 +109,7 @@ Route::middleware([
         // Teller Management
         Route::get('/tellers',ManageTellers::class)->name('tellers');
         Route::get('/tellers/create',CreateTeller::class)->name('tellers.create');
-        Route::get('/tellers/{teller}/edit',EditTeller::class)->name('tellers.edit');
+        Route::get('/tellers/{record}/edit',EditTeller::class)->name('tellers.edit');
         
         
         // Game Management
@@ -122,9 +122,14 @@ Route::middleware([
         
         // Reports
         Route::prefix('/reports')->name('reports.')->group(function() {
-            Route::get('/daily', \App\Livewire\Reports\Coordinator\CoordinatorSalesSummary::class)->name('daily');
-            Route::get('/teller', \App\Livewire\Reports\Coordinator\CoordinatorTellerSalesSummary::class)->name('teller');
-            Route::get('/winning', \App\Livewire\Reports\Coordinator\CoordinatorWinningReport::class)->name('winning');
+            // Route::get('/daily', \App\Livewire\Reports\Coordinator\CoordinatorSalesSummary::class)->name('daily');
+            // Route::get('/teller', \App\Livewire\Reports\Coordinator\CoordinatorTellerSalesSummary::class)->name('teller');
+            // Route::get('/winning', \App\Livewire\Reports\Coordinator\CoordinatorWinningReport::class)->name('winning');
+            
+            // Additional report routes mirroring admin functionality but using authenticated coordinator
+            Route::get('/teller-sales-summary', \App\Livewire\Reports\Coordinator\CoordinatorTellerSalesSummary::class)->name('teller-sales-summary');
+            Route::get('/teller-bets-report/{teller_id}/{date?}', \App\Livewire\Reports\Coordinator\TellerBetsReport::class)->name('teller-bets-report');
+            Route::get('/tellers', \App\Livewire\Reports\Coordinator\TellerSalesReport::class)->name('tellers');
         });
     });
 
