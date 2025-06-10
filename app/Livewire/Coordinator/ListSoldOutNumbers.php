@@ -67,9 +67,7 @@ class ListSoldOutNumbers extends Component implements HasForms, HasTable
             ->whereHas('draw', function ($query) use ($date) {
                 $query->whereDate('draw_date', $date);
             })
-            ->whereHas('location', function ($query) {
-                $query->whereIn('id', Auth::user()->locations->pluck('id'));
-            })
+            ->where('location_id', Auth::user()->location_id)
             ->with(['gameType', 'location']);
         
         // Get total count
@@ -88,19 +86,19 @@ class ListSoldOutNumbers extends Component implements HasForms, HasTable
 
     public function table(Table $table): Table
     {
+        // Get the filter date - default to today if not set
+        $date = $this->filterDate ?? now()->toDateString();
+        $this->filterDate = $date; // Ensure the property is set
+        
         return $table
             ->query(
                 // Only show sold out numbers for locations assigned to the coordinator
                 BetRatio::query()
                     ->where('max_amount', 0) // Only show sold out numbers (max_amount = 0)
-                    ->when($this->filterDate, function ($query, $date) {
-                        $query->whereHas('draw', function ($q) use ($date) {
-                            $q->whereDate('draw_date', $date);
-                        });
+                    ->whereHas('draw', function ($q) use ($date) {
+                        $q->whereDate('draw_date', $date);
                     })
-                    ->whereHas('location', function (Builder $query) {
-                        $query->whereIn('id', Auth::user()->locations->pluck('id'));
-                    })
+                    ->where('location_id', Auth::user()->location_id)
                     ->with(['gameType', 'draw', 'location'])
             )
             ->columns([
@@ -168,16 +166,21 @@ class ListSoldOutNumbers extends Component implements HasForms, HasTable
                         return 'Date: ' . date('F j, Y', strtotime($data['draw_date']));
                     })
                     ->query(function (Builder $query, array $data) {
-                        return $query->when($data['draw_date'] ?? null, function ($q, $date) {
-                            return $q->whereHas('draw', function ($subquery) use ($date) {
-                                $subquery->whereDate('draw_date', $date);
-                            });
+                        // Get the date from filter data or use the component's filterDate
+                        $date = $data['draw_date'] ?? $this->filterDate ?? now()->toDateString();
+                        
+                        // Store the filter date in the component property to ensure consistency
+                        $this->filterDate = $date;
+                        
+                        // Apply the date filter - this ensures table data matches stats
+                        return $query->whereHas('draw', function ($subquery) use ($date) {
+                            $subquery->whereDate('draw_date', $date);
                         });
                     }),
                 SelectFilter::make('location_id')
                     ->relationship('location', 'name', function (Builder $query) {
-                        // Only show locations assigned to the coordinator
-                        return $query->whereIn('id', Auth::user()->locations->pluck('id'));
+                        // Only show the coordinator's location
+                        return $query->where('id', Auth::user()->location_id);
                     })
                     ->label('Location')
                     ->searchable()
@@ -205,10 +208,6 @@ class ListSoldOutNumbers extends Component implements HasForms, HasTable
             ->defaultPaginationPageOption(10);
     }
 
-    #[On('refresh')]
-    public function refresh(): void
-    {
-        $this->computeSoldOutStats();
-        $this->refreshTable();
-    }
 }
+                        
+                       

@@ -115,10 +115,10 @@ Route::middleware([
         // Game Management
         Route::get('/draws', \App\Livewire\Coordinator\ViewDraws::class)->name('draws');
         Route::get('/winning-amounts', \App\Livewire\Coordinator\ListWinningAmount::class)->name('winning-amounts');
-        Route::get('/bet-ratios', \App\Livewire\Coordinator\ListBetRatios::class)->name('bet-ratios');
-        Route::get('/sold-out-numbers', \App\Livewire\Coordinator\ListSoldOutNumbers::class)->name('sold-out-numbers');
-        Route::get('/low-win-numbers', \App\Livewire\Coordinator\ListLowWinNumbers::class)->name('low-win-numbers');
-        Route::get('/bets', \App\Livewire\Coordinator\ManageBets::class)->name('bets');
+        Route::get('/bet-ratios', \App\Livewire\Coordinator\ListBetRatios::class)->name('coordinator.bet-ratios');
+        Route::get('/sold-out-numbers', \App\Livewire\Coordinator\ListSoldOutNumbers::class)->name('coordinator.sold-out-numbers');
+        Route::get('/low-win-numbers', \App\Livewire\Coordinator\ListLowWinNumbers::class)->name('coordinator.low-win-numbers');
+        Route::get('/bets', \App\Livewire\Coordinator\ManageBets::class)->name('coordinator.bets');
         
         // Reports
         Route::prefix('/reports')->name('reports.')->group(function() {
