@@ -2,42 +2,43 @@
 
 namespace App\Livewire\BetRatios;
 
-use App\Models\BetRatio;
-use App\Models\BetRatioAudit;
-use App\Models\Draw;
-use App\Models\GameType;
-use App\Models\Location;
 use Carbon\Carbon;
 use Filament\Forms;
-use Filament\Forms\Concerns\InteractsWithForms;
-use Filament\Forms\Contracts\HasForms;
+use App\Models\Draw;
 use Filament\Tables;
-use Filament\Tables\Concerns\InteractsWithTable;
-use Filament\Tables\Contracts\HasTable;
-use Filament\Tables\Filters\Filter;
-use Filament\Tables\Filters\SelectFilter;
-use Filament\Tables\Enums\FiltersLayout;
-use Filament\Tables\Grouping\Group;
-use Filament\Tables\Table;
-use Filament\Notifications\Notification;
-use Illuminate\Contracts\View\View;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
 use Livewire\Component;
+use App\Models\BetRatio;
+use App\Models\GameType;
+use App\Models\Location;
+use Filament\Tables\Table;
 use Livewire\Attributes\On;
+use App\Models\BetRatioAudit;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Grouping\Group;
+use Illuminate\Contracts\View\View;
+use Filament\Forms\Contracts\HasForms;
+use Filament\Tables\Contracts\HasTable;
+use Illuminate\Database\Eloquent\Model;
+use Filament\Notifications\Notification;
+use Filament\Tables\Enums\FiltersLayout;
+use Filament\Forms\Components\DatePicker;
+use Filament\Tables\Filters\SelectFilter;
+use Illuminate\Database\Eloquent\Builder;
+use Filament\Forms\Concerns\InteractsWithForms;
+use Filament\Tables\Concerns\InteractsWithTable;
 
 class ListBetRatios extends Component implements HasForms, HasTable
 {
     use InteractsWithForms;
     use InteractsWithTable;
-    
+
     /**
      * The currently selected filter date
      *
      * @var string|null
      */
     public $filterDate;
-    
+
     /**
      * Statistics for bet ratios
      *
@@ -45,72 +46,71 @@ class ListBetRatios extends Component implements HasForms, HasTable
      */
     public array $ratioStats = [];
 
+    protected $computingStats = false;
+    protected $lastStatsComputation = 0;
+
     /**
      * Register Livewire event listeners using Livewire 3 syntax
      */
     public function __construct()
     {
-        // Register event listeners
         $this->listeners = [
+            'compute-stats' => 'computeStatsListener',
             'filament.table.filter' => 'handleFilterChange',
             'filament.table.filters.reset' => 'handleFilterReset',
         ];
     }
-    
+
+    public function mount()
+    {
+        $this->filterDate = now()->toDateString();
+        $this->tableFilters['draw_date']['value'] = $this->filterDate;
+        $this->computeRatioStats();
+    }
+
+
     /**
      * Handle Filament table filter changes
-     * 
+     *
      * @return void
      */
     public function handleFilterChange(): void
     {
-        // Get the current filter date (can be null if cleared)
-        $drawDate = $this->tableFilters['draw_date']['value'] ?? null;
-        
-        // Update filter date and recompute stats
-        $this->filterDate = $drawDate;
+        $this->filterDate = $this->tableFilters['draw_date']['value'] ?? now()->toDateString();
         $this->computeRatioStats();
-        
-        // Force a refresh to ensure UI is updated
         $this->dispatch('refresh');
     }
-    
-    /**
-     * Handle explicit filter reset events
-     * This is triggered when the user clicks the reset button
-     *
-     * @return void
-     */
+
     public function handleFilterReset(): void
     {
-        // Set filter date to today
         $today = now()->toDateString();
         $this->filterDate = $today;
-        
-        // Update the table filter value to today
         if (isset($this->tableFilters['draw_date'])) {
             $this->tableFilters['draw_date']['value'] = $today;
         }
-        
-        // Recompute stats with today's date
         $this->computeRatioStats();
-        
-        // Force a refresh of the component
         $this->dispatch('refresh');
     }
 
-    /**
-     * Initialize component state
-     *
-     * @return void
-     */
-    public function mount()
+
+    public function resetTableFilters(): void
     {
-        // Initialize without setting a default filter date
-        // This allows showing all records by default
+        parent::resetTableFilters();
+        $today = now()->toDateString();
+        $this->filterDate = $today;
+        if (isset($this->tableFilters['draw_date'])) {
+            $this->tableFilters['draw_date']['value'] = $today;
+        }
         $this->computeRatioStats();
+        $this->dispatch('refresh');
     }
 
+
+
+    public function computeStatsListener(): void
+    {
+        $this->computeRatioStats();
+    }
     /**
      * Compute bet ratio statistics
      *
@@ -118,25 +118,26 @@ class ListBetRatios extends Component implements HasForms, HasTable
      */
     public function computeRatioStats()
     {
-        // Get the filter date if set, but don't default to today
-        $date = $this->filterDate;
-        
+        // Get the filter date, default to today if not set
+        $date = $this->filterDate ?? now()->toDateString();
+
+        // Log for debugging
+        logger()->info('Computing Stats for Date:', ['date' => $date]);
+
         // Query to get bet ratio statistics
         $query = BetRatio::query()
-            ->when($date, function($query, $date) {
-                $query->whereHas('draw', function ($q) use ($date) {
-                    $q->whereDate('draw_date', $date);
-                });
+            ->whereHas('draw', function ($q) use ($date) {
+                $q->whereDate('draw_date', $date);
             })
             ->with(['gameType', 'location', 'user']);
-        
+
         // Get total count and sum of max amounts
         $totalRatios = $query->count();
         $totalMaxAmount = $query->sum('max_amount');
-        
+
         // Get average max amount
         $avgMaxAmount = $totalRatios > 0 ? $totalMaxAmount / $totalRatios : 0;
-        
+
         // Get counts by game type
         $gameTypeCounts = BetRatio::when($date, function($query, $date) {
                 $query->whereHas('draw', function ($q) use ($date) {
@@ -151,7 +152,7 @@ class ListBetRatios extends Component implements HasForms, HasTable
             ->get()
             ->keyBy('name')
             ->toArray();
-        
+
         // Get counts by location
         $locationCounts = BetRatio::when($date, function($query, $date) {
                 $query->whereHas('draw', function ($q) use ($date) {
@@ -166,7 +167,7 @@ class ListBetRatios extends Component implements HasForms, HasTable
             ->get()
             ->keyBy('name')
             ->toArray();
-        
+
         // Get recent audit history
         $recentAudits = BetRatioAudit::when($date, function($query, $date) {
                 $query->whereHas('betRatio.draw', function ($q) use ($date) {
@@ -177,7 +178,7 @@ class ListBetRatios extends Component implements HasForms, HasTable
             ->orderBy('created_at', 'desc')
             ->limit(10)
             ->get();
-        
+
         $this->ratioStats = [
             'total_ratios' => $totalRatios,
             'total_max_amount' => $totalMaxAmount,
@@ -188,16 +189,6 @@ class ListBetRatios extends Component implements HasForms, HasTable
         ];
     }
 
-    /**
-     * Handle the refresh event
-     * 
-     * @return void
-     */
-    #[On('refresh')]
-    public function refresh(): void
-    {
-        // This method will be automatically called when the 'refresh' event is dispatched
-    }
 
     public function table(Table $table): Table
     {
@@ -277,32 +268,32 @@ class ListBetRatios extends Component implements HasForms, HasTable
             ])
             ->filters([
                 Filter::make('draw_date')
-                    ->label('Draw Date')
-                    ->form([
-                        Forms\Components\DatePicker::make('draw_date')
-                            ->label('Draw Date')
-                            ->nullable() // Allow clearing the filter
-                            ->live()
-                            ->afterStateUpdated(function ($state, $set, $get, $livewire) {
-                                // Update filterDate and recompute stats when date changes
-                                $livewire->filterDate = $state;
-                                $livewire->computeRatioStats();
-                            })
-                    ])
-                    ->indicateUsing(function (array $data): ?string {
-                        if (!$data['draw_date']) {
-                            return null;
-                        }
-                        
-                        return 'Date: ' . date('F j, Y', strtotime($data['draw_date']));
-                    })
-                    ->query(function (Builder $query, array $data) {
-                        return $query->when($data['draw_date'] ?? null, function ($q, $date) {
-                            return $q->whereHas('draw', function ($subquery) use ($date) {
-                                $subquery->whereDate('draw_date', $date);
-                            });
-                        });
-                    }),
+                ->label('Draw Date')
+                ->form([
+                    DatePicker::make('draw_date')
+                        ->label('Draw Date')
+                        ->nullable()
+                        ->default(fn() => now()->toDateString()) // Default to today dynamically
+                        ->live()
+                        ->afterStateUpdated(function ($state, $set, $get, $livewire) {
+                            $livewire->filterDate = $state ?? now()->toDateString();
+                            $livewire->computeRatioStats();
+                        }),
+                ])
+                ->indicateUsing(function (array $data): ?string {
+                if (!$data['draw_date']) {
+                    return null;
+                }
+
+                return 'Date: ' . date('F j, Y', strtotime($data['draw_date']));
+                })
+                ->query(function (Builder $query, array $data) {
+                    return $query->when($data['draw_date'] ?? null, function ($q, $date) {
+                        return $q->whereHas('draw', fn($sub) => $sub->whereDate('draw_date', $date));
+                    });
+                }),
+
+
                 SelectFilter::make('game_type_id')
                     ->label('Bet Type')
                     ->relationship('gameType', 'name')
@@ -347,7 +338,7 @@ class ListBetRatios extends Component implements HasForms, HasTable
                                                 // Get the selected game type ID
                                                 $gameTypeId = $get('game_type_id') ?: $record->game_type_id;
                                                 if (!$gameTypeId) return false;
-                                                
+
                                                 // Get the game type code from the database
                                                 $gameType = \App\Models\GameType::find($gameTypeId);
                                                 return $gameType && $gameType->code === 'D4';
@@ -369,10 +360,10 @@ class ListBetRatios extends Component implements HasForms, HasTable
                                                 $gameTypeId = $get('game_type_id') ?: $record->game_type_id;
                                                 $subSelection = $get('sub_selection') ?: $record->sub_selection;
                                                 if (!$gameTypeId) return '';
-                                                
+
                                                 $gameType = \App\Models\GameType::find($gameTypeId);
                                                 if (!$gameType) return '';
-                                                
+
                                                 return match($gameType->code) {
                                                     'S2' => '99',
                                                     'S3' => '999',
@@ -388,10 +379,10 @@ class ListBetRatios extends Component implements HasForms, HasTable
                                                 $gameTypeId = $get('game_type_id') ?: $record->game_type_id;
                                                 $subSelection = $get('sub_selection') ?: $record->sub_selection;
                                                 if (!$gameTypeId) return 'Enter bet number';
-                                                
+
                                                 $gameType = \App\Models\GameType::find($gameTypeId);
                                                 if (!$gameType) return 'Enter bet number';
-                                                
+
                                                 return match($gameType->code) {
                                                     'S2' => '2-digit number (00-99)',
                                                     'S3' => '3-digit number (000-999)',
@@ -470,7 +461,7 @@ class ListBetRatios extends Component implements HasForms, HasTable
                 //                         // Get the selected game type ID
                 //                         $gameTypeId = $get('game_type_id');
                 //                         if (!$gameTypeId) return false;
-                                        
+
                 //                         // Get the game type code from the database
                 //                         $gameType = \App\Models\GameType::find($gameTypeId);
                 //                         return $gameType && $gameType->code === 'D4';
@@ -492,10 +483,10 @@ class ListBetRatios extends Component implements HasForms, HasTable
                 //                         $gameTypeId = $get('game_type_id');
                 //                         $subSelection = $get('sub_selection');
                 //                         if (!$gameTypeId) return '';
-                                        
+
                 //                         $gameType = \App\Models\GameType::find($gameTypeId);
                 //                         if (!$gameType) return '';
-                                        
+
                 //                         return match($gameType->code) {
                 //                             'S2' => '99',
                 //                             'S3' => '999',
@@ -511,10 +502,10 @@ class ListBetRatios extends Component implements HasForms, HasTable
                 //                         $gameTypeId = $get('game_type_id');
                 //                         $subSelection = $get('sub_selection');
                 //                         if (!$gameTypeId) return 'Enter bet number';
-                                        
+
                 //                         $gameType = \App\Models\GameType::find($gameTypeId);
                 //                         if (!$gameType) return 'Enter bet number';
-                                        
+
                 //                         return match($gameType->code) {
                 //                             'S2' => '2-digit number (00-99)',
                 //                             'S3' => '3-digit number (000-999)',
