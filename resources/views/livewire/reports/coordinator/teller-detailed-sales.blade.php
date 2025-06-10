@@ -30,7 +30,7 @@
         </div>
         
         <div class="mb-6">
-            <h3 class="text-lg font-medium text-gray-800 mb-3">Sales by Game Type</h3>
+            <h3 class="text-lg font-medium text-gray-800 mb-3">Sales by Bet Type</h3>
             <div class="bg-white rounded-lg shadow overflow-hidden">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">

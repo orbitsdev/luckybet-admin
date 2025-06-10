@@ -1,7 +1,7 @@
 <div>
    <x-admin>
-        <div class="py-6">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 flex justify-between items-center">
+        <div class="">
+            <div class="mx-auto px-4 sm:px-6 md:px-8 flex justify-between items-center">
                 <h1 class="text-2xl font-semibold text-gray-900">Winning Report</h1>
                 <div class="flex items-center space-x-2">
                     <button wire:click="resetFilters" class="inline-flex items-center px-3 py-1 border border-gray-300 text-xs font-medium rounded-md shadow-sm text-gray-700 bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-gray-500">
@@ -21,7 +21,7 @@
                 </div>
             </div>
 
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+            <div class="">
                 <!-- Filters Section -->
                 <div class="bg-white shadow rounded-lg p-4 mb-6">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -152,7 +152,7 @@
                     <!-- Winners by Game Type Card -->
                     <div class="bg-white overflow-hidden shadow rounded-lg">
                         <div class="px-4 py-5 sm:p-6">
-                            <dt class="text-sm font-medium text-gray-500 truncate">Winners by Game Type</dt>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Winners by Bet Type</dt>
                             <dd class="mt-1">
                                 @foreach($winnersByGameType as $gameTypeData)
                                     <div class="flex justify-between text-sm">

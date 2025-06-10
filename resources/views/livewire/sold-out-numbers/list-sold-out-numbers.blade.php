@@ -31,7 +31,7 @@
                         </div>
                     </div>
                     <div class="text-center">
-                        <div class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">By Game Type</div>
+                        <div class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">By Bet Type</div>
                         <div class="mt-2">
                             @php
                                 $gameTypeCounts = $soldOutStats['game_type_counts'] ?? [];

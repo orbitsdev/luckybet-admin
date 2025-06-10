@@ -98,7 +98,16 @@
                             </a>
                         </div>
                     </div>
-
+                    <a href="{{ route('manage.locations') }}" class="group flex items-center px-5 py-3.5 rounded-lg text-base transition-all duration-300 ease-in-out nav-item {{ request()->routeIs('manage.locations*') ? 'text-white bg-gradient-to-r from-red-500 to-pink-500 font-medium' : 'text-gray-700 hover:bg-red-50 hover:text-red-600' }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                            stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-3">
+                            <path stroke-linecap="round" stroke-linejoin="round" 
+                                d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" 
+                                d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+                        </svg>
+                        <span>Locations</span>
+                    </a>
                     <!-- Game Management Section -->
                     <div
                         class="px-4 py-2 text-lg font-heading font-semibold uppercase tracking-wider text-gray-600 mt-6 mb-1">
@@ -260,6 +269,17 @@
                             </a>
                         </div>
                     </div>
+
+                    <a href="{{ route('manage.locations') }}" class="group flex items-center px-5 py-3.5 rounded-lg text-base transition-all duration-300 ease-in-out nav-item {{ request()->routeIs('manage.locations*') ? 'text-white bg-gradient-to-r from-red-500 to-pink-500 font-medium' : 'text-gray-700 hover:bg-red-50 hover:text-red-600' }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                            stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-3">
+                            <path stroke-linecap="round" stroke-linejoin="round" 
+                                d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" 
+                                d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+                        </svg>
+                        <span>Locations</span>
+                    </a>
 
                     <h3 class="px-5 py-3 mt-6 text-sm font-semibold text-gray-500 uppercase tracking-wider">GAME
                         MANAGEMENT</h3>

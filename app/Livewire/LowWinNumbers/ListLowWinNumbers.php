@@ -380,74 +380,84 @@ class ListLowWinNumbers extends Component implements HasForms, HasTable
                  ])
             ])
             ->headerActions([
-                Tables\Actions\Action::make('add_low_win')
-                    ->label('Add Low Win Number')
-                    ->icon('heroicon-o-plus')
-                    ->color('primary')
-                    ->form([
-                        Forms\Components\Select::make('draw_id')
-                            ->label('Draw')
-                            ->options(function () {
-                                return Draw::whereDate('draw_date', $this->filterDate ?: now()->format('Y-m-d'))
-                                    ->get()
-                                    ->mapWithKeys(function ($draw) {
-                                        return [$draw->id => $draw->draw_date . ' - ' . $draw->draw_time];
-                                    });
-                            })
-                            ->required()
-                            ->searchable(),
-                        Forms\Components\Grid::make(2)
-                            ->schema([
-                                Forms\Components\Select::make('game_type_id')
-                                    ->label('Bet Type')
-                                    ->relationship('gameType', 'name')
-                                    ->required()
-                                    ->reactive()
-                                    ->afterStateUpdated(fn (callable $set) => $set('d4_sub_selection', null)),
-                                Forms\Components\Select::make('d4_sub_selection')
-                                    ->label('D4 Sub-Selection')
-                                    ->options([
-                                        'S2' => 'S2',
-                                        'S3' => 'S3',
-                                    ])
-                                    ->visible(function (callable $get) {
-                                        $gameTypeId = $get('game_type_id');
-                                        if (!$gameTypeId) return false;
+                // Tables\Actions\Action::make('add_low_win')
+                //     ->label('Add Low Win Number')
+                //     ->icon('heroicon-o-plus')
+                //     ->color('primary')
+                //     ->form([
+                //         Forms\Components\Select::make('draw_id')
+                //             ->label('Draw')
+                //             ->options(function () {
+                //                 return Draw::whereDate('draw_date', $this->filterDate ?: now()->format('Y-m-d'))
+                //                     ->get()
+                //                     ->mapWithKeys(function ($draw) {
+                //                         // Format date as Month Day, Year (e.g., June 10, 2025)
+                //                         $formattedDate = date('F j, Y', strtotime($draw->draw_date));
+                //                         // Format time as 12-hour format with AM/PM (e.g., 2:30 PM)
+                //                         $formattedTime = date('g:i A', strtotime($draw->draw_time));
+                //                         // Combine them with a nice separator
+                //                         return [$draw->id => "{$formattedDate} at {$formattedTime}"];
+                //                     });
+                //             })
+                //             ->required()
+                //             ->searchable(),
+                //         Forms\Components\Grid::make(2)
+                //             ->schema([
+                //                 Forms\Components\Select::make('game_type_id')
+                //                     ->label('Bet Type')
+                //                     ->relationship('gameType', 'name')
+                //                     ->required()
+                //                     ->reactive()
+                //                     ->afterStateUpdated(fn (callable $set) => $set('d4_sub_selection', null)),
+                //                 Forms\Components\Select::make('d4_sub_selection')
+                //                     ->label('D4 Sub-Selection')
+                //                     ->options([
+                //                         'S2' => 'S2',
+                //                         'S3' => 'S3',
+                //                     ])
+                //                     ->visible(function (callable $get) {
+                //                         $gameTypeId = $get('game_type_id');
+                //                         if (!$gameTypeId) return false;
 
-                                        $gameType = GameType::find($gameTypeId);
-                                        return $gameType && $gameType->code === 'D4';
-                                    }),
-                            ]),
-                        Forms\Components\Grid::make(2)
-                            ->schema([
-                                Forms\Components\Select::make('location_id')
-                                    ->label('Location')
-                                    ->relationship('location', 'name')
-                                    ->required()
-                                    ->searchable(),
-                                Forms\Components\TextInput::make('bet_number')
-                                    ->label('Number')
-                                    ->required(),
-                            ]),
-                        Forms\Components\TextInput::make('winning_amount')
-                            ->label('Amount')
-                            ->prefix('₱')
-                            ->numeric()
-                            ->required(),
-                        Forms\Components\Textarea::make('reason')
-                            ->label('Reason')
-                            ->required()
-                            ->columnSpan('full'),
-                    ])
-                    ->action(function (array $data): void {
-                        $data['user_id'] = auth()->id();
-                        LowWinNumber::create($data);
-                        $this->computeLowWinStats();
-                        Notification::make()
-                            ->title('Low Win Number Added')
-                            ->success()
-                            ->send();
-                    }),
+                //                         $gameType = GameType::find($gameTypeId);
+                //                         return $gameType && $gameType->code === 'D4';
+                //                     }),
+                //             ]),
+                //         Forms\Components\Grid::make(2)
+                //             ->schema([
+                //                 Forms\Components\Select::make('location_id')
+                //                     ->label('Location')
+                //                     ->options(function () {
+                //                         return \App\Models\Location::query()
+                //                             ->orderBy('name')
+                //                             ->get()
+                //                             ->pluck('name', 'id');
+                //                     })
+                //                     ->required()
+                //                     ->searchable(),
+                //                 Forms\Components\TextInput::make('bet_number')
+                //                     ->label('Number')
+                //                     ->required(),
+                //             ]),
+                //         Forms\Components\TextInput::make('winning_amount')
+                //             ->label('Amount')
+                //             ->prefix('₱')
+                //             ->numeric()
+                //             ->required(),
+                //         Forms\Components\Textarea::make('reason')
+                //             ->label('Reason')
+                //             ->required()
+                //             ->columnSpan('full'),
+                //     ])
+                //     ->action(function (array $data): void {
+                //         $data['user_id'] = auth()->id();
+                //         LowWinNumber::create($data);
+                //         $this->computeLowWinStats();
+                //         Notification::make()
+                //             ->title('Low Win Number Added')
+                //             ->success()
+                //             ->send();
+                //     }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

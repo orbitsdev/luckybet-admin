@@ -209,7 +209,7 @@
                 @if($showDetailedStats || count($betStats['game_types']) <= 8)
                     <!-- Bets by Game Type -->
                     <div class="mb-6">
-                        <h3 class="text-md font-medium text-gray-700 mb-3">Bets by Game Type</h3>
+                        <h3 class="text-md font-medium text-gray-700 mb-3">Bets by Bet Type</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                             @forelse($betStats['game_types'] as $gameType => $stats)
                                 <div class="bg-gray-50 p-3 rounded-lg">

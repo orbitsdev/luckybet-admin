@@ -131,10 +131,12 @@ class ListWinningAmount extends Component implements HasForms, HasTable
                 Tables\Columns\TextColumn::make('amount')
                     ->label('Bet Amount')
                     ->money('PHP')
+                    ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('winning_amount')
                     ->label('Winning Amount')
                     ->money('PHP')
+                    ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Created')

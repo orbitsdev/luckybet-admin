@@ -64,15 +64,8 @@ class ListBetRatios extends Component implements HasForms, HasTable
      */
     public function handleFilterChange(): void
     {
-        // Get the current filter date or default to today
-        $drawDate = $this->tableFilters['draw_date']['value'] ?? now()->toDateString();
-        
-        // If the filter was cleared or reset, explicitly set to today
-        if (empty($drawDate) || $drawDate === null) {
-            $drawDate = now()->toDateString();
-            // Update the table filter value to today as well
-            $this->tableFilters['draw_date']['value'] = $drawDate;
-        }
+        // Get the current filter date (can be null if cleared)
+        $drawDate = $this->tableFilters['draw_date']['value'] ?? null;
         
         // Update filter date and recompute stats
         $this->filterDate = $drawDate;
@@ -113,11 +106,8 @@ class ListBetRatios extends Component implements HasForms, HasTable
      */
     public function mount()
     {
-        // Set default filter date to today
-        if (!$this->filterDate) {
-            $this->filterDate = now()->toDateString();
-        }
-        
+        // Initialize without setting a default filter date
+        // This allows showing all records by default
         $this->computeRatioStats();
     }
 
@@ -128,14 +118,15 @@ class ListBetRatios extends Component implements HasForms, HasTable
      */
     public function computeRatioStats()
     {
-        // Use the current filter date or default to today
-        $date = $this->filterDate ?: now()->format('Y-m-d');
-        $this->filterDate = $date; // Ensure the property is set
+        // Get the filter date if set, but don't default to today
+        $date = $this->filterDate;
         
         // Query to get bet ratio statistics
         $query = BetRatio::query()
-            ->whereHas('draw', function ($query) use ($date) {
-                $query->whereDate('draw_date', $date);
+            ->when($date, function($query, $date) {
+                $query->whereHas('draw', function ($q) use ($date) {
+                    $q->whereDate('draw_date', $date);
+                });
             })
             ->with(['gameType', 'location', 'user']);
         
@@ -147,8 +138,10 @@ class ListBetRatios extends Component implements HasForms, HasTable
         $avgMaxAmount = $totalRatios > 0 ? $totalMaxAmount / $totalRatios : 0;
         
         // Get counts by game type
-        $gameTypeCounts = BetRatio::whereHas('draw', function ($q) use ($date) {
-                $q->whereDate('draw_date', $date);
+        $gameTypeCounts = BetRatio::when($date, function($query, $date) {
+                $query->whereHas('draw', function ($q) use ($date) {
+                    $q->whereDate('draw_date', $date);
+                });
             })
             ->join('game_types', 'bet_ratios.game_type_id', '=', 'game_types.id')
             ->select('game_types.name')
@@ -160,8 +153,10 @@ class ListBetRatios extends Component implements HasForms, HasTable
             ->toArray();
         
         // Get counts by location
-        $locationCounts = BetRatio::whereHas('draw', function ($q) use ($date) {
-                $q->whereDate('draw_date', $date);
+        $locationCounts = BetRatio::when($date, function($query, $date) {
+                $query->whereHas('draw', function ($q) use ($date) {
+                    $q->whereDate('draw_date', $date);
+                });
             })
             ->join('locations', 'bet_ratios.location_id', '=', 'locations.id')
             ->select('locations.name')
@@ -173,8 +168,10 @@ class ListBetRatios extends Component implements HasForms, HasTable
             ->toArray();
         
         // Get recent audit history
-        $recentAudits = BetRatioAudit::whereHas('betRatio.draw', function ($q) use ($date) {
-                $q->whereDate('draw_date', $date);
+        $recentAudits = BetRatioAudit::when($date, function($query, $date) {
+                $query->whereHas('betRatio.draw', function ($q) use ($date) {
+                    $q->whereDate('draw_date', $date);
+                });
             })
             ->with(['betRatio.gameType', 'betRatio.location'])
             ->orderBy('created_at', 'desc')
@@ -285,11 +282,10 @@ class ListBetRatios extends Component implements HasForms, HasTable
                         Forms\Components\DatePicker::make('draw_date')
                             ->label('Draw Date')
                             ->nullable() // Allow clearing the filter
-                            ->default(fn() => now()->toDateString()) // Default to today dynamically
                             ->live()
                             ->afterStateUpdated(function ($state, $set, $get, $livewire) {
-                                // Always update filterDate and recompute stats when date changes
-                                $livewire->filterDate = $state ?? now()->toDateString();
+                                // Update filterDate and recompute stats when date changes
+                                $livewire->filterDate = $state;
                                 $livewire->computeRatioStats();
                             })
                     ])
@@ -436,117 +432,117 @@ class ListBetRatios extends Component implements HasForms, HasTable
                 ])
             ])
             ->headerActions([
-                Tables\Actions\Action::make('add_bet_ratio')
-                    ->label('Add Bet Ratio')
-                    ->icon('heroicon-o-plus')
-                    ->color('primary')
-                    ->form([
-                        Forms\Components\Select::make('draw_id')
-                            ->label('Draw')
-                            ->options(function () {
-                                return Draw::whereDate('draw_date', $this->filterDate ?: now()->format('Y-m-d'))
-                                    ->get()
-                                    ->mapWithKeys(function ($draw) {
-                                        return [$draw->id => $draw->draw_date . ' - ' . $draw->draw_time];
-                                    });
-                            })
-                            ->required()
-                            ->searchable(),
-                        Forms\Components\Grid::make(1)
-                            ->schema([
-                                Forms\Components\Select::make('game_type_id')
-                                    ->label('Bet Type')
-                                    ->relationship('gameType', 'name')
-                                    ->required()
-                                    ->live()
-                                    ->afterStateUpdated(fn (callable $set) => $set('sub_selection', null)),
-                            ]),
-                        Forms\Components\Grid::make(2)
-                            ->schema([
-                                Forms\Components\Select::make('sub_selection')
-                                    ->label('Sub-Selection')
-                                    ->options([
-                                        'S2' => 'S2 (Last 2 Digits)',
-                                        'S3' => 'S3 (Last 3 Digits)'
-                                    ])
-                                    ->nullable()
-                                    ->visible(function (callable $get) {
-                                        // Get the selected game type ID
-                                        $gameTypeId = $get('game_type_id');
-                                        if (!$gameTypeId) return false;
+                // Tables\Actions\Action::make('add_bet_ratio')
+                //     ->label('Add Bet Ratio')
+                //     ->icon('heroicon-o-plus')
+                //     ->color('primary')
+                //     ->form([
+                //         Forms\Components\Select::make('draw_id')
+                //             ->label('Draw')
+                //             ->options(function () {
+                //                 return Draw::whereDate('draw_date', $this->filterDate ?: now()->format('Y-m-d'))
+                //                     ->get()
+                //                     ->mapWithKeys(function ($draw) {
+                //                         return [$draw->id => $draw->draw_date . ' - ' . $draw->draw_time];
+                //                     });
+                //             })
+                //             ->required()
+                //             ->searchable(),
+                //         Forms\Components\Grid::make(1)
+                //             ->schema([
+                //                 Forms\Components\Select::make('game_type_id')
+                //                     ->label('Bet Type')
+                //                     ->relationship('gameType', 'name')
+                //                     ->required()
+                //                     ->live()
+                //                     ->afterStateUpdated(fn (callable $set) => $set('sub_selection', null)),
+                //             ]),
+                //         Forms\Components\Grid::make(2)
+                //             ->schema([
+                //                 Forms\Components\Select::make('sub_selection')
+                //                     ->label('Sub-Selection')
+                //                     ->options([
+                //                         'S2' => 'S2 (Last 2 Digits)',
+                //                         'S3' => 'S3 (Last 3 Digits)'
+                //                     ])
+                //                     ->nullable()
+                //                     ->visible(function (callable $get) {
+                //                         // Get the selected game type ID
+                //                         $gameTypeId = $get('game_type_id');
+                //                         if (!$gameTypeId) return false;
                                         
-                                        // Get the game type code from the database
-                                        $gameType = \App\Models\GameType::find($gameTypeId);
-                                        return $gameType && $gameType->code === 'D4';
-                                    })
-                                    ->helperText('Only for D4 bet type'),
-                                Forms\Components\Select::make('location_id')
-                                    ->label('Location')
-                                    ->relationship('location', 'name')
-                                    ->required()
-                                    ->searchable(),
-                            ]),
-                        Forms\Components\Grid::make(2)
-                            ->schema([
-                                Forms\Components\TextInput::make('bet_number')
-                                    ->label('Bet Number')
-                                    ->required()
-                                    ->live()
-                                    ->mask(function (callable $get) {
-                                        $gameTypeId = $get('game_type_id');
-                                        $subSelection = $get('sub_selection');
-                                        if (!$gameTypeId) return '';
+                //                         // Get the game type code from the database
+                //                         $gameType = \App\Models\GameType::find($gameTypeId);
+                //                         return $gameType && $gameType->code === 'D4';
+                //                     })
+                //                     ->helperText('Only for D4 bet type'),
+                //                 Forms\Components\Select::make('location_id')
+                //                     ->label('Location')
+                //                     ->relationship('location', 'name')
+                //                     ->required()
+                //                     ->searchable(),
+                //             ]),
+                //         Forms\Components\Grid::make(2)
+                //             ->schema([
+                //                 Forms\Components\TextInput::make('bet_number')
+                //                     ->label('Bet Number')
+                //                     ->required()
+                //                     ->live()
+                //                     ->mask(function (callable $get) {
+                //                         $gameTypeId = $get('game_type_id');
+                //                         $subSelection = $get('sub_selection');
+                //                         if (!$gameTypeId) return '';
                                         
-                                        $gameType = \App\Models\GameType::find($gameTypeId);
-                                        if (!$gameType) return '';
+                //                         $gameType = \App\Models\GameType::find($gameTypeId);
+                //                         if (!$gameType) return '';
                                         
-                                        return match($gameType->code) {
-                                            'S2' => '99',
-                                            'S3' => '999',
-                                            'D4' => match($subSelection) {
-                                                'S2' => '99',
-                                                'S3' => '999',
-                                                default => '9999'
-                                            },
-                                            default => ''
-                                        };
-                                    })
-                                    ->helperText(function (callable $get) {
-                                        $gameTypeId = $get('game_type_id');
-                                        $subSelection = $get('sub_selection');
-                                        if (!$gameTypeId) return 'Enter bet number';
+                //                         return match($gameType->code) {
+                //                             'S2' => '99',
+                //                             'S3' => '999',
+                //                             'D4' => match($subSelection) {
+                //                                 'S2' => '99',
+                //                                 'S3' => '999',
+                //                                 default => '9999'
+                //                             },
+                //                             default => ''
+                //                         };
+                //                     })
+                //                     ->helperText(function (callable $get) {
+                //                         $gameTypeId = $get('game_type_id');
+                //                         $subSelection = $get('sub_selection');
+                //                         if (!$gameTypeId) return 'Enter bet number';
                                         
-                                        $gameType = \App\Models\GameType::find($gameTypeId);
-                                        if (!$gameType) return 'Enter bet number';
+                //                         $gameType = \App\Models\GameType::find($gameTypeId);
+                //                         if (!$gameType) return 'Enter bet number';
                                         
-                                        return match($gameType->code) {
-                                            'S2' => '2-digit number (00-99)',
-                                            'S3' => '3-digit number (000-999)',
-                                            'D4' => match($subSelection) {
-                                                'S2' => '2-digit number (00-99)',
-                                                'S3' => '3-digit number (000-999)',
-                                                default => '4-digit number (0000-9999)'
-                                            },
-                                            default => 'Enter bet number'
-                                        };
-                                    }),
-                                Forms\Components\TextInput::make('max_amount')
-                                    ->label('Max Amount')
-                                    ->prefix('₱')
-                                    ->numeric()
-                                    ->required(),
-                            ]),
+                //                         return match($gameType->code) {
+                //                             'S2' => '2-digit number (00-99)',
+                //                             'S3' => '3-digit number (000-999)',
+                //                             'D4' => match($subSelection) {
+                //                                 'S2' => '2-digit number (00-99)',
+                //                                 'S3' => '3-digit number (000-999)',
+                //                                 default => '4-digit number (0000-9999)'
+                //                             },
+                //                             default => 'Enter bet number'
+                //                         };
+                //                     }),
+                //                 Forms\Components\TextInput::make('max_amount')
+                //                     ->label('Max Amount')
+                //                     ->prefix('₱')
+                //                     ->numeric()
+                //                     ->required(),
+                //             ]),
 
-                    ])
-                    ->action(function (array $data): void {
-                        $data['user_id'] = auth()->user()->id;
-                        BetRatio::create($data);
-                        $this->computeRatioStats();
-                        Notification::make()
-                            ->title('Bet Ratio Added')
-                            ->success()
-                            ->send();
-                    }),
+                //     ])
+                //     ->action(function (array $data): void {
+                //         $data['user_id'] = auth()->user()->id;
+                //         BetRatio::create($data);
+                //         $this->computeRatioStats();
+                //         Notification::make()
+                //             ->title('Bet Ratio Added')
+                //             ->success()
+                //             ->send();
+                //     }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
