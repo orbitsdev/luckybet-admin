@@ -28,6 +28,70 @@ class ListSoldOutNumbers extends Component implements HasForms, HasTable
 {
     use InteractsWithForms;
     use InteractsWithTable;
+    
+    /**
+     * Register Livewire event listeners using Livewire 3 syntax
+     */
+    public function __construct()
+    {
+        // Register event listeners
+        $this->listeners = [
+            'filament.table.filter' => 'handleFilterChange',
+            'filament.table.filters.reset' => 'handleFilterReset',
+        ];
+    }
+    
+    /**
+     * Handle Filament table filter changes
+     * 
+     * @return void
+     */
+    public function handleFilterChange(): void
+    {
+        // Get the current filter date (can be null if cleared)
+        $drawDate = $this->tableFilters['draw_date']['value'] ?? null;
+        
+        // If the filter was cleared, explicitly set to today
+        if (empty($drawDate) || $drawDate === null) {
+            $drawDate = now()->toDateString();
+            // Update the table filter value to today as well
+            $this->tableFilters['draw_date']['value'] = $drawDate;
+        }
+        
+        // Update filter date and recompute stats
+        $this->filterDate = $drawDate;
+        $this->computeSoldOutStats();
+        
+        // Force a refresh to ensure UI is updated
+        $this->dispatch('refresh');
+    }
+    
+    /**
+     * Handle explicit filter reset events
+     * This is triggered when the user clicks the reset button
+     *
+     * @return void
+     */
+    public function handleFilterReset(): void
+    {
+        // Set filter date to today
+        $today = now()->toDateString();
+        $this->filterDate = $today;
+        
+        // Update the table filter value to today
+        if (isset($this->tableFilters['draw_date'])) {
+            $this->tableFilters['draw_date']['value'] = $today;
+        }
+        
+        // Only reset filters when explicitly clicking the reset button
+        // This is handled by Filament's built-in reset functionality
+        
+        // Recompute stats with today's date
+        $this->computeSoldOutStats();
+        
+        // Force a refresh of the component
+        $this->dispatch('refresh');
+    }
 
     /**
      * The currently selected filter date
@@ -65,15 +129,17 @@ class ListSoldOutNumbers extends Component implements HasForms, HasTable
      */
     public function computeSoldOutStats()
     {
-        // Use the current filter date or default to today
-        $date = $this->filterDate ?: now()->format('Y-m-d');
+        // Get the filter date if set, default to today if not set
+        $date = $this->filterDate ?? now()->toDateString();
         $this->filterDate = $date; // Ensure the property is set
 
         // Query to get sold out numbers statistics (BetRatio with max_amount = 0)
         $query = BetRatio::query()
             ->where('max_amount', 0)
-            ->whereHas('draw', function ($query) use ($date) {
-                $query->whereDate('draw_date', $date);
+            ->when($date, function($query, $date) {
+                $query->whereHas('draw', function ($q) use ($date) {
+                    $q->whereDate('draw_date', $date);
+                });
             })
             ->with(['gameType', 'location', 'user']);
 
@@ -82,8 +148,10 @@ class ListSoldOutNumbers extends Component implements HasForms, HasTable
 
         // Get counts by game type
         $gameTypeCounts = BetRatio::where('max_amount', 0)
-            ->whereHas('draw', function ($q) use ($date) {
-                $q->whereDate('draw_date', $date);
+            ->when($date, function($query, $date) {
+                $query->whereHas('draw', function ($q) use ($date) {
+                    $q->whereDate('draw_date', $date);
+                });
             })
             ->join('game_types', 'bet_ratios.game_type_id', '=', 'game_types.id')
             ->select('game_types.name')
@@ -95,8 +163,10 @@ class ListSoldOutNumbers extends Component implements HasForms, HasTable
 
         // Get counts by location
         $locationCounts = BetRatio::where('max_amount', 0)
-            ->whereHas('draw', function ($q) use ($date) {
-                $q->whereDate('draw_date', $date);
+            ->when($date, function($query, $date) {
+                $query->whereHas('draw', function ($q) use ($date) {
+                    $q->whereDate('draw_date', $date);
+                });
             })
             ->join('locations', 'bet_ratios.location_id', '=', 'locations.id')
             ->select('locations.name')
@@ -124,16 +194,40 @@ class ListSoldOutNumbers extends Component implements HasForms, HasTable
         // This method will be automatically called when the 'refresh' event is dispatched
         $this->computeSoldOutStats();
     }
+    
+    /**
+     * Reset all table filters except the date filter
+     * This is useful when we want to keep the date filter but clear other filters
+     * 
+     * @return void
+     */
+    public function resetTableFiltersExceptDate(): void
+    {
+        // This method is kept for compatibility but no longer resets filters
+        // We want to allow users to keep their bet type and location filters
+        
+        // Ensure the date filter is properly set
+        $currentDateFilter = $this->tableFilters['draw_date']['value'] ?? now()->toDateString();
+        $this->filterDate = $currentDateFilter;
+        
+        // Recompute stats
+        $this->computeSoldOutStats();
+    }
 
     public function table(Table $table): Table
     {
+        // Get the filter date - default to today if not set
+        $date = $this->filterDate ?? now()->toDateString();
+        $this->filterDate = $date; // Ensure the property is set
+        
+        // Debug the date value
+        // dd($date, 'Table query date');
+        
         return $table
             ->query(BetRatio::query()
                 ->where('max_amount', 0) // Only show sold out numbers (max_amount = 0)
-                ->when($this->filterDate, function ($query, $date) {
-                    $query->whereHas('draw', function ($q) use ($date) {
-                        $q->whereDate('draw_date', $date);
-                    });
+                ->whereHas('draw', function ($q) use ($date) {
+                    $q->whereDate('draw_date', $date);
                 })
                 ->with(['gameType', 'draw', 'user', 'location'])
             )
@@ -185,12 +279,24 @@ class ListSoldOutNumbers extends Component implements HasForms, HasTable
                         Forms\Components\DatePicker::make('draw_date')
                             ->label('Draw Date')
                             ->nullable() // Allow clearing the filter
-                            ->default(fn() => now()->toDateString()) // Default to today dynamically
                             ->live()
+                            ->default(fn() => now()->toDateString()) // Default to today dynamically
                             ->afterStateUpdated(function ($state, $set, $get, $livewire) {
-                                // Always update filterDate and recompute stats when date changes
-                                $livewire->filterDate = $state ?? now()->toDateString();
+                                // If the filter was cleared, explicitly set to today
+                                if (empty($state) || $state === null) {
+                                    $state = now()->toDateString();
+                                    // Update the table filter value to today as well
+                                    $livewire->tableFilters['draw_date']['value'] = $state;
+                                }
+                                
+                                // Don't reset other filters when date changes
+                                // This allows users to keep their bet type and location filters
+                                
+                                // Update filterDate and recompute stats when date changes
+                                $livewire->filterDate = $state;
                                 $livewire->computeSoldOutStats();
+                                
+                                // No need to call resetTableFiltersExceptDate() here as we've already reset the filters above
                             })
                     ])
                     ->indicateUsing(function (array $data): ?string {
@@ -201,10 +307,16 @@ class ListSoldOutNumbers extends Component implements HasForms, HasTable
                         return 'Date: ' . date('F j, Y', strtotime($data['draw_date']));
                     })
                     ->query(function (Builder $query, array $data) {
-                        return $query->when($data['draw_date'] ?? null, function ($q, $date) {
-                            return $q->whereHas('draw', function ($subquery) use ($date) {
-                                $subquery->whereDate('draw_date', $date);
-                            });
+                        // Get the date from filter data or use the component's filterDate
+                        $date = $data['draw_date'] ?? $this->filterDate ?? now()->toDateString();
+                        
+                        // Store the filter date in the component property to ensure consistency
+                        $this->filterDate = $date;
+                        
+                        // Apply the date filter - this ensures table data matches stats
+                        // Use the same query pattern as in the stats calculation
+                        return $query->whereHas('draw', function ($subquery) use ($date) {
+                            $subquery->whereDate('draw_date', $date);
                         });
                     }),
                 SelectFilter::make('game_type_id')

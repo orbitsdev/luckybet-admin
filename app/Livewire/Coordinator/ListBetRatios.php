@@ -334,11 +334,11 @@ class ListBetRatios extends Component implements HasForms, HasTable
                     ->relationship('gameType', 'name')
                     ->searchable()
                     ->preload(),
-                SelectFilter::make('location_id')
-                    ->label('Location')
-                    ->relationship('location', 'name')
-                    ->searchable()
-                    ->preload(),
+                // SelectFilter::make('location_id')
+                //     ->label('Location')
+                //     ->relationship('location', 'name')
+                //     ->searchable()
+                //     ->preload(),
             ],
             layout: FiltersLayout::AboveContent
             )
