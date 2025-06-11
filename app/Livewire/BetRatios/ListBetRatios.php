@@ -26,28 +26,16 @@ use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Tables\Concerns\InteractsWithTable;
+use Filament\Actions\Contracts\HasActions;
+use Filament\Actions\Concerns\InteractsWithActions;
 
-class ListBetRatios extends Component implements HasForms, HasTable
+class ListBetRatios extends Component implements HasForms, HasTable,  HasActions
 {
     use InteractsWithForms;
     use InteractsWithTable;
+    use InteractsWithActions;
 
-    /**
-     * The currently selected filter date
-     *
-     * @var string|null
-     */
-    public $filterDate;
-
-    /**
-     * Statistics for bet ratios
-     *
-     * @var array
-     */
-    public array $ratioStats = [];
-
-    protected $computingStats = false;
-    protected $lastStatsComputation = 0;
+  
 
     /**
      * Register Livewire event listeners using Livewire 3 syntax
@@ -61,12 +49,7 @@ class ListBetRatios extends Component implements HasForms, HasTable
         ];
     }
 
-    public function mount()
-    {
-        $this->filterDate = now()->toDateString();
-        $this->tableFilters['draw_date']['value'] = $this->filterDate;
-        $this->computeRatioStats();
-    }
+   
 
 
     /**
@@ -74,13 +57,33 @@ class ListBetRatios extends Component implements HasForms, HasTable
      *
      * @return void
      */
+    
+
+
+    public $filterDate;
+
+    public array $ratioStats = [];
+
+    protected $computingStats = false;
+    protected $lastStatsComputation = 0;
+
+
+    public function mount(): void
+    {
+        $this->filterDate = now()->format('Y-m-d'); // always set to 'Y-m-d' format
+        $this->tableFilters['draw_date']['value'] = $this->filterDate;
+        $this->computeRatioStats();
+    }
+    
+
     public function handleFilterChange(): void
     {
-        $this->filterDate = $this->tableFilters['draw_date']['value'] ?? now()->toDateString();
+        $drawDate = $this->tableFilters['draw_date']['value'] ?? now()->format('Y-m-d');
+        $this->filterDate = \Carbon\Carbon::parse($drawDate)->format('Y-m-d');
+        $this->tableFilters['draw_date']['value'] = $this->filterDate;
         $this->computeRatioStats();
         $this->dispatch('refresh');
     }
-
     public function handleFilterReset(): void
     {
         $today = now()->toDateString();
@@ -96,21 +99,18 @@ class ListBetRatios extends Component implements HasForms, HasTable
     public function resetTableFilters(): void
     {
         parent::resetTableFilters();
-        $today = now()->toDateString();
-        $this->filterDate = $today;
-        if (isset($this->tableFilters['draw_date'])) {
-            $this->tableFilters['draw_date']['value'] = $today;
+        $drawDate = $this->tableFilters['draw_date']['value'] ?? now()->toDateString();
+
+        if($this->filterDate !== $drawDate){
+            $this->filterDate = $drawDate;
+            $this->computeRatioStats();
+            $this->dispatch('refresh');
         }
-        $this->computeRatioStats();
-        $this->dispatch('refresh');
+
     }
 
 
-
-    public function computeStatsListener(): void
-    {
-        $this->computeRatioStats();
-    }
+   
     /**
      * Compute bet ratio statistics
      *
@@ -118,6 +118,8 @@ class ListBetRatios extends Component implements HasForms, HasTable
      */
     public function computeRatioStats()
     {
+
+        
         // Get the filter date, default to today if not set
         $date = $this->filterDate ?? now()->toDateString();
 
@@ -189,29 +191,25 @@ class ListBetRatios extends Component implements HasForms, HasTable
         ];
     }
 
+    public function computeStatsListener(): void
+    {
+      $this->computeRatioStats();
+    }
 
     public function table(Table $table): Table
     {
         return $table
-            ->query(BetRatio::query()
+        ->query(
+            BetRatio::query()
                 ->when($this->filterDate, function ($query, $date) {
                     $query->whereHas('draw', function ($q) use ($date) {
                         $q->whereDate('draw_date', $date);
                     });
                 })
-                ->with(['gameType', 'draw', 'user', 'location'])
-            )
-            ->groups([
-                Group::make('gameType.name')
-                    ->label('Bet Type')
-                    ->titlePrefixedWithLabel(false)
-                    ->collapsible(),
-                Group::make('location.name')
-                    ->label('Location')
-                    ->titlePrefixedWithLabel(false)
-                    ->collapsible(),
-            ])
-            ->defaultGroup('gameType.name')
+            
+        )
+          
+           
             ->columns([
                 Tables\Columns\TextColumn::make('draw.draw_date')
                     ->label('Draw Date')
@@ -273,37 +271,23 @@ class ListBetRatios extends Component implements HasForms, HasTable
                     DatePicker::make('draw_date')
                         ->label('Draw Date')
                         ->nullable()
-                        ->default(fn() => now()->toDateString()) // Default to today dynamically
+                        ->default(fn () => now()->format('Y-m-d')) // correct default format
                         ->live()
                         ->afterStateUpdated(function ($state, $set, $get, $livewire) {
-                            $livewire->filterDate = $state ?? now()->toDateString();
+                        
+                            $date = $state ? \Carbon\Carbon::parse($state)->format('Y-m-d') : now()->format('Y-m-d');
+                            $livewire->filterDate = $date;
                             $livewire->computeRatioStats();
                         }),
                 ])
                 ->indicateUsing(function (array $data): ?string {
-                if (!$data['draw_date']) {
-                    return null;
-                }
-
-                return 'Date: ' . date('F j, Y', strtotime($data['draw_date']));
+                    if (!$data['draw_date']) return null;
+                    return 'Date: ' . \Carbon\Carbon::parse($data['draw_date'])->format('F j, Y');
                 })
-                ->query(function (Builder $query, array $data) {
-                    return $query->when($data['draw_date'] ?? null, function ($q, $date) {
-                        return $q->whereHas('draw', fn($sub) => $sub->whereDate('draw_date', $date));
-                    });
-                }),
+                ->query(fn($query, $data) => $query->when($data['draw_date'] ?? null, fn($q, $date) => $q->whereHas('draw', fn ($q) => $q->whereDate('draw_date', $date)))),
+            
 
-
-                SelectFilter::make('game_type_id')
-                    ->label('Bet Type')
-                    ->relationship('gameType', 'name')
-                    ->searchable()
-                    ->preload(),
-                SelectFilter::make('location_id')
-                    ->label('Location')
-                    ->relationship('location', 'name')
-                    ->searchable()
-                    ->preload(),
+            
             ],
             layout: FiltersLayout::AboveContent
             )
@@ -423,117 +407,7 @@ class ListBetRatios extends Component implements HasForms, HasTable
                 ])
             ])
             ->headerActions([
-                // Tables\Actions\Action::make('add_bet_ratio')
-                //     ->label('Add Bet Ratio')
-                //     ->icon('heroicon-o-plus')
-                //     ->color('primary')
-                //     ->form([
-                //         Forms\Components\Select::make('draw_id')
-                //             ->label('Draw')
-                //             ->options(function () {
-                //                 return Draw::whereDate('draw_date', $this->filterDate ?: now()->format('Y-m-d'))
-                //                     ->get()
-                //                     ->mapWithKeys(function ($draw) {
-                //                         return [$draw->id => $draw->draw_date . ' - ' . $draw->draw_time];
-                //                     });
-                //             })
-                //             ->required()
-                //             ->searchable(),
-                //         Forms\Components\Grid::make(1)
-                //             ->schema([
-                //                 Forms\Components\Select::make('game_type_id')
-                //                     ->label('Bet Type')
-                //                     ->relationship('gameType', 'name')
-                //                     ->required()
-                //                     ->live()
-                //                     ->afterStateUpdated(fn (callable $set) => $set('sub_selection', null)),
-                //             ]),
-                //         Forms\Components\Grid::make(2)
-                //             ->schema([
-                //                 Forms\Components\Select::make('sub_selection')
-                //                     ->label('Sub-Selection')
-                //                     ->options([
-                //                         'S2' => 'S2 (Last 2 Digits)',
-                //                         'S3' => 'S3 (Last 3 Digits)'
-                //                     ])
-                //                     ->nullable()
-                //                     ->visible(function (callable $get) {
-                //                         // Get the selected game type ID
-                //                         $gameTypeId = $get('game_type_id');
-                //                         if (!$gameTypeId) return false;
-
-                //                         // Get the game type code from the database
-                //                         $gameType = \App\Models\GameType::find($gameTypeId);
-                //                         return $gameType && $gameType->code === 'D4';
-                //                     })
-                //                     ->helperText('Only for D4 bet type'),
-                //                 Forms\Components\Select::make('location_id')
-                //                     ->label('Location')
-                //                     ->relationship('location', 'name')
-                //                     ->required()
-                //                     ->searchable(),
-                //             ]),
-                //         Forms\Components\Grid::make(2)
-                //             ->schema([
-                //                 Forms\Components\TextInput::make('bet_number')
-                //                     ->label('Bet Number')
-                //                     ->required()
-                //                     ->live()
-                //                     ->mask(function (callable $get) {
-                //                         $gameTypeId = $get('game_type_id');
-                //                         $subSelection = $get('sub_selection');
-                //                         if (!$gameTypeId) return '';
-
-                //                         $gameType = \App\Models\GameType::find($gameTypeId);
-                //                         if (!$gameType) return '';
-
-                //                         return match($gameType->code) {
-                //                             'S2' => '99',
-                //                             'S3' => '999',
-                //                             'D4' => match($subSelection) {
-                //                                 'S2' => '99',
-                //                                 'S3' => '999',
-                //                                 default => '9999'
-                //                             },
-                //                             default => ''
-                //                         };
-                //                     })
-                //                     ->helperText(function (callable $get) {
-                //                         $gameTypeId = $get('game_type_id');
-                //                         $subSelection = $get('sub_selection');
-                //                         if (!$gameTypeId) return 'Enter bet number';
-
-                //                         $gameType = \App\Models\GameType::find($gameTypeId);
-                //                         if (!$gameType) return 'Enter bet number';
-
-                //                         return match($gameType->code) {
-                //                             'S2' => '2-digit number (00-99)',
-                //                             'S3' => '3-digit number (000-999)',
-                //                             'D4' => match($subSelection) {
-                //                                 'S2' => '2-digit number (00-99)',
-                //                                 'S3' => '3-digit number (000-999)',
-                //                                 default => '4-digit number (0000-9999)'
-                //                             },
-                //                             default => 'Enter bet number'
-                //                         };
-                //                     }),
-                //                 Forms\Components\TextInput::make('max_amount')
-                //                     ->label('Max Amount')
-                //                     ->prefix('₱')
-                //                     ->numeric()
-                //                     ->required(),
-                //             ]),
-
-                //     ])
-                //     ->action(function (array $data): void {
-                //         $data['user_id'] = auth()->user()->id;
-                //         BetRatio::create($data);
-                //         $this->computeRatioStats();
-                //         Notification::make()
-                //             ->title('Bet Ratio Added')
-                //             ->success()
-                //             ->send();
-                //     }),
+              
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -546,6 +420,10 @@ class ListBetRatios extends Component implements HasForms, HasTable
             ]);
     }
 
+    public function makeFilamentTranslatableContentDriver(): ?\Filament\Support\Contracts\TranslatableContentDriver
+    {
+        return null;
+    }
     public function render(): View
     {
         return view('livewire.bet-ratios.list-bet-ratios');

@@ -111,7 +111,7 @@ class ListWinningAmount extends Component implements HasForms, HasTable
                     ->collapsible()
                     ->getTitleFromRecordUsing(fn (WinningAmount $record): string => $record->location?->name ?? 'No Location'),
             ])
-            ->defaultGroup('gameType.name')
+            ->defaultGroup('location.name')
             ->columns([
                 Tables\Columns\TextColumn::make('gameType.name')
                     ->label('Game Type')

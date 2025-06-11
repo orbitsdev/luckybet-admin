@@ -7,6 +7,7 @@ use Carbon\Carbon;
 use App\Models\Bet;
 use App\Models\Draw;
 use App\Models\BetRatio;
+use App\Models\GameType;
 use Illuminate\Support\Str;
 use App\Helpers\ApiResponse;
 use App\Models\LowWinNumber;
@@ -133,20 +134,45 @@ class BettingController extends Controller
                     ->first();
             }
 
-            $winningAmount = $lowWin
-                ? $lowWin->winning_amount
-                : (WinningAmount::where('game_type_id', $data['game_type_id'])
-                    ->where('location_id', $user->location_id)
-                    ->where('amount', $data['amount'])
-                    ->value('winning_amount'));
 
-            if (is_null($winningAmount)) {
-                DB::rollBack();
-                return ApiResponse::error(
-                    'Winning amount is not set for this game type and amount. Please contact admin.',
-                    422
-                );
-            }
+            $gameType = GameType::find($data['game_type_id']);
+
+switch ($gameType->name) {
+    case 'S2':
+        $winningAmount = $data['amount'] * 70;
+        break;
+    case 'S3':
+        $winningAmount = $data['amount'] * 450;
+        break;
+    case 'D4':
+        if ($data['d4_sub_selection'] === 'S2') {
+            $winningAmount = $data['amount'] * 70;
+        } elseif ($data['d4_sub_selection'] === 'S3') {
+            $winningAmount = $data['amount'] * 450;
+        } else {
+            // D4 default to full match (4000)
+            $winningAmount = $data['amount'] * 4000;
+        }
+        break;
+    default:
+        DB::rollBack();
+        return ApiResponse::error('Invalid game type for winning amount calculation.', 422);
+}
+
+            // $winningAmount = $lowWin
+            //     ? $lowWin->winning_amount
+            //     : (WinningAmount::where('game_type_id', $data['game_type_id'])
+            //         ->where('location_id', $user->location_id)
+            //         ->where('amount', $data['amount'])
+            //         ->value('winning_amount'));
+
+            // if (is_null($winningAmount)) {
+            //     DB::rollBack();
+            //     return ApiResponse::error(
+            //         'Winning amount is not set for this game type and amount. Please contact admin.',
+            //         422
+            //     );
+            // }
 
             // 3. COMMISSION LOGIC
             $commissionRate = $user->commission->rate ?? 0.15; // default 15% if not set

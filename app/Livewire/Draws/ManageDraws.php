@@ -612,22 +612,12 @@ class ManageDraws extends Component implements HasForms, HasTable, HasActions
         $this->resetTable();
     }
 
-    /**
-     * Handle the refresh event
-     *
-     * @return void
-     */
-    #[On('refresh')]
-    public function refresh(): void
-    {
-        // This method will be automatically called when the 'refresh' event is dispatched
-        // No need to do anything here as Livewire will automatically re-render the component
-    }
-
     public function render(): View
     {
         return view('livewire.draws.manage-draws');
     }
+
+
 }
 
 /*******  da7bbeeb-ceda-434d-b10e-b3456bd884f6  *******/
