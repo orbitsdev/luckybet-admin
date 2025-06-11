@@ -173,7 +173,7 @@
 
                     <!-- Bets Link -->
                     <a href="{{ route('manage.bets') }}"
-                        class="group flex items-center px-5 py-3.5 rounded-lg text-base text-gray-700 transition-all duration-300 ease-in-out nav-item {{ request()->routeIs('bets') ? 'text-white bg-gradient-to-r from-red-500 to-pink-500 font-medium' : 'hover:text-red-600 hover:bg-red-50 hover:border-l-4 hover:border-red-500' }}">
+                        class="group flex items-center px-5 py-3.5 rounded-lg text-base text-gray-700 transition-all duration-300 ease-in-out nav-item {{ request()->routeIs('manage.bets') ? 'text-white bg-gradient-to-r from-red-500 to-pink-500 font-medium' : 'hover:text-red-600 hover:bg-red-50 hover:border-l-4 hover:border-red-500' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                             stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-3">
                             <path stroke-linecap="round" stroke-linejoin="round" 
@@ -352,7 +352,7 @@
 
                     <!-- Bets Link -->
                     <a href="{{ route('manage.bets') }}"
-                        class="group flex items-center px-5 py-3.5 rounded-lg text-base text-gray-700 transition-all duration-300 ease-in-out nav-item {{ request()->routeIs('bets') ? 'text-white bg-gradient-to-r from-red-500 to-pink-500 font-medium' : 'hover:text-red-600 hover:bg-red-50 hover:border-l-4 hover:border-red-500' }}">
+                        class="group flex items-center px-5 py-3.5 rounded-lg text-base text-gray-700 transition-all duration-300 ease-in-out nav-item {{ request()->routeIs('manage.bets') ? 'text-white bg-gradient-to-r from-red-500 to-pink-500 font-medium' : 'hover:text-red-600 hover:bg-red-50 hover:border-l-4 hover:border-red-500' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                             stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-3">
                             <path stroke-linecap="round" stroke-linejoin="round" 
