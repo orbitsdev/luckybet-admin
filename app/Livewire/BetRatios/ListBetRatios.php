@@ -28,191 +28,197 @@ use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Actions\Contracts\HasActions;
 use Filament\Actions\Concerns\InteractsWithActions;
+use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Tables\Actions\Action;
+use Filament\Tables\Actions\CreateAction;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Forms\Components\Section;
 
-class ListBetRatios extends Component implements HasForms, HasTable,  HasActions
+class ListBetRatios extends Component implements HasForms, HasTable, HasActions
 {
     use InteractsWithForms;
     use InteractsWithTable;
     use InteractsWithActions;
-
-  
 
     /**
      * Register Livewire event listeners using Livewire 3 syntax
      */
     public function __construct()
     {
+        // Register event listeners
         $this->listeners = [
-            'compute-stats' => 'computeStatsListener',
             'filament.table.filter' => 'handleFilterChange',
             'filament.table.filters.reset' => 'handleFilterReset',
+            'compute-stats' => 'computeStatsListener',
         ];
     }
 
-   
+    /**
+     * The currently selected filter date
+     *
+     * @var string|null
+     */
+    public $filterDate;
+    
+    /**
+     * Statistics for the currently selected date
+     *
+     * @var array
+     */
+    public array $betRatioStats = [];
+    
+    /**
+     * Flag to track if stats computation is in progress
+     *
+     * @var bool
+     */
+    protected $computingStats = false;
+    
+    /**
+     * Timestamp of the last stats computation
+     *
+     * @var int
+     */
+    protected $lastStatsComputation = 0;
 
+    /**
+     * Initialize component state
+     *
+     * @return void
+     */
+    public function mount()
+    {
+        // Set default filter date to today
+        if (!$this->filterDate) {
+            $this->filterDate = now()->toDateString();
+        }
+        
+        // Compute initial stats
+        $this->computeBetRatioStats();
+    }
 
     /**
      * Handle Filament table filter changes
      *
      * @return void
      */
-    
-
-
-    public $filterDate;
-
-    public array $ratioStats = [];
-
-    protected $computingStats = false;
-    protected $lastStatsComputation = 0;
-
-
-    public function mount(): void
-    {
-        $this->filterDate = now()->format('Y-m-d'); // always set to 'Y-m-d' format
-        $this->tableFilters['draw_date']['value'] = $this->filterDate;
-        $this->computeRatioStats();
-    }
-    
-
     public function handleFilterChange(): void
     {
-        $drawDate = $this->tableFilters['draw_date']['value'] ?? now()->format('Y-m-d');
-        $this->filterDate = \Carbon\Carbon::parse($drawDate)->format('Y-m-d');
-        $this->tableFilters['draw_date']['value'] = $this->filterDate;
-        $this->computeRatioStats();
-        $this->dispatch('refresh');
-    }
-    public function handleFilterReset(): void
-    {
-        $today = now()->toDateString();
-        $this->filterDate = $today;
-        if (isset($this->tableFilters['draw_date'])) {
-            $this->tableFilters['draw_date']['value'] = $today;
-        }
-        $this->computeRatioStats();
-        $this->dispatch('refresh');
-    }
-
-
-    public function resetTableFilters(): void
-    {
-        parent::resetTableFilters();
+        // Get the current filter date or default to today
         $drawDate = $this->tableFilters['draw_date']['value'] ?? now()->toDateString();
 
-        if($this->filterDate !== $drawDate){
-            $this->filterDate = $drawDate;
-            $this->computeRatioStats();
-            $this->dispatch('refresh');
+        // If the filter was cleared or reset, explicitly set to today
+        if (empty($drawDate) || $drawDate === null) {
+            $drawDate = now()->toDateString();
+            // Update the table filter value to today as well
+            $this->tableFilters['draw_date']['value'] = $drawDate;
         }
 
+        // Update filter date
+        $this->filterDate = $drawDate;
+        
+        // Compute stats for the new date
+        $this->computeBetRatioStats();
+
+        // Force a refresh to ensure UI is updated
+        $this->dispatch('refresh');
+        
+        // Explicitly dispatch an event to update the stats display
+        $this->dispatch('stats-updated');
     }
 
-
-   
     /**
-     * Compute bet ratio statistics
+     * Handle explicit filter reset events
+     * This is triggered when the user clicks the reset button
      *
      * @return void
      */
-    public function computeRatioStats()
+    public function handleFilterReset(): void
     {
+        // Set filter date to today
+        $today = now()->toDateString();
+        $this->filterDate = $today;
 
+        // Update the table filter value to today
+        if (isset($this->tableFilters['draw_date'])) {
+            $this->tableFilters['draw_date']['value'] = $today;
+        }
         
-        // Get the filter date, default to today if not set
-        $date = $this->filterDate ?? now()->toDateString();
+        // Compute stats for today
+        $this->computeBetRatioStats();
 
-        // Log for debugging
-        logger()->info('Computing Stats for Date:', ['date' => $date]);
-
-        // Query to get bet ratio statistics
-        $query = BetRatio::query()
-            ->whereHas('draw', function ($q) use ($date) {
-                $q->whereDate('draw_date', $date);
-            })
-            ->with(['gameType', 'location', 'user']);
-
-        // Get total count and sum of max amounts
-        $totalRatios = $query->count();
-        $totalMaxAmount = $query->sum('max_amount');
-
-        // Get average max amount
-        $avgMaxAmount = $totalRatios > 0 ? $totalMaxAmount / $totalRatios : 0;
-
-        // Get counts by game type
-        $gameTypeCounts = BetRatio::when($date, function($query, $date) {
-                $query->whereHas('draw', function ($q) use ($date) {
-                    $q->whereDate('draw_date', $date);
-                });
-            })
-            ->join('game_types', 'bet_ratios.game_type_id', '=', 'game_types.id')
-            ->select('game_types.name')
-            ->selectRaw('COUNT(*) as count')
-            ->selectRaw('SUM(bet_ratios.max_amount) as total_amount')
-            ->groupBy('game_types.name')
-            ->get()
-            ->keyBy('name')
-            ->toArray();
-
-        // Get counts by location
-        $locationCounts = BetRatio::when($date, function($query, $date) {
-                $query->whereHas('draw', function ($q) use ($date) {
-                    $q->whereDate('draw_date', $date);
-                });
-            })
-            ->join('locations', 'bet_ratios.location_id', '=', 'locations.id')
-            ->select('locations.name')
-            ->selectRaw('COUNT(*) as count')
-            ->selectRaw('SUM(bet_ratios.max_amount) as total_amount')
-            ->groupBy('locations.name')
-            ->get()
-            ->keyBy('name')
-            ->toArray();
-
-        // Get recent audit history
-        $recentAudits = BetRatioAudit::when($date, function($query, $date) {
-                $query->whereHas('betRatio.draw', function ($q) use ($date) {
-                    $q->whereDate('draw_date', $date);
-                });
-            })
-            ->with(['betRatio.gameType', 'betRatio.location'])
-            ->orderBy('created_at', 'desc')
-            ->limit(10)
-            ->get();
-
-        $this->ratioStats = [
-            'total_ratios' => $totalRatios,
-            'total_max_amount' => $totalMaxAmount,
-            'avg_max_amount' => $avgMaxAmount,
-            'game_type_counts' => $gameTypeCounts,
-            'location_counts' => $locationCounts,
-            'recent_audits' => $recentAudits,
-        ];
-    }
-
-    public function computeStatsListener(): void
-    {
-      $this->computeRatioStats();
+        // Force a refresh of the component
+        $this->dispatch('refresh');
     }
 
     public function table(Table $table): Table
     {
         return $table
-        ->query(
-            BetRatio::query()
-                ->when($this->filterDate, function ($query, $date) {
-                    $query->whereHas('draw', function ($q) use ($date) {
-                        $q->whereDate('draw_date', $date);
-                    });
-                })
-            
-        )
-          
-           
+            ->query(BetRatio::query()->with(['draw', 'gameType', 'location', 'user']))
+            ->emptyStateHeading('No bet ratios found')
+            ->emptyStateDescription('No bet ratios are available for the selected date.')
+            ->emptyStateIcon('heroicon-o-document-chart-bar')
+            ->headerActions([
+                CreateAction::make('addBetRatio')
+                    ->label('Add Bet Ratio')
+                    ->button()
+                    ->model(BetRatio::class)
+                    ->form([
+                        Section::make('Bet Ratio Information')
+                            ->schema([
+                                Grid::make(2)
+                                    ->schema([
+                                        Select::make('draw_id')
+                                            ->label('Draw')
+                                            ->options(function () {
+                                                return Draw::where('draw_date', $this->filterDate ?? now()->toDateString())
+                                                    ->orderBy('draw_time')
+                                                    ->get()
+                                                    ->pluck('draw_time', 'id')
+                                                    ->map(function ($time, $id) {
+                                                        return 'Draw at ' . $time;
+                                                    });
+                                            })
+                                            ->searchable()
+                                            ->required(),
+                                        Select::make('game_type_id')
+                                            ->label('Game Type')
+                                            ->options(GameType::pluck('name', 'id'))
+                                            ->searchable()
+                                            ->required(),
+                                    ]),
+                                Grid::make(3)
+                                    ->schema([
+                                        TextInput::make('bet_number')
+                                            ->label('Bet Number')
+                                            ->required(),
+                                        Select::make('sub_selection')
+                                            ->label('Sub Selection')
+                                            ->options([
+                                                'S2' => 'S2',
+                                                'S3' => 'S3',
+                                            ])
+                                            ->nullable(),
+                                        TextInput::make('max_amount')
+                                            ->label('Max Amount')
+                                            ->numeric()
+                                            ->required(),
+                                    ]),
+                                Select::make('location_id')
+                                    ->label('Location')
+                                    ->options(Location::pluck('name', 'id'))
+                                    ->searchable()
+                                    ->required(),
+                            ])
+                    ])
+            ])
             ->columns([
                 Tables\Columns\TextColumn::make('draw.draw_date')
-                    ->label('Draw Date')
+                    ->label('Date')
                     ->date()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('draw.draw_time')
@@ -220,210 +226,299 @@ class ListBetRatios extends Component implements HasForms, HasTable,  HasActions
                     ->time('h:i A')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('gameType.name')
-                    ->label('Bet Type')
-                    ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'S2' => 'success',
-                        'S3' => 'warning',
-                        'D4' => 'danger',
-                        default => 'gray',
-                    })
+                    ->label('Game Type')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('bet_number')
                     ->label('Bet Number')
-                    ->searchable()
-                    ->copyable(),
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('sub_selection')
-                    ->label('Sub-Selection')
-                    ->badge()
-                    ->color(fn (?string $state): string => match ($state) {
-                        'S2' => 'success',
-                        'S3' => 'warning',
-                        default => 'gray',
-                    })
-                    ->visible(fn (?BetRatio $record): bool => $record && $record->gameType && $record->gameType->code === 'D4' && !empty($record->sub_selection))
-                    ->sortable(),
+                    ->label('Sub Selection')
+                    ->placeholder('-'),
                 Tables\Columns\TextColumn::make('max_amount')
                     ->label('Max Amount')
                     ->money('PHP')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('user.name')
-                    ->label('Added By')
-                    ->sortable(),
                 Tables\Columns\TextColumn::make('location.name')
                     ->label('Location')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->label('Created')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->label('Updated')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('user.name')
+                    ->label('Created By')
+                    ->sortable(),
             ])
             ->filters([
                 Filter::make('draw_date')
-                ->label('Draw Date')
-                ->form([
-                    DatePicker::make('draw_date')
-                        ->label('Draw Date')
-                        ->nullable()
-                        ->default(fn () => now()->format('Y-m-d')) // correct default format
-                        ->live()
-                        ->afterStateUpdated(function ($state, $set, $get, $livewire) {
-                        
-                            $date = $state ? \Carbon\Carbon::parse($state)->format('Y-m-d') : now()->format('Y-m-d');
-                            $livewire->filterDate = $date;
-                            $livewire->computeRatioStats();
-                        }),
-                ])
-                ->indicateUsing(function (array $data): ?string {
-                    if (!$data['draw_date']) return null;
-                    return 'Date: ' . \Carbon\Carbon::parse($data['draw_date'])->format('F j, Y');
-                })
-                ->query(fn($query, $data) => $query->when($data['draw_date'] ?? null, fn($q, $date) => $q->whereHas('draw', fn ($q) => $q->whereDate('draw_date', $date)))),
-            
+                    ->label('Draw Date')
+                    ->form([
+                        DatePicker::make('draw_date')
+                            ->label('Draw Date')
+                            ->nullable() // Allow clearing the filter
+                            ->default(fn() => now()->toDateString()) // Default to today dynamically
+                            ->live()
+                            ->afterStateUpdated(function ($state, $set, $get, $livewire) {
+                                // Always update filterDate when date changes
+                                $livewire->filterDate = $state ?? now()->toDateString();
+                                // Compute stats immediately when filter changes
+                                $livewire->computeBetRatioStats();
+                            })
+                    ])
+                    ->indicateUsing(function (array $data): ?string {
+                        if (!$data['draw_date']) {
+                            return null;
+                        }
 
-            
-            ],
-            layout: FiltersLayout::AboveContent
-            )
+                        return 'Date: ' . date('F j, Y', strtotime($data['draw_date']));
+                    })
+                    ->query(function ($query, array $data) {
+                        return $query->when(
+                            $data['draw_date'] ?? null,
+                            fn($query, $date) => $query->whereHas('draw', function ($query) use ($date) {
+                                $query->whereDate('draw_date', $date);
+                            })
+                        );
+                    }),
+                SelectFilter::make('game_type_id')
+                    ->label('Game Type')
+                    ->options(GameType::pluck('name', 'id'))
+                    ->query(function ($query, array $data) {
+                        return $query->when(
+                            $data['value'] ?? null,
+                            fn($query, $gameTypeId) => $query->where('game_type_id', $gameTypeId)
+                        );
+                    }),
+                SelectFilter::make('location_id')
+                    ->label('Location')
+                    ->options(Location::pluck('name', 'id'))
+                    ->query(function ($query, array $data) {
+                        return $query->when(
+                            $data['value'] ?? null,
+                            fn($query, $locationId) => $query->where('location_id', $locationId)
+                        );
+                    }),
+            ], layout: FiltersLayout::AboveContent)
             ->actions([
-                Tables\Actions\ActionGroup::make([
-                    Tables\Actions\Action::make('edit')
-                        ->label('Edit')
-                        ->icon('heroicon-o-pencil')
-                        ->form(function (BetRatio $record) {
-                            return [
-                                Forms\Components\Grid::make(1)
+                EditAction::make()
+                    ->form([
+                        Section::make('Bet Ratio Information')
+                            ->schema([
+                                Grid::make(2)
                                     ->schema([
-                                        Forms\Components\Select::make('game_type_id')
-                                            ->label('Bet Type')
-                                            ->relationship('gameType', 'name')
-                                            ->required()
-                                            ->default($record->game_type_id)
-                                            ->live()
-                                            ->afterStateUpdated(fn (callable $set) => $set('sub_selection', null)),
-                                    ]),
-                                Forms\Components\Grid::make(2)
-                                    ->schema([
-                                        Forms\Components\Select::make('sub_selection')
-                                            ->label('Sub-Selection')
-                                            ->options([
-                                                'S2' => 'S2 (Last 2 Digits)',
-                                                'S3' => 'S3 (Last 3 Digits)'
-                                            ])
-                                            ->nullable()
-                                            ->default($record->sub_selection)
-                                            ->visible(function (callable $get) use ($record) {
-                                                // Get the selected game type ID
-                                                $gameTypeId = $get('game_type_id') ?: $record->game_type_id;
-                                                if (!$gameTypeId) return false;
-
-                                                // Get the game type code from the database
-                                                $gameType = \App\Models\GameType::find($gameTypeId);
-                                                return $gameType && $gameType->code === 'D4';
+                                        Select::make('draw_id')
+                                            ->label('Draw')
+                                            ->options(function (BetRatio $record) {
+                                                $drawDate = $record->draw->draw_date;
+                                                return Draw::whereDate('draw_date', $drawDate)
+                                                    ->orderBy('draw_time')
+                                                    ->get()
+                                                    ->pluck('draw_time', 'id')
+                                                    ->map(function ($time, $id) {
+                                                        return 'Draw at ' . $time;
+                                                    });
                                             })
-                                            ->helperText('Only for D4 bet type'),
-                                        Forms\Components\Select::make('location_id')
-                                            ->label('Location')
-                                            ->relationship('location', 'name')
-                                            ->required()
-                                            ->default($record->location_id),
+                                            ->searchable()
+                                            ->required(),
+                                        Select::make('game_type_id')
+                                            ->label('Game Type')
+                                            ->options(GameType::pluck('name', 'id'))
+                                            ->searchable()
+                                            ->required(),
                                     ]),
-                                Forms\Components\Grid::make(2)
+                                Grid::make(3)
                                     ->schema([
-                                        Forms\Components\TextInput::make('bet_number')
+                                        TextInput::make('bet_number')
                                             ->label('Bet Number')
-                                            ->required()
-                                            ->live()
-                                            ->mask(function (callable $get) use ($record) {
-                                                $gameTypeId = $get('game_type_id') ?: $record->game_type_id;
-                                                $subSelection = $get('sub_selection') ?: $record->sub_selection;
-                                                if (!$gameTypeId) return '';
-
-                                                $gameType = \App\Models\GameType::find($gameTypeId);
-                                                if (!$gameType) return '';
-
-                                                return match($gameType->code) {
-                                                    'S2' => '99',
-                                                    'S3' => '999',
-                                                    'D4' => match($subSelection) {
-                                                        'S2' => '99',
-                                                        'S3' => '999',
-                                                        default => '9999'
-                                                    },
-                                                    default => ''
-                                                };
-                                            })
-                                            ->helperText(function (callable $get) use ($record) {
-                                                $gameTypeId = $get('game_type_id') ?: $record->game_type_id;
-                                                $subSelection = $get('sub_selection') ?: $record->sub_selection;
-                                                if (!$gameTypeId) return 'Enter bet number';
-
-                                                $gameType = \App\Models\GameType::find($gameTypeId);
-                                                if (!$gameType) return 'Enter bet number';
-
-                                                return match($gameType->code) {
-                                                    'S2' => '2-digit number (00-99)',
-                                                    'S3' => '3-digit number (000-999)',
-                                                    'D4' => match($subSelection) {
-                                                        'S2' => '2-digit number (00-99)',
-                                                        'S3' => '3-digit number (000-999)',
-                                                        default => '4-digit number (0000-9999)'
-                                                    },
-                                                    default => 'Enter bet number'
-                                                };
-                                            }),
-                                        Forms\Components\TextInput::make('max_amount')
+                                            ->required(),
+                                        Select::make('sub_selection')
+                                            ->label('Sub Selection')
+                                            ->options([
+                                                'S2' => 'S2',
+                                                'S3' => 'S3',
+                                            ])
+                                            ->nullable(),
+                                        TextInput::make('max_amount')
                                             ->label('Max Amount')
-                                            ->prefix('₱')
                                             ->numeric()
                                             ->required(),
                                     ]),
-
-                            ];
+                                Select::make('location_id')
+                                    ->label('Location')
+                                    ->options(Location::pluck('name', 'id'))
+                                    ->searchable()
+                                    ->required(),
+                            ])
+                    ]),
+                ActionGroup::make([
+                    Action::make('viewAudit')
+                        ->label('View Audit History')
+                        ->icon('heroicon-o-clock')
+                        ->color('info')
+                        ->modalHeading(fn (BetRatio $record) => 'Audit History - Bet Ratio #' . $record->id)
+                        ->modalContent(function (BetRatio $record) {
+                            return view('livewire.bet-ratios.partials.audit-history-modal', ['betRatio' => $record->load('betRatioAudit.user')]);
                         })
-                        ->action(function (BetRatio $record, array $data): void {
-                            $record->update($data);
-                            $this->computeRatioStats();
-                            Notification::make()
-                                ->title('Bet Ratio Updated')
-                                ->success()
-                                ->send();
-                        }),
-                    Tables\Actions\DeleteAction::make()
-                        ->requiresConfirmation()
-                        ->after(function () {
-                            $this->computeRatioStats();
-                            Notification::make()
-                                ->title('Bet Ratio Deleted')
-                                ->success()
-                                ->send();
-                        }),
-                ])
-            ])
-            ->headerActions([
-              
-            ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make()
-                        ->requiresConfirmation()
-                        ->after(function () {
-                            $this->computeRatioStats();
-                        }),
+                        ->modalWidth('3xl')
+                        ->modalSubmitAction(false)
+                        ->modalCancelAction(fn ($action) => $action->label('Close'))
+                        ->disabledForm(),
+                    DeleteAction::make(),
                 ]),
             ]);
     }
 
-    public function makeFilamentTranslatableContentDriver(): ?\Filament\Support\Contracts\TranslatableContentDriver
+    /**
+     * Refresh the table data
+     *
+     * @return void
+     */
+    public function refreshTable(): void
     {
-        return null;
+        // This will force Filament to re-query the table data
+        $this->resetTable();
+        
+        // Recompute stats
+        $this->computeBetRatioStats();
     }
+
+    /**
+     * Compute bet ratio statistics for the selected date
+     *
+     * @return void
+     */
+    public function computeBetRatioStats()
+    {
+        // Set computing flag to prevent multiple simultaneous computations
+        $this->computingStats = true;
+        $this->lastStatsComputation = microtime(true);
+        
+        // Use the current filter date or default to today
+        $date = $this->filterDate ?: now()->format('Y-m-d');
+        $this->filterDate = $date; // Ensure the property is set
+        
+        // Get all draws for the selected date
+        $draws = Draw::where('draw_date', $date)->with('betRatios.gameType', 'betRatios.location')->get();
+        
+        // Initialize stats arrays
+        $totalBetRatios = 0;
+        $totalMaxAmount = 0;
+        $gameTypeStats = [];
+        $locationStats = [];
+        $drawTimeStats = [];
+        
+        // Get all game types for consistent display
+        $gameTypes = GameType::all()->pluck('name', 'id')->toArray();
+        
+        // Process each draw and its bet ratios
+        foreach ($draws as $draw) {
+            $drawTime = $draw->draw_time;
+            
+            // Initialize draw time stats if not exists
+            if (!isset($drawTimeStats[$drawTime])) {
+                $drawTimeStats[$drawTime] = [
+                    'total' => 0,
+                    'total_max_amount' => 0,
+                    'game_types' => [],
+                ];
+            }
+            
+            foreach ($draw->betRatios as $betRatio) {
+                $totalBetRatios++;
+                $totalMaxAmount += $betRatio->max_amount;
+                
+                $gameTypeId = $betRatio->game_type_id;
+                $gameTypeName = $betRatio->gameType->name ?? 'Unknown';
+                $locationId = $betRatio->location_id;
+                $locationName = $betRatio->location->name ?? 'Unknown';
+                
+                // Initialize game type stats if not exists
+                if (!isset($gameTypeStats[$gameTypeId])) {
+                    $gameTypeStats[$gameTypeId] = [
+                        'name' => $gameTypeName,
+                        'total' => 0,
+                        'total_max_amount' => 0,
+                        'locations' => [],
+                    ];
+                }
+                
+                // Initialize location stats if not exists
+                if (!isset($locationStats[$locationId])) {
+                    $locationStats[$locationId] = [
+                        'name' => $locationName,
+                        'total' => 0,
+                        'total_max_amount' => 0,
+                        'game_types' => [],
+                    ];
+                }
+                
+                // Update game type stats
+                $gameTypeStats[$gameTypeId]['total']++;
+                $gameTypeStats[$gameTypeId]['total_max_amount'] += $betRatio->max_amount;
+                
+                // Update location stats within game type
+                if (!isset($gameTypeStats[$gameTypeId]['locations'][$locationId])) {
+                    $gameTypeStats[$gameTypeId]['locations'][$locationId] = [
+                        'name' => $locationName,
+                        'total' => 0,
+                        'total_max_amount' => 0,
+                    ];
+                }
+                $gameTypeStats[$gameTypeId]['locations'][$locationId]['total']++;
+                $gameTypeStats[$gameTypeId]['locations'][$locationId]['total_max_amount'] += $betRatio->max_amount;
+                
+                // Update location stats
+                $locationStats[$locationId]['total']++;
+                $locationStats[$locationId]['total_max_amount'] += $betRatio->max_amount;
+                
+                // Update game type stats within location
+                if (!isset($locationStats[$locationId]['game_types'][$gameTypeId])) {
+                    $locationStats[$locationId]['game_types'][$gameTypeId] = [
+                        'name' => $gameTypeName,
+                        'total' => 0,
+                        'total_max_amount' => 0,
+                    ];
+                }
+                $locationStats[$locationId]['game_types'][$gameTypeId]['total']++;
+                $locationStats[$locationId]['game_types'][$gameTypeId]['total_max_amount'] += $betRatio->max_amount;
+                
+                // Update draw time stats
+                $drawTimeStats[$drawTime]['total']++;
+                $drawTimeStats[$drawTime]['total_max_amount'] += $betRatio->max_amount;
+                
+                // Update game type stats within draw time
+                if (!isset($drawTimeStats[$drawTime]['game_types'][$gameTypeId])) {
+                    $drawTimeStats[$drawTime]['game_types'][$gameTypeId] = [
+                        'name' => $gameTypeName,
+                        'total' => 0,
+                        'total_max_amount' => 0,
+                    ];
+                }
+                $drawTimeStats[$drawTime]['game_types'][$gameTypeId]['total']++;
+                $drawTimeStats[$drawTime]['game_types'][$gameTypeId]['total_max_amount'] += $betRatio->max_amount;
+            }
+        }
+        
+        // Store computed stats
+        $this->betRatioStats = [
+            'total_bet_ratios' => $totalBetRatios,
+            'total_max_amount' => $totalMaxAmount,
+            'game_type_stats' => $gameTypeStats,
+            'location_stats' => $locationStats,
+            'draw_time_stats' => $drawTimeStats,
+            'game_types' => $gameTypes,
+        ];
+        
+        // Reset computing flag
+        $this->computingStats = false;
+    }
+    
+    /**
+     * Livewire listener for the compute-stats event
+     *
+     * @return void
+     */
+    public function computeStatsListener(): void
+    {
+        $this->computeBetRatioStats();
+    }
+    
     public function render(): View
     {
         return view('livewire.bet-ratios.list-bet-ratios');

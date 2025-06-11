@@ -28,7 +28,16 @@
                         </svg>
                         <span>Dashboard</span>
                     </a>
-
+ <a href="{{ route('manage.locations') }}" class="group flex items-center px-5 py-3.5 rounded-lg text-base transition-all duration-300 ease-in-out nav-item {{ request()->routeIs('manage.locations*') ? 'text-white bg-gradient-to-r from-red-500 to-pink-500 font-medium' : 'text-gray-700 hover:bg-red-50 hover:text-red-600' }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                            stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-3">
+                            <path stroke-linecap="round" stroke-linejoin="round" 
+                                d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" 
+                                d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+                        </svg>
+                        <span>Locations</span>
+                    </a>
                     <!-- Users Dropdown -->
                     <div class="space-y-1 mt-4 mb-4">
                         <button @click="usersOpen = !usersOpen; console.log('Users dropdown toggled:', usersOpen)"
@@ -96,18 +105,16 @@
                                     class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('reports.winning-report') ? 'opacity-100 bg-red-500' : 'opacity-0 group-hover:opacity-100 bg-primary-500' }} mr-3 transition-all duration-200"></span>
                                 <span class="{{ request()->routeIs('reports.winning-report') ? 'font-medium' : '' }}">Winning Report</span>
                             </a>
-                        </div>
+                            <a href="{{ route('manage.receipts') }}"
+                                class="group flex items-center px-4 py-2.5 text-sm rounded-md nav-item hover:pl-5 transition-all duration-200 {{ request()->routeIs('manage.receipts*') ? 'text-red-600 bg-gradient-to-r from-red-50 to-red-100 font-medium border-l-2 border-red-500' : 'text-gray-600' }}">
+                                <span
+                                    class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('manage.receipts*') ? 'opacity-100 bg-red-500' : 'opacity-0 group-hover:opacity-100 bg-primary-500' }} mr-3 transition-all duration-200"></span>
+                                <span class="{{ request()->routeIs('manage.receipts*') ? 'font-medium' : '' }}">Receipts</span>
+                            </a>
+
+                      </div>
                     </div>
-                    <a href="{{ route('manage.locations') }}" class="group flex items-center px-5 py-3.5 rounded-lg text-base transition-all duration-300 ease-in-out nav-item {{ request()->routeIs('manage.locations*') ? 'text-white bg-gradient-to-r from-red-500 to-pink-500 font-medium' : 'text-gray-700 hover:bg-red-50 hover:text-red-600' }}">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                            stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-3">
-                            <path stroke-linecap="round" stroke-linejoin="round" 
-                                d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" 
-                                d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
-                        </svg>
-                        <span>Locations</span>
-                    </a>
+                   
                     <!-- Game Management Section -->
                     <div
                         class="px-4 py-2 text-lg font-heading font-semibold uppercase tracking-wider text-gray-600 mt-6 mb-1">
@@ -175,6 +182,8 @@
                         <span>All Bets</span>
                     </a>
 
+
+
                 </nav>
             </aside>
         </div>
@@ -202,7 +211,16 @@
                         </svg>
                         <span>Dashboard</span>
                     </a>
-
+                       <a href="{{ route('manage.locations') }}" class="group flex items-center px-5 py-3.5 rounded-lg text-base transition-all duration-300 ease-in-out nav-item {{ request()->routeIs('manage.locations*') ? 'text-white bg-gradient-to-r from-red-500 to-pink-500 font-medium' : 'text-gray-700 hover:bg-red-50 hover:text-red-600' }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                            stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-3">
+                            <path stroke-linecap="round" stroke-linejoin="round" 
+                                d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" 
+                                d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+                        </svg>
+                        <span>Locations</span>
+                    </a>
                     <!-- Users Dropdown -->
                     <div class="space-y-1 mt-4">
                         <button @click="usersOpen = !usersOpen"
@@ -267,19 +285,14 @@
                                 class="block pl-12 pr-5 py-2.5 rounded-lg nav-item border-l-4 {{ request()->routeIs('reports.winning-report') ? 'text-red-600 bg-gradient-to-r from-red-50 to-red-100 font-medium border-red-500' : 'text-gray-600 hover:bg-red-50 hover:text-red-600 border-transparent' }}">
                                 Winning Report
                             </a>
+                            <a href="{{ route('manage.receipts') }}"
+                                class="block pl-12 pr-5 py-2.5 rounded-lg nav-item border-l-4 {{ request()->routeIs('manage.receipts*') ? 'text-red-600 bg-gradient-to-r from-red-50 to-red-100 font-medium border-red-500' : 'text-gray-600 hover:bg-red-50 hover:text-red-600 border-transparent' }}">
+                                Receipts
+                            </a>
                         </div>
                     </div>
 
-                    <a href="{{ route('manage.locations') }}" class="group flex items-center px-5 py-3.5 rounded-lg text-base transition-all duration-300 ease-in-out nav-item {{ request()->routeIs('manage.locations*') ? 'text-white bg-gradient-to-r from-red-500 to-pink-500 font-medium' : 'text-gray-700 hover:bg-red-50 hover:text-red-600' }}">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                            stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-3">
-                            <path stroke-linecap="round" stroke-linejoin="round" 
-                                d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" 
-                                d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
-                        </svg>
-                        <span>Locations</span>
-                    </a>
+                 
 
                     <h3 class="px-5 py-3 mt-6 text-sm font-semibold text-gray-500 uppercase tracking-wider">GAME
                         MANAGEMENT</h3>
@@ -347,6 +360,7 @@
                         </svg>
                         <span>All Bets</span>
                     </a>
+
 
                 </nav>
             </aside>

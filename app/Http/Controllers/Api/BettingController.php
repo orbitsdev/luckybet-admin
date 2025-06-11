@@ -116,48 +116,52 @@ class BettingController extends Controller
                 }
             }
 
-            // 2. LOW WIN OVERRIDE / WINNING AMOUNT LOGIC - must include location_id
-            $lowWin = LowWinNumber::where('draw_id', $data['draw_id'])
-                ->where('game_type_id', $data['game_type_id'])
-                ->where('location_id', $user->location_id)
-                ->where('bet_number', $data['bet_number'])
-                ->first();
-
-            // Fallback: try global low win (bet_number is null or empty)
-            if (!$lowWin) {
-                $lowWin = LowWinNumber::where('draw_id', $data['draw_id'])
-                    ->where('game_type_id', $data['game_type_id'])
-                    ->where('location_id', $user->location_id)
-                    ->where(function ($query) {
-                        $query->whereNull('bet_number')->orWhere('bet_number', '');
-                    })
-                    ->first();
-            }
-
+           
+            $lowWin = LowWinNumber::where(function ($query) use ($data) {
+                $query->where('draw_id', $data['draw_id'])
+                      ->orWhereNull('draw_id'); // Support global fallback
+            })
+            ->where('game_type_id', $data['game_type_id'])
+            ->where('location_id', $user->location_id)
+            ->where('bet_number', $data['bet_number'])
+            ->where('is_active', true)
+            ->where(function ($q) {
+                $q->whereNull('start_date')->orWhere('start_date', '<=', today());
+            })
+            ->where(function ($q) {
+                $q->whereNull('end_date')->orWhere('end_date', '>=', today());
+            })
+            ->first();
 
             $gameType = GameType::find($data['game_type_id']);
 
-switch ($gameType->name) {
-    case 'S2':
-        $winningAmount = $data['amount'] * 70;
-        break;
-    case 'S3':
-        $winningAmount = $data['amount'] * 450;
-        break;
-    case 'D4':
-        if ($data['d4_sub_selection'] === 'S2') {
-            $winningAmount = $data['amount'] * 70;
-        } elseif ($data['d4_sub_selection'] === 'S3') {
-            $winningAmount = $data['amount'] * 450;
-        } else {
-            // D4 default to full match (4000)
-            $winningAmount = $data['amount'] * 4000;
-        }
-        break;
-    default:
-        DB::rollBack();
-        return ApiResponse::error('Invalid game type for winning amount calculation.', 422);
-}
+            switch ($gameType->name) {
+                case 'S2':
+                    $winningAmount = $data['amount'] * 70;
+                    break;
+                case 'S3':
+                    $winningAmount = $data['amount'] * 450;
+                    break;
+                case 'D4':
+                    if ($data['d4_sub_selection'] === 'S2') {
+                        $winningAmount = $data['amount'] * 70;
+                    } elseif ($data['d4_sub_selection'] === 'S3') {
+                        $winningAmount = $data['amount'] * 450;
+                    } else {
+                        $winningAmount = $data['amount'] * 4000;
+                    }
+                    break;
+                default:
+                    DB::rollBack();
+                    return ApiResponse::error('Invalid game type for winning amount calculation.', 422);
+            }
+            
+            // ✅ Apply low win override
+            if ($lowWin) {
+                $winningAmount = $lowWin->winning_amount;
+            }
+            
+
 
             // $winningAmount = $lowWin
             //     ? $lowWin->winning_amount

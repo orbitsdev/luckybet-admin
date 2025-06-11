@@ -1,190 +1,188 @@
 <div>
     <x-admin>
-        <div class="flex justify-between items-center mb-4">
-            <span class="text-lg font-medium text-gray-700">Bet Ratios:
-                <span class="ml-2 inline-block bg-primary-100 text-primary-800 text-lg font-semibold px-2.5 py-0.5 rounded">
+        <div class="flex justify-between items-center mb-3">
+            <span class="text-sm font-medium text-gray-700">Draw Date: 
+                <span class="ml-2 inline-block bg-primary-100 text-primary-800 text-xs font-semibold px-2.5 py-0.5 rounded">
                     {{ \Carbon\Carbon::parse($this->filterDate)->format('F j, Y') }}
                 </span>
             </span>
         </div>
 
-        <!-- Simple Statistics Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <!-- Total Bet Ratios -->
-            <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
-                <div class="flex items-center justify-center mb-2">
-                    <div class="bg-blue-50 rounded-full p-3">
-                        <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        <!-- Main content in 3-column grid -->
+        <div class="grid grid-cols-3 gap-4">
+            <!-- Left column: Statistics -->
+            <div class="col-span-1 mb-4 bg-gray-50 rounded-xl shadow-sm">
+                @if(!empty($betRatioStats['location_stats']))
+                    <!-- Summary Stats -->
+                    <div class="p-3 bg-white rounded-lg shadow-sm border border-gray-100 mb-4">
+                        <h3 class="text-sm font-bold text-gray-800 mb-2 border-b pb-2 px-1">Summary Statistics</h3>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div class="bg-blue-50 p-2 rounded-lg">
+                                <p class="text-xs text-gray-500">Total Bet Ratios</p>
+                                <p class="text-lg font-bold text-blue-600">{{ $betRatioStats['total_bet_ratios'] }}</p>
+                            </div>
+                            <div class="bg-green-50 p-2 rounded-lg">
+                                <p class="text-xs text-gray-500">Total Max Amount</p>
+                                <p class="text-lg font-bold text-green-600">₱{{ number_format($betRatioStats['total_max_amount'], 2) }}</p>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <div class="text-center">
-                    <div class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Total Bet Ratios</div>
-                    <div class="text-2xl font-bold text-gray-800">{{ number_format($ratioStats['total_ratios'] ?? 0) }}</div>
-                </div>
-            </div>
-
-            <!-- Total Max Amount -->
-            <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
-                <div class="flex items-center justify-center mb-2">
-                    <div class="bg-green-50 rounded-full p-3">
-                        <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    </div>
-                </div>
-                <div class="text-center">
-                    <div class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Total Max Amount</div>
-                    <div class="text-2xl font-bold text-green-600">₱{{ number_format($ratioStats['total_max_amount'] ?? 0, 2) }}</div>
-                </div>
-            </div>
-
-            <!-- Average Max Amount -->
-            <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
-                <div class="flex items-center justify-center mb-2">
-                    <div class="bg-indigo-50 rounded-full p-3">
-                        <svg class="w-6 h-6 text-indigo-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/><path stroke-linecap="round" stroke-linejoin="round" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/></svg>
-                    </div>
-                </div>
-                <div class="text-center">
-                    <div class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Average Max Amount</div>
-                    <div class="text-2xl font-bold text-indigo-600">
-                        ₱{{ number_format($ratioStats['avg_max_amount'] ?? 0, 2) }}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Most Common Game Type -->
-            <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
-                <div class="flex items-center justify-center mb-2">
-                    <div class="bg-amber-50 rounded-full p-3">
-                        <svg class="w-6 h-6 text-amber-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                    </div>
-                </div>
-                <div class="text-center">
-                    <div class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Most Common Game</div>
-                    <div class="text-2xl font-bold text-amber-600">
-                        @php
-                            $mostCommonGame = '';
-                            $maxCount = 0;
-                            foreach(($ratioStats['game_type_counts'] ?? []) as $game) {
-                                if ($game['count'] > $maxCount) {
-                                    $maxCount = $game['count'];
-                                    $mostCommonGame = $game['name'];
-                                }
-                            }
-                        @endphp
-                        {{ $mostCommonGame ?: 'None' }}
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {{-- <!-- Main content section with table and detailed stats side by side -->
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <!-- Left column: Detailed Statistics -->
-            <div class="lg:col-span-1">
-                <!-- Game Type Statistics -->
-                @if(count($ratioStats['game_type_counts'] ?? []) > 0)
-                <div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden mb-6">
-                    <div class="border-b border-gray-100 px-4 py-3">
-                        <h3 class="text-sm font-medium text-gray-700">Game Type Distribution</h3>
-                    </div>
-                    <div class="p-4">
-                        <ul class="space-y-3">
-                            @foreach($ratioStats['game_type_counts'] as $gameType => $data)
-                            <li class="flex justify-between items-center">
-                                <div class="flex items-center">
-                                    <span class="inline-block w-3 h-3 rounded-full mr-2" style="background-color: {{ '#' . substr(md5($gameType), 0, 6) }}"></span>
-                                    <span class="text-sm text-gray-600">{{ $gameType }}</span>
-                                </div>
-                                <div class="flex items-center space-x-2">
-                                    <span class="text-sm font-medium bg-blue-50 text-blue-700 px-2 py-0.5 rounded">{{ $data['count'] }}</span>
-                                    <span class="text-xs text-gray-500">
-                                        @if(($ratioStats['total_ratios'] ?? 0) > 0)
-                                            {{ round(($data['count'] / ($ratioStats['total_ratios'] ?? 1)) * 100) }}%
-                                        @else
-                                            0%
-                                        @endif
-                                    </span>
-                                </div>
-                            </li>
-                            @endforeach
-                        </ul>
-                    </div>
-                </div>
-                @endif
-
-                <!-- Location Statistics -->
-                @if(count($ratioStats['location_counts'] ?? []) > 0)
-                <div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden mb-6">
-                    <div class="border-b border-gray-100 px-4 py-3">
-                        <h3 class="text-sm font-medium text-gray-700">Location Distribution</h3>
-                    </div>
-                    <div class="p-4">
-                        <ul class="space-y-3">
-                            @foreach($ratioStats['location_counts'] as $location => $data)
-                            <li class="flex justify-between items-center">
-                                <div class="flex items-center">
-                                    <span class="inline-block w-3 h-3 rounded-full mr-2" style="background-color: {{ '#' . substr(md5($location), 0, 6) }}"></span>
-                                    <span class="text-sm text-gray-600">{{ $location }}</span>
-                                </div>
-                                <div class="flex items-center space-x-2">
-                                    <span class="text-sm font-medium bg-green-50 text-green-700 px-2 py-0.5 rounded">{{ $data['count'] }}</span>
-                                    <span class="text-xs text-gray-500">
-                                        @if(($ratioStats['total_ratios'] ?? 0) > 0)
-                                            {{ round(($data['count'] / ($ratioStats['total_ratios'] ?? 1)) * 100) }}%
-                                        @else
-                                            0%
-                                        @endif
-                                    </span>
-                                </div>
-                            </li>
-                            @endforeach
-                        </ul>
-                    </div>
-                </div>
-                @endif
-
-                <!-- Recent Audit History -->
-                @if(count($ratioStats['recent_audits'] ?? []) > 0)
-                <div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden mb-6">
-                    <div class="border-b border-gray-100 px-4 py-3">
-                        <h3 class="text-sm font-medium text-gray-700">Recent Changes</h3>
-                    </div>
-                    <div class="p-4">
-                        <ul class="space-y-4">
-                            @foreach($ratioStats['recent_audits'] as $audit)
-                            <li class="border-b border-gray-100 pb-3 last:border-0 last:pb-0">
-                                <div class="flex justify-between items-start">
-                                    <div>
-                                        <span class="text-xs font-medium text-gray-500">{{ $audit->created_at->format('M j, Y g:i A') }}</span>
-                                        <div class="mt-1">
-                                            <span class="text-sm font-medium text-gray-700">{{ $audit->betRatio->gameType->name ?? 'Unknown' }} - {{ $audit->betRatio->bet_number ?? 'Unknown' }}</span>
-                                        </div>
-                                        <div class="mt-1 flex items-center">
-                                            <span class="text-xs text-red-500 line-through mr-2">₱{{ number_format($audit->old_max_amount, 2) }}</span>
-                                            <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                                            <span class="text-xs text-green-500 ml-2">₱{{ number_format($audit->new_max_amount, 2) }}</span>
-                                        </div>
+                    
+                    <!-- Draw Time Statistics -->
+                    <div class="p-3 bg-white rounded-lg shadow-sm border border-gray-100 mb-4">
+                        <h3 class="text-sm font-bold text-gray-800 mb-2 border-b pb-2 px-1">Draw Time Statistics</h3>
+                        <div class="space-y-2">
+                            @foreach($betRatioStats['draw_time_stats'] as $drawTime => $stats)
+                                <div class="bg-gray-50 p-2 rounded-lg">
+                                    <div class="flex justify-between items-center">
+                                        <p class="text-sm font-medium text-gray-700">{{ \Carbon\Carbon::parse($drawTime)->format('g:i A') }}</p>
+                                        <p class="text-xs font-semibold text-blue-600">{{ $stats['total'] }} ratios</p>
                                     </div>
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {{ $audit->action === 'update' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800' }}">
-                                        {{ ucfirst($audit->action) }}
-                                    </span>
+                                    <div class="mt-1">
+                                        <p class="text-xs text-gray-500">Total Max Amount: <span class="font-semibold text-green-600">₱{{ number_format($stats['total_max_amount'], 2) }}</span></p>
+                                    </div>
                                 </div>
-                            </li>
                             @endforeach
-                        </ul>
+                        </div>
                     </div>
-                </div>
+                    
+                    <!-- Game Type Statistics -->
+                    <div class="p-3 bg-white rounded-lg shadow-sm border border-gray-100 mb-4">
+                        <h3 class="text-sm font-bold text-gray-800 mb-2 border-b pb-2 px-1">Game Type Statistics</h3>
+                        <div class="space-y-2">
+                            @foreach($betRatioStats['game_type_stats'] as $gameTypeId => $stats)
+                                <div class="bg-gray-50 p-2 rounded-lg">
+                                    <div class="flex justify-between items-center">
+                                        <p class="text-sm font-medium text-gray-700">{{ $stats['name'] }}</p>
+                                        <p class="text-xs font-semibold text-blue-600">{{ $stats['total'] }} ratios</p>
+                                    </div>
+                                    <div class="mt-1">
+                                        <p class="text-xs text-gray-500">Total Max Amount: <span class="font-semibold text-green-600">₱{{ number_format($stats['total_max_amount'], 2) }}</span></p>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                    
+                    <!-- Location Statistics in Collapsible Sections -->
+                    <div class="space-y-3">
+                        @foreach($betRatioStats['location_stats'] as $locationId => $locationData)
+                            <div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+                                <!-- Collapsible Header -->
+                                <div class="bg-gray-50 px-3 py-2 border-b border-gray-100 flex justify-between items-center cursor-pointer" 
+                                     onclick="toggleLocationStats('location-{{ $locationId }}')">
+                                    <h3 class="text-sm font-semibold text-gray-800">
+                                        {{ $locationData['name'] }} 
+                                        <span class="text-sm text-primary-600 ml-1 font-bold">
+                                            ({{ $locationData['total'] }} ratios)
+                                        </span>
+                                    </h3>
+                                    <svg id="location-{{ $locationId }}-icon-expand" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                    <svg id="location-{{ $locationId }}-icon-collapse" class="h-4 w-4 text-gray-500 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                                    </svg>
+                                </div>
+                                
+                                <!-- Collapsible Content -->
+                                <div id="location-{{ $locationId }}-content" class="overflow-x-auto p-2">
+                                    <table class="min-w-full divide-y divide-gray-200 text-xs">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th scope="col" class="px-3 py-0.5 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Game Type</th>
+                                                <th scope="col" class="px-3 py-0.5 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Count</th>
+                                                <th scope="col" class="px-3 py-0.5 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Max Amount</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-gray-200">
+                                            @foreach($locationData['game_types'] as $gameTypeId => $gameTypeStats)
+                                                <tr>
+                                                    <td class="px-3 py-0.5 whitespace-nowrap text-xs font-medium text-gray-900">{{ $gameTypeStats['name'] }}</td>
+                                                    <td class="px-3 py-0.5 whitespace-nowrap text-xs text-gray-700">{{ $gameTypeStats['total'] }}</td>
+                                                    <td class="px-3 py-0.5 whitespace-nowrap text-xs text-gray-700">₱{{ number_format($gameTypeStats['total_max_amount'], 2) }}</td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                        <tfoot class="bg-gray-50">
+                                            <tr>
+                                                <td class="px-3 py-0.5 whitespace-nowrap text-xs font-medium text-gray-900">Total</td>
+                                                <td class="px-3 py-0.5 whitespace-nowrap text-xs font-medium text-primary-600">{{ $locationData['total'] }}</td>
+                                                <td class="px-3 py-0.5 whitespace-nowrap text-xs font-medium text-primary-600">₱{{ number_format($locationData['total_max_amount'], 2) }}</td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="text-center py-8 px-4">
+                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <h3 class="mt-2 text-sm font-medium text-gray-900">No bet ratios found</h3>
+                        <p class="mt-1 text-sm text-gray-500">No bet ratio data available for {{ \Carbon\Carbon::parse($this->filterDate)->format('F j, Y') }}.</p>
+                        <div class="mt-3">
+                            <button type="button" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500" onclick="Livewire.dispatch('filament.table.filters.reset')">
+                                <svg class="-ml-0.5 mr-1.5 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                Reset to Today
+                            </button>
+                        </div>
+                    </div>
                 @endif
-            </div> --}}
-
+            </div>
+            
             <!-- Right column: Bet Ratios table -->
-            <div class="lg:col-span-4">
-                <div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="w-full">
-                        {{ $this->table }}
-                    </div>
-                </div>
+            <div class="mb-4 bg-white rounded-xl overflow-hidden col-span-2 shadow">
+                {{ $this->table }}
             </div>
         </div>
+
+        @push('scripts')
+        <script>
+            // JavaScript for toggling location statistics visibility
+            function toggleLocationStats(locationId) {
+                const content = document.getElementById(locationId + '-content');
+                const expandIcon = document.getElementById(locationId + '-icon-expand');
+                const collapseIcon = document.getElementById(locationId + '-icon-collapse');
+                
+                if (content.style.display === 'none') {
+                    content.style.display = 'block';
+                    expandIcon.classList.add('hidden');
+                    collapseIcon.classList.remove('hidden');
+                } else {
+                    content.style.display = 'none';
+                    expandIcon.classList.remove('hidden');
+                    collapseIcon.classList.add('hidden');
+                }
+            }
+            
+            // Initialize all location sections as expanded
+            document.addEventListener('DOMContentLoaded', function() {
+                const locationContents = document.querySelectorAll('[id$="-content"]');
+                const expandIcons = document.querySelectorAll('[id$="-icon-expand"]');
+                const collapseIcons = document.querySelectorAll('[id$="-icon-collapse"]');
+                
+                expandIcons.forEach(icon => {
+                    icon.classList.add('hidden');
+                });
+                
+                collapseIcons.forEach(icon => {
+                    icon.classList.remove('hidden');
+                });
+            });
+            
+            // Listen for stats-updated event to ensure statistics are refreshed
+            document.addEventListener('livewire:initialized', () => {
+                Livewire.on('stats-updated', () => {
+                    // Force a refresh of the statistics section
+                    Livewire.dispatch('compute-stats');
+                });
+            });
+        </script>
+        @endpush
     </x-admin>
 </div>

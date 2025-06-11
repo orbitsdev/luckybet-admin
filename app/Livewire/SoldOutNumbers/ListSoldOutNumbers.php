@@ -2,33 +2,36 @@
 
 namespace App\Livewire\SoldOutNumbers;
 
-use App\Models\BetRatio;
-use App\Models\Draw;
-use App\Models\GameType;
-use App\Models\Location;
 use Carbon\Carbon;
 use Filament\Forms;
-use Filament\Forms\Concerns\InteractsWithForms;
-use Filament\Forms\Contracts\HasForms;
+use App\Models\Draw;
 use Filament\Tables;
-use Filament\Tables\Concerns\InteractsWithTable;
-use Filament\Tables\Contracts\HasTable;
-use Filament\Tables\Filters\Filter;
-use Filament\Tables\Filters\SelectFilter;
-use Filament\Tables\Enums\FiltersLayout;
-use Filament\Tables\Table;
-use Filament\Notifications\Notification;
-use Illuminate\Contracts\View\View;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
 use Livewire\Component;
+use App\Models\BetRatio;
+use App\Models\GameType;
+use App\Models\Location;
+use Filament\Tables\Table;
 use Livewire\Attributes\On;
+use Filament\Tables\Filters\Filter;
+use Illuminate\Contracts\View\View;
+use Filament\Forms\Contracts\HasForms;
+use Filament\Tables\Contracts\HasTable;
+use Filament\Notifications\Notification;
+use Filament\Tables\Enums\FiltersLayout;
+use Filament\Forms\Components\DatePicker;
+use Filament\Tables\Filters\SelectFilter;
+use Illuminate\Database\Eloquent\Builder;
+use Filament\Forms\Concerns\InteractsWithForms;
+use Filament\Tables\Concerns\InteractsWithTable;
+use Filament\Actions\Contracts\HasActions;
+use Filament\Actions\Concerns\InteractsWithActions;
 
-class ListSoldOutNumbers extends Component implements HasForms, HasTable
+class ListSoldOutNumbers extends Component implements HasForms, HasTable, HasActions
 {
     use InteractsWithForms;
     use InteractsWithTable;
-    
+    use InteractsWithActions;
+
     /**
      * Register Livewire event listeners using Livewire 3 syntax
      */
@@ -38,59 +41,8 @@ class ListSoldOutNumbers extends Component implements HasForms, HasTable
         $this->listeners = [
             'filament.table.filter' => 'handleFilterChange',
             'filament.table.filters.reset' => 'handleFilterReset',
+            'compute-stats' => 'computeStatsListener',
         ];
-    }
-    
-    /**
-     * Handle Filament table filter changes
-     * 
-     * @return void
-     */
-    public function handleFilterChange(): void
-    {
-        // Get the current filter date (can be null if cleared)
-        $drawDate = $this->tableFilters['draw_date']['value'] ?? null;
-        
-        // If the filter was cleared, explicitly set to today
-        if (empty($drawDate) || $drawDate === null) {
-            $drawDate = now()->toDateString();
-            // Update the table filter value to today as well
-            $this->tableFilters['draw_date']['value'] = $drawDate;
-        }
-        
-        // Update filter date and recompute stats
-        $this->filterDate = $drawDate;
-        $this->computeSoldOutStats();
-        
-        // Force a refresh to ensure UI is updated
-        $this->dispatch('refresh');
-    }
-    
-    /**
-     * Handle explicit filter reset events
-     * This is triggered when the user clicks the reset button
-     *
-     * @return void
-     */
-    public function handleFilterReset(): void
-    {
-        // Set filter date to today
-        $today = now()->toDateString();
-        $this->filterDate = $today;
-        
-        // Update the table filter value to today
-        if (isset($this->tableFilters['draw_date'])) {
-            $this->tableFilters['draw_date']['value'] = $today;
-        }
-        
-        // Only reset filters when explicitly clicking the reset button
-        // This is handled by Filament's built-in reset functionality
-        
-        // Recompute stats with today's date
-        $this->computeSoldOutStats();
-        
-        // Force a refresh of the component
-        $this->dispatch('refresh');
     }
 
     /**
@@ -99,13 +51,27 @@ class ListSoldOutNumbers extends Component implements HasForms, HasTable
      * @var string|null
      */
     public $filterDate;
-
+    
     /**
-     * Statistics for sold out numbers
+     * Statistics for the currently selected date
      *
      * @var array
      */
     public array $soldOutStats = [];
+    
+    /**
+     * Flag to track if stats computation is in progress
+     *
+     * @var bool
+     */
+    protected $computingStats = false;
+    
+    /**
+     * Timestamp of the last stats computation
+     *
+     * @var int
+     */
+    protected $lastStatsComputation = 0;
 
     /**
      * Initialize component state
@@ -118,122 +84,179 @@ class ListSoldOutNumbers extends Component implements HasForms, HasTable
         if (!$this->filterDate) {
             $this->filterDate = now()->toDateString();
         }
-
+        
+        // Compute initial stats
         $this->computeSoldOutStats();
     }
 
     /**
-     * Compute sold out numbers statistics
+     * Handle Filament table filter changes
+     *
+     * @return void
+     */
+    public function handleFilterChange(): void
+    {
+        // Get the current filter date or default to today
+        $drawDate = $this->tableFilters['draw_date']['value'] ?? now()->toDateString();
+
+        // If the filter was cleared or reset, explicitly set to today
+        if (empty($drawDate) || $drawDate === null) {
+            $drawDate = now()->toDateString();
+            // Update the table filter value to today as well
+            $this->tableFilters['draw_date']['value'] = $drawDate;
+        }
+
+        // Update filter date
+        $this->filterDate = $drawDate;
+        
+        // Compute stats for the new date
+        $this->computeSoldOutStats();
+
+        // Force a refresh to ensure UI is updated
+        $this->dispatch('refresh');
+    }
+
+    /**
+     * Handle explicit filter reset events
+     * This is triggered when the user clicks the reset button
+     *
+     * @return void
+     */
+    public function handleFilterReset(): void
+    {
+        // Set filter date to today
+        $today = now()->toDateString();
+        $this->filterDate = $today;
+
+        // Update the table filter value to today
+        if (isset($this->tableFilters['draw_date'])) {
+            $this->tableFilters['draw_date']['value'] = $today;
+        }
+        
+        // Compute stats for today
+        $this->computeSoldOutStats();
+
+        // Force a refresh of the component
+        $this->dispatch('refresh');
+    }
+
+    /**
+     * Livewire listener for the compute-stats event
+     *
+     * @return void
+     */
+    public function computeStatsListener(): void
+    {
+        $this->computeSoldOutStats();
+    }
+
+    /**
+     * Compute sold out numbers statistics for the selected date
      *
      * @return void
      */
     public function computeSoldOutStats()
     {
-        // Get the filter date if set, default to today if not set
-        $date = $this->filterDate ?? now()->toDateString();
+        // Set computing flag to prevent multiple simultaneous computations
+        $this->computingStats = true;
+        $this->lastStatsComputation = microtime(true);
+        
+        // Use the current filter date or default to today
+        $date = $this->filterDate ?: now()->format('Y-m-d');
         $this->filterDate = $date; // Ensure the property is set
 
-        // Query to get sold out numbers statistics (BetRatio with max_amount = 0)
-        $query = BetRatio::query()
-            ->where('max_amount', 0)
-            ->when($date, function($query, $date) {
-                $query->whereHas('draw', function ($q) use ($date) {
-                    $q->whereDate('draw_date', $date);
-                });
+        // Get all bet ratios for the selected date that have reached their maximum amount
+        // We need to join with the bets table to check if the sum of bet amounts equals or exceeds the max_amount
+        $soldOutNumbers = BetRatio::query()
+            ->whereHas('draw', function($query) use ($date) {
+                $query->whereDate('draw_date', $date);
             })
-            ->with(['gameType', 'location', 'user']);
-
-        // Get total count
-        $totalSoldOut = $query->count();
-
-        // Get counts by game type
-        $gameTypeCounts = BetRatio::where('max_amount', 0)
-            ->when($date, function($query, $date) {
-                $query->whereHas('draw', function ($q) use ($date) {
-                    $q->whereDate('draw_date', $date);
-                });
-            })
-            ->join('game_types', 'bet_ratios.game_type_id', '=', 'game_types.id')
-            ->select('game_types.name')
-            ->selectRaw('COUNT(*) as count')
-            ->groupBy('game_types.name')
+            ->whereRaw('(SELECT COALESCE(SUM(amount), 0) FROM bets WHERE bets.bet_number = bet_ratios.bet_number AND bets.game_type_id = bet_ratios.game_type_id AND bets.draw_id = bet_ratios.draw_id) >= bet_ratios.max_amount')
+            ->with(['gameType', 'location', 'draw'])
             ->get()
-            ->keyBy('name')
-            ->toArray();
+            ->map(function ($betRatio) {
+                // Calculate the current bet amount for this bet ratio
+                $currentAmount = \DB::table('bets')
+                    ->where('bet_number', $betRatio->bet_number)
+                    ->where('game_type_id', $betRatio->game_type_id)
+                    ->where('draw_id', $betRatio->draw_id)
+                    ->sum('amount');
+                
+                $betRatio->current_amount = $currentAmount;
+                return $betRatio;
+            });
 
-        // Get counts by location
-        $locationCounts = BetRatio::where('max_amount', 0)
-            ->when($date, function($query, $date) {
-                $query->whereHas('draw', function ($q) use ($date) {
-                    $q->whereDate('draw_date', $date);
-                });
-            })
-            ->join('locations', 'bet_ratios.location_id', '=', 'locations.id')
-            ->select('locations.name')
-            ->selectRaw('COUNT(*) as count')
-            ->groupBy('locations.name')
-            ->get()
-            ->keyBy('name')
-            ->toArray();
+        // Initialize stats
+        $totalSoldOut = 0;
+        $gameTypeCounts = [];
+        $locationCounts = [];
 
+        // Process each bet ratio
+        foreach ($soldOutNumbers as $betRatio) {
+            $gameTypeName = $betRatio->gameType->name ?? 'Unknown';
+            $locationName = $betRatio->location->name ?? 'Unknown';
+            
+            // Initialize game type stats if not exists
+            if (!isset($gameTypeCounts[$gameTypeName])) {
+                $gameTypeCounts[$gameTypeName] = [
+                    'count' => 0,
+                    'numbers' => []
+                ];
+            }
+            
+            // Initialize location stats if not exists
+            if (!isset($locationCounts[$locationName])) {
+                $locationCounts[$locationName] = [
+                    'count' => 0,
+                    'numbers' => []
+                ];
+            }
+            
+            // Increment counts
+            $totalSoldOut++;
+            $gameTypeCounts[$gameTypeName]['count']++;
+            $gameTypeCounts[$gameTypeName]['numbers'][] = $betRatio->bet_number;
+            $locationCounts[$locationName]['count']++;
+            $locationCounts[$locationName]['numbers'][] = $betRatio->bet_number;
+        }
+
+        // Sort game types and locations by count (descending)
+        uasort($gameTypeCounts, function($a, $b) {
+            return $b['count'] <=> $a['count'];
+        });
+        
+        uasort($locationCounts, function($a, $b) {
+            return $b['count'] <=> $a['count'];
+        });
+
+        // Store computed stats
         $this->soldOutStats = [
             'total_sold_out' => $totalSoldOut,
             'game_type_counts' => $gameTypeCounts,
             'location_counts' => $locationCounts,
         ];
-    }
 
-    /**
-     * Handle the refresh event
-     *
-     * @return void
-     */
-    #[On('refresh')]
-    public function refresh(): void
-    {
-        // This method will be automatically called when the 'refresh' event is dispatched
-        $this->computeSoldOutStats();
-    }
-    
-    /**
-     * Reset all table filters except the date filter
-     * This is useful when we want to keep the date filter but clear other filters
-     * 
-     * @return void
-     */
-    public function resetTableFiltersExceptDate(): void
-    {
-        // This method is kept for compatibility but no longer resets filters
-        // We want to allow users to keep their bet type and location filters
-        
-        // Ensure the date filter is properly set
-        $currentDateFilter = $this->tableFilters['draw_date']['value'] ?? now()->toDateString();
-        $this->filterDate = $currentDateFilter;
-        
-        // Recompute stats
-        $this->computeSoldOutStats();
+        // Reset computing flag
+        $this->computingStats = false;
     }
 
     public function table(Table $table): Table
     {
-        // Get the filter date - default to today if not set
-        $date = $this->filterDate ?? now()->toDateString();
-        $this->filterDate = $date; // Ensure the property is set
-        
-        // Debug the date value
-        // dd($date, 'Table query date');
-        
         return $table
-            ->query(BetRatio::query()
-                ->where('max_amount', 0) // Only show sold out numbers (max_amount = 0)
-                ->whereHas('draw', function ($q) use ($date) {
-                    $q->whereDate('draw_date', $date);
-                })
-                ->with(['gameType', 'draw', 'user', 'location'])
+            ->query(
+                BetRatio::query()
+                    // Only show bet ratios where the sum of bet amounts equals or exceeds the max_amount
+                    ->whereRaw('(SELECT COALESCE(SUM(amount), 0) FROM bets WHERE bets.bet_number = bet_ratios.bet_number AND bets.game_type_id = bet_ratios.game_type_id AND bets.draw_id = bet_ratios.draw_id) >= bet_ratios.max_amount')
+                    ->with(['draw', 'gameType', 'location', 'user'])
+                    // Add a subquery to get the current bet amount
+                    ->selectRaw('bet_ratios.*, (SELECT COALESCE(SUM(amount), 0) FROM bets WHERE bets.bet_number = bet_ratios.bet_number AND bets.game_type_id = bet_ratios.game_type_id AND bets.draw_id = bet_ratios.draw_id) as current_amount')
             )
+            ->emptyStateHeading('No sold out numbers found')
+            ->emptyStateDescription('No sold out numbers are available for the selected date.')
+            ->emptyStateIcon('heroicon-o-document-chart-bar')
             ->columns([
                 Tables\Columns\TextColumn::make('draw.draw_date')
-                    ->label('Draw Date')
+                    ->label('Date')
                     ->date()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('draw.draw_time')
@@ -241,62 +264,43 @@ class ListSoldOutNumbers extends Component implements HasForms, HasTable
                     ->time('h:i A')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('gameType.name')
-                    ->label('Bet Type')
-                    ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'S2' => 'success',
-                        'S3' => 'warning',
-                        'D4' => 'danger',
-                        default => 'gray',
-                    })
+                    ->label('Game Type')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('bet_number')
-                    ->label('Sold Out Number')
-                    ->searchable()
-                    ->copyable(),
+                    ->label('Bet Number')
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('sub_selection')
-                    ->label('Subtype')
-                    ->badge()
-                    ->color('info')
-                    ->formatStateUsing(fn ($state) => $state ?: 'None')
+                    ->label('Sub Selection')
+                    ->placeholder('-'),
+                Tables\Columns\TextColumn::make('max_amount')
+                    ->label('Max Amount')
+                    ->money('PHP')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('current_amount')
+                    ->label('Current Amount')
+                    ->money('PHP')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('location.name')
                     ->label('Location')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('user.name')
-                    ->label('Added By')
+                    ->label('Created By')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->label('Created')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Filter::make('draw_date')
                     ->label('Draw Date')
                     ->form([
-                        Forms\Components\DatePicker::make('draw_date')
+                        DatePicker::make('draw_date')
                             ->label('Draw Date')
                             ->nullable() // Allow clearing the filter
-                            ->live()
                             ->default(fn() => now()->toDateString()) // Default to today dynamically
+                            ->live()
                             ->afterStateUpdated(function ($state, $set, $get, $livewire) {
-                                // If the filter was cleared, explicitly set to today
-                                if (empty($state) || $state === null) {
-                                    $state = now()->toDateString();
-                                    // Update the table filter value to today as well
-                                    $livewire->tableFilters['draw_date']['value'] = $state;
-                                }
-                                
-                                // Don't reset other filters when date changes
-                                // This allows users to keep their bet type and location filters
-                                
-                                // Update filterDate and recompute stats when date changes
-                                $livewire->filterDate = $state;
+                                // Always update filterDate when date changes
+                                $livewire->filterDate = $state ?? now()->toDateString();
+                                // Compute stats immediately when filter changes
                                 $livewire->computeSoldOutStats();
-                                
-                                // No need to call resetTableFiltersExceptDate() here as we've already reset the filters above
                             })
                     ])
                     ->indicateUsing(function (array $data): ?string {
@@ -306,58 +310,33 @@ class ListSoldOutNumbers extends Component implements HasForms, HasTable
 
                         return 'Date: ' . date('F j, Y', strtotime($data['draw_date']));
                     })
-                    ->query(function (Builder $query, array $data) {
-                        // Get the date from filter data or use the component's filterDate
-                        $date = $data['draw_date'] ?? $this->filterDate ?? now()->toDateString();
-                        
-                        // Store the filter date in the component property to ensure consistency
-                        $this->filterDate = $date;
-                        
-                        // Apply the date filter - this ensures table data matches stats
-                        // Use the same query pattern as in the stats calculation
-                        return $query->whereHas('draw', function ($subquery) use ($date) {
-                            $subquery->whereDate('draw_date', $date);
-                        });
+                    ->query(function ($query, array $data) {
+                        return $query->when(
+                            $data['draw_date'] ?? null,
+                            fn($query, $date) => $query->whereHas('draw', function ($query) use ($date) {
+                                $query->whereDate('draw_date', $date);
+                            })
+                        );
                     }),
                 SelectFilter::make('game_type_id')
-                    ->label('Bet Type')
-                    ->relationship('gameType', 'name')
-                    ->searchable()
-                    ->preload(),
+                    ->label('Game Type')
+                    ->options(GameType::pluck('name', 'id'))
+                    ->query(function ($query, array $data) {
+                        return $query->when(
+                            $data['value'] ?? null,
+                            fn($query, $gameTypeId) => $query->where('game_type_id', $gameTypeId)
+                        );
+                    }),
                 SelectFilter::make('location_id')
                     ->label('Location')
-                    ->relationship('location', 'name')
-                    ->searchable()
-                    ->preload(),
-            ],
-            layout: FiltersLayout::AboveContent
-            )
-            ->actions([
-                Tables\Actions\DeleteAction::make()
-                    ->requiresConfirmation()
-                    ->modalHeading('Remove Sold Out Number')
-                    ->modalDescription('Are you sure you want to remove this number from the sold out list? This will allow betting on this number again.')
-                    ->successNotificationTitle('Number removed from sold out list')
-                    ->action(function (BetRatio $record): void {
-                        // Delete the BetRatio record to remove the sold out restriction
-                        $record->delete();
-                        $this->computeSoldOutStats();
+                    ->options(Location::pluck('name', 'id'))
+                    ->query(function ($query, array $data) {
+                        return $query->when(
+                            $data['value'] ?? null,
+                            fn($query, $locationId) => $query->where('location_id', $locationId)
+                        );
                     }),
-            ])
-            ->bulkActions([
-                Tables\Actions\BulkAction::make('delete')
-                    ->label('Remove Selected')
-                    ->color('danger')
-                    ->action(function ($records) {
-                        // Delete the selected BetRatio records
-                        $records->each->delete();
-                        $this->computeSoldOutStats();
-                    })
-                    ->deselectRecordsAfterCompletion()
-                    ->requiresConfirmation()
-                    ->modalHeading('Remove Selected Sold Out Numbers')
-                    ->modalDescription('Are you sure you want to remove these numbers from the sold out list? This will allow betting on these numbers again.'),
-            ]);
+            ], layout: FiltersLayout::AboveContent);
     }
 
     public function render(): View
@@ -365,3 +344,4 @@ class ListSoldOutNumbers extends Component implements HasForms, HasTable
         return view('livewire.sold-out-numbers.list-sold-out-numbers');
     }
 }
+   

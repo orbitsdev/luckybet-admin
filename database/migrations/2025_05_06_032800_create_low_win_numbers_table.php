@@ -20,6 +20,9 @@ return new class extends Migration
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('location_id')->nullable()->constrained('locations')->nullOnDelete();
             $table->string('reason')->nullable();
+            $table->boolean('is_active')->default(true);
+            $table->date('start_date')->nullable();
+$table->date('end_date')->nullable();
             $table->timestamps();
         });
     }

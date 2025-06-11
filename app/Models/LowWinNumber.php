@@ -21,10 +21,17 @@ class LowWinNumber extends Model
         'reason',
         'user_id',
         'location_id',
+        'is_active',
+        'start_date',
+        'end_date',
+        'd4_sub_selection',
     ];
 
-    // No casts needed; removed 'amount' as it does not exist in this table.
     protected $casts = [
+        'is_active' => 'boolean',
+        'start_date' => 'date',
+        'end_date' => 'date',
+        'winning_amount' => 'decimal:2',
     ];
 
     /**

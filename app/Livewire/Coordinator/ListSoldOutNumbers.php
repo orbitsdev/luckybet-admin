@@ -30,17 +30,50 @@ class ListSoldOutNumbers extends Component implements HasForms, HasTable
     use InteractsWithTable;
 
     /**
+     * Register Livewire event listeners using Livewire 3 syntax
+     */
+    public function __construct()
+    {
+        // Register event listeners
+        $this->listeners = [
+            'filament.table.filter' => 'handleFilterChange',
+            'filament.table.filters.reset' => 'handleFilterReset',
+            'compute-stats' => 'computeStatsListener',
+        ];
+    }
+
+    /**
      * The currently selected filter date
+     *
+     * @var string|null
      */
     public $filterDate;
     
     /**
      * Statistics for sold out numbers
+     *
+     * @var array
      */
     public array $soldOutStats = [];
     
     /**
+     * Flag to track if stats computation is in progress
+     *
+     * @var bool
+     */
+    protected $computingStats = false;
+    
+    /**
+     * Timestamp of the last stats computation
+     *
+     * @var int
+     */
+    protected $lastStatsComputation = 0;
+    
+    /**
      * Initialize component state
+     *
+     * @return void
      */
     public function mount()
     {
@@ -49,6 +82,67 @@ class ListSoldOutNumbers extends Component implements HasForms, HasTable
             $this->filterDate = now()->toDateString();
         }
         
+        $this->computeSoldOutStats();
+    }
+    
+    /**
+     * Handle Filament table filter changes
+     *
+     * @return void
+     */
+    public function handleFilterChange(): void
+    {
+        // Get the current filter date or default to today
+        $drawDate = $this->tableFilters['draw_date']['value'] ?? now()->toDateString();
+
+        // If the filter was cleared or reset, explicitly set to today
+        if (empty($drawDate) || $drawDate === null) {
+            $drawDate = now()->toDateString();
+            // Update the table filter value to today as well
+            $this->tableFilters['draw_date']['value'] = $drawDate;
+        }
+
+        // Update filter date
+        $this->filterDate = $drawDate;
+        
+        // Compute stats for the new date
+        $this->computeSoldOutStats();
+
+        // Force a refresh to ensure UI is updated
+        $this->dispatch('refresh');
+    }
+
+    /**
+     * Handle explicit filter reset events
+     * This is triggered when the user clicks the reset button
+     *
+     * @return void
+     */
+    public function handleFilterReset(): void
+    {
+        // Set filter date to today
+        $today = now()->toDateString();
+        $this->filterDate = $today;
+
+        // Update the table filter value to today
+        if (isset($this->tableFilters['draw_date'])) {
+            $this->tableFilters['draw_date']['value'] = $today;
+        }
+        
+        // Compute stats for today
+        $this->computeSoldOutStats();
+
+        // Force a refresh of the component
+        $this->dispatch('refresh');
+    }
+    
+    /**
+     * Livewire listener for the compute-stats event
+     *
+     * @return void
+     */
+    public function computeStatsListener(): void
+    {
         $this->computeSoldOutStats();
     }
     
@@ -84,129 +178,8 @@ class ListSoldOutNumbers extends Component implements HasForms, HasTable
         return view('livewire.coordinator.list-sold-out-numbers');
     }
 
-    public function table(Table $table): Table
-    {
-        // Get the filter date - default to today if not set
-        $date = $this->filterDate ?? now()->toDateString();
-        $this->filterDate = $date; // Ensure the property is set
-        
-        return $table
-            ->query(
-                // Only show sold out numbers for locations assigned to the coordinator
-                BetRatio::query()
-                    ->where('max_amount', 0) // Only show sold out numbers (max_amount = 0)
-                    ->whereHas('draw', function ($q) use ($date) {
-                        $q->whereDate('draw_date', $date);
-                    })
-                    ->where('location_id', Auth::user()->location_id)
-                    ->with(['gameType', 'draw', 'location'])
-            )
-            ->columns([
-                Tables\Columns\TextColumn::make('id')
-                    ->label('ID')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('draw.draw_date')
-                    ->label('Draw Date')
-                    ->date()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('draw.draw_time')
-                    ->label('Draw Time')
-                    ->time('h:i A')
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('gameType.name')
-                    ->label('Bet Type')
-                    ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'S2' => 'success',
-                        'S3' => 'warning',
-                        'D4' => 'danger',
-                        default => 'gray',
-                    })
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('bet_number')
-                    ->label('Sold Out Number')
-                    ->searchable()
-                    ->copyable(),
-                Tables\Columns\TextColumn::make('location.name')
-                    ->label('Location')
-                    ->sortable()
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->label('Created At')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->label('Updated At')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-            ])
-            ->filters([
-                Tables\Filters\Filter::make('draw_date')
-                    ->label('Draw Date')
-                    ->form([
-                        Forms\Components\DatePicker::make('draw_date')
-                            ->label('Draw Date')
-                            ->nullable() // Allow clearing the filter
-                            ->default(fn() => now()->toDateString()) // Default to today dynamically
-                            ->live()
-                            ->afterStateUpdated(function ($state, $set, $get, $livewire) {
-                                // Always update filterDate and recompute stats when date changes
-                                $livewire->filterDate = $state ?? now()->toDateString();
-                                $livewire->computeSoldOutStats();
-                            })
-                    ])
-                    ->indicateUsing(function (array $data): ?string {
-                        if (!$data['draw_date']) {
-                            return null;
-                        }
-
-                        return 'Date: ' . date('F j, Y', strtotime($data['draw_date']));
-                    })
-                    ->query(function (Builder $query, array $data) {
-                        // Get the date from filter data or use the component's filterDate
-                        $date = $data['draw_date'] ?? $this->filterDate ?? now()->toDateString();
-                        
-                        // Store the filter date in the component property to ensure consistency
-                        $this->filterDate = $date;
-                        
-                        // Apply the date filter - this ensures table data matches stats
-                        return $query->whereHas('draw', function ($subquery) use ($date) {
-                            $subquery->whereDate('draw_date', $date);
-                        });
-                    }),
-                SelectFilter::make('location_id')
-                    ->relationship('location', 'name', function (Builder $query) {
-                        // Only show the coordinator's location
-                        return $query->where('id', Auth::user()->location_id);
-                    })
-                    ->label('Location')
-                    ->searchable()
-                    ->preload(),
-                SelectFilter::make('game_type_id')
-                    ->relationship('gameType', 'name')
-                    ->label('Game Type')
-                    ->searchable()
-                    ->preload(),
-            ])
-            ->filtersLayout(FiltersLayout::AboveContent)
-            ->groups([
-                Group::make('location.name')
-                    ->label('Location'),
-                Group::make('gameType.name')
-                    ->label('Game Type'),
-                Group::make('draw.draw_date')
-                    ->label('Draw Date'),
-            ])
-            ->poll('60s')
-            ->defaultGroup('location.name')
-            ->deferLoading()
-            ->striped()
-            ->paginated([10, 25, 50, 100])
-            ->defaultPaginationPageOption(10);
-    }
+   
+    
 
 }
                         

@@ -12,6 +12,8 @@ use App\Livewire\Draws\ManageDraws;
 use Illuminate\Support\Facades\Route;
 use App\Livewire\Reports\SalesSummary;
 use App\Livewire\Draws\ViewDrawDetails;
+use App\Livewire\Receipt\ListReceipts;
+use App\Livewire\Receipt\ViewReceipt;
 
 use App\Livewire\Coordinator\EditTeller;
 use App\Livewire\Reports\ReportByTeller;
@@ -85,9 +87,9 @@ Route::middleware([
         Route::get('low-win-numbers', ListLowWinNumbers::class)->name('low-win-numbers');
         Route::get('sold-out-numbers', ListSoldOutNumbers::class)->name('sold-out-numbers');
 
-
-
-
+        // Receipts Management
+        Route::get('receipts', ListReceipts::class)->name('receipts');
+        Route::get('receipts/{receipt}/view', ViewReceipt::class)->name('receipts.view');
 
     });
 
