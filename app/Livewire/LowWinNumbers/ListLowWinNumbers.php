@@ -323,9 +323,8 @@ class ListLowWinNumbers extends Component implements HasForms, HasTable
                             }
                         });
                     })
-                    ->when($this->activeFilter !== 'all', fn ($q) =>
-                        $q->where('is_active', $this->activeFilter === 'active')
-                    )
+                    // Active/inactive filtering is handled by the SelectFilter
+                    // No need for redundant filtering here
                     ->when($this->scopeFilter === 'global', fn ($q) => $q->whereNull('draw_id'))
                     ->when($this->scopeFilter === 'draw', fn ($q) => $q->whereNotNull('draw_id'))
             )
@@ -337,7 +336,12 @@ class ListLowWinNumbers extends Component implements HasForms, HasTable
          
                     Tables\Columns\ToggleColumn::make('is_active')
                         ->label('Active')
-                        ->sortable(),
+                        ->sortable()
+                        ->afterStateUpdated(function () {
+                            // Recompute stats but don't change the current filter
+                            $this->computeLowWinStats();
+                            $this->dispatch('refresh');
+                        }),
                 
                     Tables\Columns\TextColumn::make('start_date')
                         ->label('Start Date')
@@ -407,25 +411,32 @@ class ListLowWinNumbers extends Component implements HasForms, HasTable
             ])
             ->filters([
        
-                SelectFilter::make('is_active')
-                    ->label('Status')
-                    ->options([
-                        '1' => 'Active',
-                        '0' => 'Inactive',
-                        '' => 'All',
-                    ])
-                    ->default('1')
-                    ->query(function (Builder $query, array $data) {
-                        if (isset($data['value']) && $data['value'] !== '') {
-                            $query->where('low_win_numbers.is_active', $data['value']);
-                            // Update the component property for statistics
-                            $this->activeFilter = $data['value'] ? 'active' : 'inactive';
-                        } else {
-                            $this->activeFilter = 'all';
-                        }
-                        $this->computeLowWinStats();
-                        return $query;
-                    }),
+                // SelectFilter::make('is_active')
+                //     ->label('Status')
+                //     ->options([
+                //         '1' => 'Active',
+                //         '0' => 'Inactive',
+                //         '' => 'All',
+                //     ])
+                //     ->default('1')
+                //     ->query(function (Builder $query, array $data) {
+                //         if (isset($data['value']) && $data['value'] !== '') {
+                //             $query->where('low_win_numbers.is_active', $data['value']);
+                //             // Update the component property for statistics
+                //             $this->activeFilter = $data['value'] ? 'active' : 'inactive';
+                //         } else {
+                //             $this->activeFilter = 'all';
+                //         }
+                //         $this->computeLowWinStats();
+                //         return $query;
+                //     })
+                //     ->indicateUsing(function (array $data): ?string {
+                //         if (!isset($data['value']) || $data['value'] === '') {
+                //             return null;
+                //         }
+                        
+                //         return 'Status: ' . ($data['value'] ? 'Active' : 'Inactive');
+                //     }),
                 
                 // Scope filter (global vs draw-specific)
                 SelectFilter::make('scope')
