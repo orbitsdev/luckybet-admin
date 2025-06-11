@@ -49,6 +49,7 @@
                         <select wire:model.live="filterStatus" id="filterStatus" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm">
                             <option value="all">All Bets</option>
                             <option value="winners">Winners Only</option>
+                            <option value="potential_winners">Potential Winners</option>
                             <option value="non_winners">Non-Winners</option>
                             <option value="rejected">Rejected</option>
                         </select>
@@ -188,9 +189,13 @@
                                                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
                                                             Rejected
                                                         </span>
-                                                    @elseif($bet->winning_amount > 0)
+                                                    @elseif($bet->is_actual_winner)
                                                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
                                                             Winner
+                                                        </span>
+                                                    @elseif($bet->winning_amount > 0 && !$bet->draw->result)
+                                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                                            Potential Winner
                                                         </span>
                                                     @else
                                                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
@@ -199,7 +204,7 @@
                                                     @endif
                                                 </td>
                                                 <td class="px-4 py-3 whitespace-nowrap text-sm">
-                                                    @if($bet->winning_amount > 0)
+                                                    @if($bet->is_actual_winner)
                                                         @if($bet->is_claimed)
                                                             <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
                                                                 Yes
@@ -288,9 +293,13 @@
                                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
                                                     Rejected
                                                 </span>
-                                            @elseif($bet->winning_amount > 0)
+                                            @elseif($bet->is_actual_winner)
                                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
                                                     Winner
+                                                </span>
+                                            @elseif($bet->winning_amount > 0 && !$bet->draw->result)
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                                    Potential Winner
                                                 </span>
                                             @else
                                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
@@ -299,7 +308,7 @@
                                             @endif
                                         </td>
                                         <td class="px-4 py-3 whitespace-nowrap text-sm">
-                                            @if($bet->winning_amount > 0)
+                                            @if($bet->is_actual_winner)
                                                 @if($bet->is_claimed)
                                                     <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
                                                         Yes
@@ -314,7 +323,7 @@
                                             @endif
                                         </td>
                                         <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                                            @if($bet->winning_amount > 0 && $bet->is_claimed && $bet->claimed_at)
+                                            @if($bet->is_actual_winner && $bet->is_claimed && $bet->claimed_at)
                                                 {{ \Carbon\Carbon::parse($bet->claimed_at)->format('M j, g:i A') }}
                                             @else
                                                 <span class="text-gray-400">-</span>

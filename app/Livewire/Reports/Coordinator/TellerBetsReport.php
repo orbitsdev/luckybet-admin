@@ -25,7 +25,7 @@ class TellerBetsReport extends Component implements HasForms, HasActions
     public $tellerName;
     public $coordinatorName;
     public $date;
-    public $filterStatus = 'all'; // all, winners, rejected
+    public $filterStatus = 'all'; // all, winners, potential_winners, rejected, non_winners
     public $filterGameType = 'all';
     public $filterDrawTime = 'all';
     public $searchTerm = '';
@@ -68,11 +68,26 @@ class TellerBetsReport extends Component implements HasForms, HasActions
 
         // Apply status filter
         if ($this->filterStatus === 'winners') {
-            $betsQuery->where('winning_amount', '>', 0);
+            // Only include bets from draws that have results and potential winning amount
+            $betsQuery->whereHas('draw', function($query) {
+                $query->whereHas('result'); // Only consider draws that have results
+            })->where('winning_amount', '>', 0); // Must have potential winning amount
+        } elseif ($this->filterStatus === 'potential_winners') {
+            // Bets with winning_amount > 0 but no draw results yet
+            $betsQuery->where('winning_amount', '>', 0)
+                ->whereHas('draw', function($query) {
+                    $query->whereDoesntHave('result'); // Only draws without results
+                })
+                ->where('is_rejected', false);
         } elseif ($this->filterStatus === 'rejected') {
             $betsQuery->where('is_rejected', true);
         } elseif ($this->filterStatus === 'non_winners') {
-            $betsQuery->where('winning_amount', 0)->where('is_rejected', false);
+            $betsQuery->where(function($query) {
+                $query->where('winning_amount', 0)
+                      ->orWhereHas('draw', function($q) {
+                          $q->whereDoesntHave('result'); // Draws without results can't have winners
+                      });
+            })->where('is_rejected', false);
         } else {
             // For 'all', we still exclude rejected by default unless specifically requested
             $betsQuery->where('is_rejected', false);
@@ -163,6 +178,11 @@ class TellerBetsReport extends Component implements HasForms, HasActions
         $totalCommission = $betsQuery->sum('commission_amount');
         $totalGross = $totalAmount - $totalWinnings; // Gross = Sales - Hits
 
+        // Determine actual winners by checking if the bet matches the draw results
+        foreach ($bets as $bet) {
+            $bet->is_actual_winner = $this->isBetActualWinner($bet);
+        }
+
         return view('livewire.reports.coordinator.teller-bets-report', [
             'bets' => $bets,
             'groupedBets' => $groupedBets,
@@ -207,6 +227,64 @@ class TellerBetsReport extends Component implements HasForms, HasActions
         $this->filterDrawTime = 'all';
         $this->searchTerm = '';
         $this->resetPage();
+    }
+    
+    /**
+     * Determine if a bet is an actual winner by comparing with draw results
+     * 
+     * @param Bet $bet The bet to check
+     * @return bool True if the bet is a winner, false otherwise
+     */
+    protected function isBetActualWinner($bet)
+    {
+        // If the bet is rejected or has no winning amount, it can't be a winner
+        if ($bet->is_rejected || $bet->winning_amount <= 0) {
+            return false;
+        }
+        
+        // Get the draw result
+        $draw = $bet->draw;
+        $result = $draw->result;
+        
+        // If there's no result for this draw, the bet can't be a winner yet
+        if (!$result) {
+            return false;
+        }
+        
+        // Get the game type
+        $gameType = $bet->gameType;
+        if (!$gameType) {
+            return false;
+        }
+        
+        // Check if bet is a winner based on game type
+        switch ($gameType->code) {
+            case 'S2':
+                return $bet->bet_number === $result->s2_winning_number;
+                
+            case 'S3':
+                return $bet->bet_number === $result->s3_winning_number;
+                
+            case 'D4':
+                // For D4 with sub-selections, we need special handling
+                if ($bet->d4_sub_selection) {
+                    $sub = strtoupper($bet->d4_sub_selection);
+                    if ($sub === 'S2' && $result->d4_winning_number) {
+                        // Compare last 2 digits of D4 result to bet number (pad bet number to 2 digits)
+                        return substr($result->d4_winning_number, -2) === str_pad($bet->bet_number, 2, '0', STR_PAD_LEFT);
+                    } else if ($sub === 'S3' && $result->d4_winning_number) {
+                        // Compare last 3 digits of D4 result to bet number (pad bet number to 3 digits)
+                        return substr($result->d4_winning_number, -3) === str_pad($bet->bet_number, 3, '0', STR_PAD_LEFT);
+                    }
+                    return false;
+                } else {
+                    // Regular D4 bet - exact match required
+                    return $bet->bet_number === $result->d4_winning_number;
+                }
+                
+            default:
+                return false;
+        }
     }
 
     public function viewBetAction(): Action
