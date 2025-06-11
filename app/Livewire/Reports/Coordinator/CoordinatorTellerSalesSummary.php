@@ -273,7 +273,7 @@ class CoordinatorTellerSalesSummary extends Component implements HasForms, HasAc
             ->icon('heroicon-o-currency-dollar')
             ->color('gray')
             ->size('xs')
-            ->url(fn (array $arguments) => route('admin.teller-bets-report', ['teller_id' => $arguments['teller_id'], 'date' => $this->date]))
+            ->url(fn (array $arguments) => route('reports.teller-bets-report', ['teller_id' => $arguments['teller_id'], 'date' => $this->date]))
             ->openUrlInNewTab();
     }
 
