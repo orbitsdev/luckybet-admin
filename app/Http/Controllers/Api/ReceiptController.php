@@ -228,7 +228,7 @@ class ReceiptController extends Controller
             ->first();
 
             $gameType = GameType::find($data['game_type_id']);
-            
+
             if (!$gameType) {
                 DB::rollBack();
                 return ApiResponse::error('Game type not found.', 422);
@@ -241,12 +241,12 @@ class ReceiptController extends Controller
 
             // Calculate winning amount based on game type and multiplier
             // Convert game type name to uppercase for consistent comparison
-            $gameTypeName = strtoupper($gameType->name);
-            
+            $gameTypeName = strtoupper($gameType->code);
+
             // Validate game type name format
             if (!in_array($gameTypeName, ['S2', 'S3', 'D4'])) {
                 DB::rollBack();
-                return ApiResponse::error('Invalid game type name format: ' . $gameType->name, 422);
+                return ApiResponse::error('Invalid game type name format: ' . $gameType->code, 422);
             }
 
             switch ($gameTypeName) {
@@ -426,7 +426,7 @@ class ReceiptController extends Controller
             ->first();
 
             $gameType = GameType::find($bet->game_type_id);
-            
+
             if (!$gameType) {
                 DB::rollBack();
                 return ApiResponse::error('Game type not found.', 422);
@@ -437,17 +437,17 @@ class ReceiptController extends Controller
                 return ApiResponse::error('Game type is not active.', 422);
             }
 
-            // Calculate winning amount based on game type and multiplier
-            // Convert game type name to uppercase for consistent comparison
-            $gameTypeName = strtoupper($gameType->name);
-            
-            // Validate game type name format
-            if (!in_array($gameTypeName, ['S2', 'S3', 'D4'])) {
+            // Calculate winning amount based on game type code
+            // Convert game type code to uppercase for consistent comparison
+            $gameTypeCode = strtoupper($gameType->code);
+
+            // Validate game type code format
+            if (!in_array($gameTypeCode, ['S2', 'S3', 'D4'])) {
                 DB::rollBack();
-                return ApiResponse::error('Invalid game type name format: ' . $gameType->name, 422);
+                return ApiResponse::error('Invalid game type code: ' . $gameType->code, 422);
             }
 
-            switch ($gameTypeName) {
+            switch ($gameTypeCode) {
                 case 'S2':
                     $winningAmount = $data['amount'] * 70;
                     break;
