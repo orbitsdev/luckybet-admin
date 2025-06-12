@@ -588,7 +588,7 @@ class ReceiptController extends Controller
     }
 
     /**
-     * Cancel a draft receipt
+     * Cancel a placed receipt
      */
     public function cancelReceipt(Receipt $receipt, Request $request)
     {
@@ -599,9 +599,9 @@ class ReceiptController extends Controller
             return ApiResponse::error('Unauthorized', 403);
         }
 
-        // Check if receipt is still in draft status
-        if ($receipt->status !== 'draft') {
-            return ApiResponse::error('This receipt has already been finalized or cancelled', 422);
+        // Check if receipt is already cancelled
+        if ($receipt->status === 'cancelled') {
+            return ApiResponse::error('This receipt is already cancelled', 422);
         }
 
         try {
