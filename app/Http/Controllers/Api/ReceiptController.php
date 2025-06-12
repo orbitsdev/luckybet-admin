@@ -241,15 +241,15 @@ class ReceiptController extends Controller
 
             // Calculate winning amount based on game type and multiplier
             // Convert game type name to uppercase for consistent comparison
-            $gameTypeName = strtoupper($gameType->code);
+            $gameTypeCode = strtoupper($gameType->code);
 
             // Validate game type name format
-            if (!in_array($gameTypeName, ['S2', 'S3', 'D4'])) {
+            if (!in_array($gameTypeCode, ['S2', 'S3', 'D4'])) {
                 DB::rollBack();
-                return ApiResponse::error('Invalid game type name format: ' . $gameType->code, 422);
+                return ApiResponse::error('Invalid game type code: ' . $gameType->code, 422);
             }
 
-            switch ($gameTypeName) {
+            switch ($gameTypeCode) {
                 case 'S2':
                     $winningAmount = $data['amount'] * 70;
                     break;
