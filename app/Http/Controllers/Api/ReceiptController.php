@@ -607,12 +607,12 @@ class ReceiptController extends Controller
         try {
             DB::beginTransaction();
 
-            // Delete all bets associated with this receipt
-            $receipt->bets()->delete();
-
-            // Mark receipt as cancelled
+            // Update receipt and all its bets to cancelled status
             $receipt->status = 'cancelled';
             $receipt->save();
+            
+            // Mark all bets as rejected
+            $receipt->bets()->update(['is_rejected' => true]);
 
             DB::commit();
 
