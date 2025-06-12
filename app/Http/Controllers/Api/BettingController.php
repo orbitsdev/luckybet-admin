@@ -322,7 +322,7 @@ class BettingController extends Controller
 
         $date = $request->filled('date') ? $request->date : Carbon::today()->format('Y-m-d');
 
-        $query = Bet::placed()->with(['draw', 'customer', 'location', 'gameType'])
+        $query = Bet::finalized()->with(['draw', 'customer', 'location', 'gameType'])
             ->where('teller_id', $user->id)
             ->where('is_rejected', true)
             ->whereHas('draw', function($query) use ($date) {
