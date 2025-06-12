@@ -230,7 +230,9 @@ class ReceiptController extends Controller
             $gameType = GameType::find($data['game_type_id']);
 
             // Calculate winning amount based on game type and multiplier
-            switch ($gameType->name) {
+            // Convert game type name to uppercase for consistent comparison
+            $gameTypeName = strtoupper($gameType->name);
+            switch ($gameTypeName) {
                 case 'S2':
                     $winningAmount = $data['amount'] * 70;
                     break;
@@ -390,35 +392,51 @@ class ReceiptController extends Controller
             $bet->commission_amount = $data['amount'] * $commissionRate;
 
             // Get winning amount
-            $lowWin = LowWinNumber::where('draw_id', $bet->draw_id)
-                ->where('game_type_id', $bet->game_type_id)
-                ->where('location_id', $user->location_id)
-                ->where('bet_number', $bet->bet_number)
-                ->first();
+            $lowWin = LowWinNumber::where(function ($query) use ($bet) {
+                $query->where('draw_id', $bet->draw_id)
+                      ->orWhereNull('draw_id'); // Support global fallback
+            })
+            ->where('game_type_id', $bet->game_type_id)
+            ->where('location_id', $user->location_id)
+            ->where('bet_number', $bet->bet_number)
+            ->where('is_active', true)
+            ->where(function ($q) {
+                $q->whereNull('start_date')->orWhere('start_date', '<=', today());
+            })
+            ->where(function ($q) {
+                $q->whereNull('end_date')->orWhere('end_date', '>=', today());
+            })
+            ->first();
 
-            if (!$lowWin) {
-                $lowWin = LowWinNumber::where('draw_id', $bet->draw_id)
-                    ->where('game_type_id', $bet->game_type_id)
-                    ->where('location_id', $user->location_id)
-                    ->where(function ($query) {
-                        $query->whereNull('bet_number')->orWhere('bet_number', '');
-                    })
-                    ->first();
+            $gameType = GameType::find($bet->game_type_id);
+
+            // Calculate winning amount based on game type and multiplier
+            // Convert game type name to uppercase for consistent comparison
+            $gameTypeName = strtoupper($gameType->name);
+            switch ($gameTypeName) {
+                case 'S2':
+                    $winningAmount = $data['amount'] * 70;
+                    break;
+                case 'S3':
+                    $winningAmount = $data['amount'] * 450;
+                    break;
+                case 'D4':
+                    if ($bet->d4_sub_selection === 'S2') {
+                        $winningAmount = $data['amount'] * 70;
+                    } elseif ($bet->d4_sub_selection === 'S3') {
+                        $winningAmount = $data['amount'] * 450;
+                    } else {
+                        $winningAmount = $data['amount'] * 4000;
+                    }
+                    break;
+                default:
+                    DB::rollBack();
+                    return ApiResponse::error('Invalid game type for winning amount calculation.', 422);
             }
 
-            $winningAmount = $lowWin
-                ? $lowWin->winning_amount
-                : (WinningAmount::where('game_type_id', $bet->game_type_id)
-                    ->where('location_id', $user->location_id)
-                    ->where('amount', $data['amount'])
-                    ->value('winning_amount'));
-
-            if (is_null($winningAmount)) {
-                DB::rollBack();
-                return ApiResponse::error(
-                    'Winning amount is not set for this game type and amount. Please contact admin.',
-                    422
-                );
+            // Apply low win override if exists
+            if ($lowWin) {
+                $winningAmount = $lowWin->winning_amount;
             }
 
             $bet->winning_amount = $winningAmount;
