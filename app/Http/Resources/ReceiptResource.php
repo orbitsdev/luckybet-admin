@@ -27,7 +27,7 @@ class ReceiptResource extends JsonResource
             'location' => new LocationResource($this->whenLoaded('location')),
             'created_at' => $this->created_at,
             'created_at_formatted' => $this->created_at?->format('M d, Y h:i A'),
-            'updated_at' => $this->updated_at,
+            'updated_at' => $this->updated_at?->format('M d, Y h:i A'),
         ];
     }
 }
