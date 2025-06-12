@@ -41,13 +41,13 @@ class Receipt extends Model
 
     /**
      * Calculate the total amount of all bets in this receipt
-     * 
+     *
      * @return float
      */
     public function calculateTotalAmount()
     {
         return $this->bets()
-            ->where('status', '!=', 'cancelled')
+            ->where('is_rejected', false)
             ->sum('amount');
     }
 
@@ -63,12 +63,12 @@ class Receipt extends Model
                 $date = now()->format('ymd-Hi'); // yymmdd-hhmm
                 $rand = strtoupper(Str::random(4)); // A7D4
                 $receipt->ticket_id = $prefix . $date . '-' . $rand;
-                
+
                 // Set receipt date if not already set
                 if (empty($receipt->receipt_date)) {
                     $receipt->receipt_date = now()->toDateString();
                 }
-                
+
                 // Set total amount if not already set
                 if (empty($receipt->total_amount)) {
                     $receipt->total_amount = $receipt->calculateTotalAmount();
@@ -82,12 +82,12 @@ class Receipt extends Model
                 $date = now()->format('ymd-Hi');
                 $rand = strtoupper(Str::random(4));
                 $receipt->ticket_id = $prefix . $date . '-' . $rand;
-                
+
                 // Set receipt date if not already set
                 if (empty($receipt->receipt_date)) {
                     $receipt->receipt_date = now()->toDateString();
                 }
-                
+
                 // Set total amount if not already set
                 if (empty($receipt->total_amount)) {
                     $receipt->total_amount = $receipt->calculateTotalAmount();
