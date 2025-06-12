@@ -13,7 +13,7 @@
                 </div>
             </div>
             
-            <div class="mb-4 bg-indigo-50 p-4 rounded-lg">
+            <div class="mb-4 bg-white rounded-lg shadow-md p-4 border border-gray-100">
                 <div class="flex items-center">
                     <div class="flex-shrink-0">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -90,19 +90,19 @@
             </div>
             
             <div class="mb-4">
-                <div class="bg-gray-50 p-4 rounded-lg">
+                <div class="bg-white rounded-lg shadow-md p-4 border border-gray-100">
                     <div class="grid grid-cols-4 gap-4">
                         <div class="bg-white p-3 rounded-md shadow-sm">
                             <h3 class="text-sm font-medium text-gray-500">Total Sales</h3>
-                            <p class="text-2xl font-bold text-blue-600">{{ number_format($totalAmount, 2) }}</p>
+                            <p class="text-2xl font-bold {{ $totalAmount >= 0 ? 'text-green-600' : 'text-red-600' }}">₱{{ number_format($totalAmount, 2) }}</p>
                         </div>
                         <div class="bg-white p-3 rounded-md shadow-sm">
                             <h3 class="text-sm font-medium text-gray-500">Total Hits</h3>
-                            <p class="text-2xl font-bold text-red-600">{{ number_format($totalWinnings, 2) }}</p>
+                            <p class="text-2xl font-bold {{ $totalWinnings >= 0 ? 'text-green-600' : 'text-red-600' }}">₱{{ number_format($totalWinnings, 2) }}</p>
                         </div>
                         <div class="bg-white p-3 rounded-md shadow-sm">
                             <h3 class="text-sm font-medium text-gray-500">Total Gross</h3>
-                            <p class="text-2xl font-bold {{ $totalGross >= 0 ? 'text-green-600' : 'text-red-600' }}">{{ number_format($totalGross, 2) }}</p>
+                            <p class="text-2xl font-bold {{ $totalGross >= 0 ? 'text-green-600' : 'text-red-600' }}">₱{{ number_format($totalGross, 2) }}</p>
                         </div>
                         <div class="bg-white p-3 rounded-md shadow-sm">
                             <h3 class="text-sm font-medium text-gray-500">Total Commission</h3>
@@ -116,21 +116,21 @@
                 @if(isset($groupedBets) && $groupedBets->count() > 0)
                     @foreach($groupedBets as $drawTime => $drawBets)
                         <div class="mb-6">
-                            <div class="flex items-center justify-between bg-gray-100 px-4 py-2 rounded-t-lg border border-gray-200">
+                            <div class="flex items-center justify-between bg-gray-50 px-4 py-2 rounded-t-lg border border-gray-200">
                                 <h3 class="text-lg font-medium text-gray-800">{{ \Carbon\Carbon::parse($drawTime)->format('g:i A') }} Draw</h3>
                                 <div class="flex space-x-4">
                                     <div class="text-sm">
                                         <span class="text-gray-500">Sales:</span>
-                                        <span class="font-medium text-blue-600">{{ number_format($drawBets->sum('amount'), 2) }}</span>
+                                        <span class="font-medium {{ $drawBets->sum('amount') >= 0 ? 'text-green-600' : 'text-red-600' }}">₱{{ number_format($drawBets->sum('amount'), 2) }}</span>
                                     </div>
                                     <div class="text-sm">
                                         <span class="text-gray-500">Hits:</span>
-                                        <span class="font-medium text-red-600">{{ number_format($drawBets->sum('winning_amount'), 2) }}</span>
+                                        <span class="font-medium {{ $drawBets->sum('winning_amount') >= 0 ? 'text-green-600' : 'text-red-600' }}">₱{{ number_format($drawBets->sum('winning_amount'), 2) }}</span>
                                     </div>
                                     @php $drawGross = $drawBets->sum('amount') - $drawBets->sum('winning_amount'); @endphp
                                     <div class="text-sm">
                                         <span class="text-gray-500">Gross:</span>
-                                        <span class="font-medium {{ $drawGross >= 0 ? 'text-green-600' : 'text-red-600' }}">{{ number_format($drawGross, 2) }}</span>
+                                        <span class="font-medium {{ $drawGross >= 0 ? 'text-green-600' : 'text-red-600' }}">₱{{ number_format($drawGross, 2) }}</span>
                                     </div>
                                     <div class="text-sm">
                                         <span class="text-gray-500">Bets:</span>
@@ -138,7 +138,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="overflow-x-auto bg-white rounded-b-lg border border-gray-200 border-t-0">
+                            <div class="bg-white rounded-lg shadow-md overflow-hidden">
                                 <table class="min-w-full divide-y divide-gray-200">
                                     <thead class="bg-gray-50">
                                         <tr>
@@ -274,14 +274,12 @@
                                             @endif
                                         </td>
                                         <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">{{ $bet->bet_number }}</td>
-                                        <td class="px-4 py-3 whitespace-nowrap text-sm text-blue-600 font-medium">{{ number_format($bet->amount, 2) }}</td>
-                                        <td class="px-4 py-3 whitespace-nowrap text-sm {{ $bet->winning_amount > 0 ? 'text-red-600 font-bold' : 'text-gray-500' }}">
-                                            {{ $bet->winning_amount > 0 ? number_format($bet->winning_amount, 2) : '-' }}
+                                        <td class="px-4 py-3 whitespace-nowrap text-sm text-blue-600 font-medium">₱{{ number_format($bet->amount, 2) }}</td>
+                                        <td class="px-4 py-3 whitespace-nowrap text-sm {{ $bet->winning_amount > 0 ? 'text-red-600' : 'text-green-600' }} font-medium">
+                                            {{ $bet->winning_amount > 0 ? '₱'.number_format($bet->winning_amount, 2) : '-' }}
                                         </td>
                                         @php $grossAmount = $bet->amount - $bet->winning_amount; @endphp
-                                        <td class="px-4 py-3 whitespace-nowrap text-sm {{ $grossAmount >= 0 ? 'text-green-600' : 'text-red-600' }} font-medium">
-                                            {{ number_format($grossAmount, 2) }}
-                                        </td>
+                                        <td class="px-4 py-3 whitespace-nowrap text-sm {{ $grossAmount >= 0 ? 'text-green-600' : 'text-red-600' }} font-medium">₱{{ number_format($grossAmount, 2) }}</td>
                                         <td class="px-4 py-3 whitespace-nowrap text-sm text-purple-600">
                                             {{ $bet->commission_rate ? number_format($bet->commission_rate * 100, 0) . '%' : '-' }}
                                         </td>

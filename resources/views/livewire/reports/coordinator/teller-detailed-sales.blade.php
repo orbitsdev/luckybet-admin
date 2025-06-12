@@ -14,15 +14,15 @@
             </div>
             
             <div class="grid grid-cols-3 gap-4 mb-6">
-                <div class="bg-blue-50 p-3 rounded-md shadow-sm">
+                <div class="bg-white p-3 rounded-md shadow-sm border border-gray-100">
                     <h3 class="text-sm font-medium text-gray-500">Total Sales</h3>
-                    <p class="text-xl font-bold text-blue-600">{{ number_format($teller['total_sales'], 2) }}</p>
+                    <p class="text-2xl font-bold {{ $teller['total_sales'] >= 0 ? 'text-green-600' : 'text-red-600' }}">{{ number_format($teller['total_sales'], 2) }}</p>
                 </div>
-                <div class="bg-red-50 p-3 rounded-md shadow-sm">
+                <div class="bg-white p-3 rounded-md shadow-sm border border-gray-100">
                     <h3 class="text-sm font-medium text-gray-500">Total Hits</h3>
-                    <p class="text-xl font-bold text-red-600">{{ number_format($teller['total_hits'], 2) }}</p>
+                    <p class="text-2xl font-bold {{ $teller['total_hits'] >= 0 ? 'text-green-600' : 'text-red-600' }}">{{ number_format($teller['total_hits'], 2) }}</p>
                 </div>
-                <div class="bg-{{ $teller['total_gross'] >= 0 ? 'green' : 'red' }}-50 p-3 rounded-md shadow-sm">
+                <div class="bg-white p-3 rounded-md shadow-sm border border-gray-100">
                     <h3 class="text-sm font-medium text-gray-500">Total Gross</h3>
                     <p class="text-xl font-bold text-{{ $teller['total_gross'] >= 0 ? 'green' : 'red' }}-600">{{ number_format($teller['total_gross'], 2) }}</p>
                 </div>
@@ -46,8 +46,8 @@
                             @foreach($teller['game_types'] as $gameType)
                                 <tr>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $gameType['name'] }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-600 font-medium">{{ number_format($gameType['total_sales'], 2) }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-medium">{{ number_format($gameType['total_hits'], 2) }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm {{ $gameType['total_sales'] >= 0 ? 'text-green-600' : 'text-red-600' }} font-medium">{{ number_format($gameType['total_sales'], 2) }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm {{ $gameType['total_hits'] >= 0 ? 'text-green-600' : 'text-red-600' }} font-medium">{{ number_format($gameType['total_hits'], 2) }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-{{ $gameType['total_gross'] >= 0 ? 'green' : 'red' }}-600 font-medium">{{ number_format($gameType['total_gross'], 2) }}</td>
                                 </tr>
                             @endforeach

@@ -93,12 +93,12 @@
                                     class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('reports.tellers') ? 'opacity-100 bg-red-500' : 'opacity-0 group-hover:opacity-100 bg-primary-500' }} mr-3 transition-all duration-200"></span>
                                 <span class="{{ request()->routeIs('reports.tellers') ? 'font-medium' : '' }}">Teller Report</span>
                             </a>
-                            <a href="{{ route('reports.tellers-summary') }}"
+                            {{-- <a href="{{ route('reports.tellers-summary') }}"
                                 class="group flex items-center px-4 py-2.5 text-sm rounded-md nav-item hover:pl-5 transition-all duration-200 {{ request()->routeIs('reports.tellers-summary') ? 'text-red-600 bg-gradient-to-r from-red-50 to-red-100 font-medium border-l-2 border-red-500' : 'text-gray-600' }}">
                                 <span
                                     class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('reports.tellers-summary') ? 'opacity-100 bg-red-500' : 'opacity-0 group-hover:opacity-100 bg-primary-500' }} mr-3 transition-all duration-200"></span>
                                 <span class="{{ request()->routeIs('reports.tellers-summary') ? 'font-medium' : '' }}">Sales Summary</span>
-                            </a>
+                            </a> --}}
                             <a href="{{ route('reports.winning-report') }}"
                                 class="group flex items-center px-4 py-2.5 text-sm rounded-md nav-item hover:pl-5 transition-all duration-200 {{ request()->routeIs('reports.winning-report') ? 'text-red-600 bg-gradient-to-r from-red-50 to-red-100 font-medium border-l-2 border-red-500' : 'text-gray-600' }}">
                                 <span
@@ -277,10 +277,10 @@
                                 class="block pl-12 pr-5 py-2.5 rounded-lg nav-item border-l-4 {{ request()->routeIs('reports.tellers') ? 'text-red-600 bg-gradient-to-r from-red-50 to-red-100 font-medium border-red-500' : 'text-gray-600 hover:bg-red-50 hover:text-red-600 border-transparent' }}">
                                 Teller Report
                             </a>
-                            <a href="{{ route('reports.tellers-summary') }}"
+                            {{-- <a href="{{ route('reports.tellers-summary') }}"
                                 class="block pl-12 pr-5 py-2.5 rounded-lg nav-item border-l-4 {{ request()->routeIs('reports.tellers-summary') ? 'text-red-600 bg-gradient-to-r from-red-50 to-red-100 font-medium border-red-500' : 'text-gray-600 hover:bg-red-50 hover:text-red-600 border-transparent' }}">
                                 Sales Summary
-                            </a>
+                            </a> --}}
                             <a href="{{ route('reports.winning-report') }}"
                                 class="block pl-12 pr-5 py-2.5 rounded-lg nav-item border-l-4 {{ request()->routeIs('reports.winning-report') ? 'text-red-600 bg-gradient-to-r from-red-50 to-red-100 font-medium border-red-500' : 'text-gray-600 hover:bg-red-50 hover:text-red-600 border-transparent' }}">
                                 Winning Report

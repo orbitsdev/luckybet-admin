@@ -54,12 +54,21 @@ class TellerBetsReport extends Component implements HasForms, HasActions
 
     public function render()
     {
-        // Get all draws for the selected date
-        $draws = Draw::where('draw_date', $this->date)
+        // Get all draws for the selected date with results
+        $draws = Draw::with('result')
+            ->where('draw_date', $this->date)
             ->orderBy('draw_time')
             ->get();
 
-        $drawIds = $draws->pluck('id')->toArray();
+        // Filter for draws with complete results
+        $validDraws = $draws->filter(function ($draw) {
+            if (!$draw->result) return false;
+            return $draw->result->s2_winning_number && 
+                   $draw->result->s3_winning_number && 
+                   $draw->result->d4_winning_number;
+        });
+
+        $drawIds = $validDraws->pluck('id')->toArray();
 
         // Start building the query - only include bets with receipts in 'placed' status
         $betsQuery = Bet::placed()->where('teller_id', $this->tellerId)

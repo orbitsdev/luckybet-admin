@@ -24,14 +24,14 @@ class Bet extends Model
         'amount',
         'winning_amount',
         'draw_id',
-        'game_type_id',    
+        'game_type_id',
         'teller_id',
-        'customer_id',   
+        'customer_id',
         'location_id',
         'bet_date',
         'ticket_id',
-        'is_claimed',  
-        'is_rejected',    
+        'is_claimed',
+        'is_rejected',
         'is_combination',
         'd4_sub_selection',
         'commission_rate',
@@ -94,7 +94,7 @@ class Bet extends Model
 
     /**
      * Determine if the bet is a winner by comparing with results.
-     * 
+     *
      * @param bool $ignoreClaimStatus If true, will check if bet is a winner regardless of claim status
      * @return bool
      */
@@ -149,11 +149,11 @@ class Bet extends Model
                 return false;
         }
     }
-    
+
     /**
      * Check if a bet is a hit (winner) regardless of claim status
      * This is used by the hit list to find all winning bets
-     * 
+     *
      * @return bool
      */
     public function isHit()
@@ -171,18 +171,18 @@ class Bet extends Model
         if (!is_null($this->attributes['winning_amount'] ?? null)) {
             return $this->attributes['winning_amount'];
         }
-        
+
         // Safely get required attributes, return null if any are missing
         $drawId = $this->attributes['draw_id'] ?? null;
         $gameTypeId = $this->attributes['game_type_id'] ?? null;
         $locationId = $this->attributes['location_id'] ?? null;
         $betNumber = $this->attributes['bet_number'] ?? null;
-        
+
         // If any required attributes are missing, return null
         if ($drawId === null || $gameTypeId === null || $locationId === null || $betNumber === null) {
             return null;
         }
-        
+
         // Otherwise, match controller logic: draw, game type, location, bet number
         $lowWin = \App\Models\LowWinNumber::where('draw_id', $drawId)
             ->where('game_type_id', $gameTypeId)
@@ -226,12 +226,12 @@ class Bet extends Model
         // Safely get required attributes, return false if any are missing
         $gameTypeId = $this->attributes['game_type_id'] ?? null;
         $betNumber = $this->attributes['bet_number'] ?? null;
-        
+
         // If any required attributes are missing, return false
         if ($gameTypeId === null || $betNumber === null) {
             return false;
         }
-        
+
         $lowWin = \App\Models\LowWinNumber::where('game_type_id', $gameTypeId)
                         ->where(function($q) use ($betNumber) {
                 $q->whereNull('bet_number')
@@ -240,7 +240,7 @@ class Bet extends Model
             ->first();
         return $lowWin !== null;
     }
-    
+
     /**
      * Scope a query to only include bets with receipts in 'placed' status.
      * This ensures that only finalized bets are included in reports and calculations.
@@ -248,12 +248,12 @@ class Bet extends Model
      * @param  \Illuminate\Database\Eloquent\Builder  $query
      * @return \Illuminate\Database\Eloquent\Builder
      */
-    public function scopePlaced($query)
-    {
-        return $query->whereHas('receipt', function($q) {
-            $q->where('status', 'placed');
-        });
-    }
+   public function scopePlaced($query)
+{
+    return $query->whereHas('receipt', function($q) {
+        $q->where('status', 'placed');
+    });
+}
 
     /**
      * Scope a query to include bets with receipts that are finalized (placed or cancelled)

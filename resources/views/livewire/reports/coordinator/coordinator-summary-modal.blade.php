@@ -17,11 +17,11 @@
         <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
             <div class="bg-white p-3 rounded-md shadow-sm border border-gray-100">
                 <h3 class="text-sm font-medium text-gray-500">Total Sales</h3>
-                <p class="text-2xl font-bold text-blue-600">{{ number_format($coordinator['total_sales'], 2) }}</p>
+                <p class="text-2xl font-bold {{ $coordinator['total_sales'] >= 0 ? 'text-green-600' : 'text-red-600' }}">{{ number_format($coordinator['total_sales'], 2) }}</p>
             </div>
             <div class="bg-white p-3 rounded-md shadow-sm border border-gray-100">
                 <h3 class="text-sm font-medium text-gray-500">Total Hits</h3>
-                <p class="text-2xl font-bold text-red-600">{{ number_format($coordinator['total_hits'], 2) }}</p>
+                <p class="text-2xl font-bold {{ $coordinator['total_hits'] >= 0 ? 'text-green-600' : 'text-red-600' }}">{{ number_format($coordinator['total_hits'], 2) }}</p>
             </div>
             <div class="bg-white p-3 rounded-md shadow-sm border border-gray-100">
                 <h3 class="text-sm font-medium text-gray-500">Total Gross</h3>
@@ -46,8 +46,8 @@
                     @foreach($tellerData as $teller)
                     <tr>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $teller['name'] }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-600 font-bold">{{ number_format($teller['sales'], 2) }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-bold">{{ number_format($teller['hits'], 2) }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm {{ $teller['sales'] >= 0 ? 'text-green-600' : 'text-red-600' }} font-bold">{{ number_format($teller['sales'], 2) }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm {{ $teller['hits'] >= 0 ? 'text-green-600' : 'text-red-600' }} font-bold">{{ number_format($teller['hits'], 2) }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm {{ $teller['gross'] >= 0 ? 'text-green-600' : 'text-red-600' }} font-bold">{{ number_format($teller['gross'], 2) }}</td>
                     </tr>
                     @endforeach

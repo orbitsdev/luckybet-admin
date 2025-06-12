@@ -33,17 +33,31 @@
                 </div>
             </div>
         </div>
-        
+        <div class="mb-4"></div>
+        @if ($hasPendingDraws && count($missingResults))
+    <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4 rounded shadow-sm" role="alert">
+        <p class="font-medium">Notice:</p>
+        @foreach ($missingResults as $entry)
+            <p>{{ $entry['time'] }} draw is missing:
+                @foreach ($entry['missing'] as $game)
+                    <span class="inline-block px-2 py-1 text-xs font-semibold text-white bg-red-500 rounded mr-1">{{ $game }}</span>
+                @endforeach
+            </p>
+        @endforeach
+        <p class="mt-2 text-sm">Hit and gross values may be incomplete.</p>
+    </div>
+@endif
+
         <div class="mb-4">
             <div class="bg-blue-50 p-4 rounded-lg">
                 <div class="grid grid-cols-3 gap-4">
                     <div class="bg-white p-3 rounded-md shadow-sm">
                         <h3 class="text-sm font-medium text-gray-500">Total Sales</h3>
-                        <p class="text-2xl font-bold text-blue-600">{{ number_format($totalSales, 2) }}</p>
+                        <p class="text-2xl font-bold {{ $totalSales >= 0 ? 'text-green-600' : 'text-red-600' }}">{{ number_format($totalSales, 2) }}</p>
                     </div>
                     <div class="bg-white p-3 rounded-md shadow-sm">
                         <h3 class="text-sm font-medium text-gray-500">Total Hits</h3>
-                        <p class="text-2xl font-bold text-red-600">{{ number_format($totalHits, 2) }}</p>
+                        <p class="text-2xl font-bold {{ $totalHits >= 0 ? 'text-green-600' : 'text-red-600' }}">{{ number_format($totalHits, 2) }}</p>
                     </div>
                     <div class="bg-white p-3 rounded-md shadow-sm">
                         <h3 class="text-sm font-medium text-gray-500">Total Gross</h3>
@@ -52,14 +66,14 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="mb-2 text-sm text-gray-600">
             <span class="font-medium">Date:</span> {{ \Carbon\Carbon::parse($date)->format('F j, Y') }}
             @if($searchTerm)
                 <span class="ml-4 font-medium">Filter:</span> {{ $searchTerm }}
             @endif
         </div>
-        
+
         @if(count($salesData) > 0)
             <div class="overflow-x-auto bg-white rounded-lg shadow">
                 <table class="min-w-full divide-y divide-gray-200">
@@ -76,8 +90,8 @@
                         @foreach($salesData as $item)
                             <tr>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $item['name'] }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-600 font-bold">{{ number_format($item['total_sales'], 2) }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-bold">{{ number_format($item['total_hits'], 2) }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm {{ $item['total_sales'] >= 0 ? 'text-green-600' : 'text-red-600' }} font-bold">{{ number_format($item['total_sales'], 2) }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm {{ $item['total_hits'] >= 0 ? 'text-green-600' : 'text-red-600' }} font-bold">{{ number_format($item['total_hits'], 2) }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm {{ $item['total_gross'] >= 0 ? 'text-green-600' : 'text-red-600' }} font-bold">{{ number_format($item['total_gross'], 2) }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                     <div class="flex items-center space-x-3">
@@ -100,7 +114,7 @@
             </div>
         @endif
     </div>
-    
+
     <x-filament-actions::modals />
 </x-admin>
 </div>

@@ -69,8 +69,32 @@
             </div>
         </div>
 
+        <!-- Summary Cards -->
+        <div class="mb-4">
+            <div class="bg-blue-50 p-4 rounded-lg">
+                <div class="grid grid-cols-4 gap-4">
+                    <div class="bg-white p-3 rounded-md shadow-sm">
+                        <h3 class="text-sm font-medium text-gray-500">Total Sales</h3>
+                        <p class="text-2xl font-bold {{ $tellers->sum('total_sales') >= 0 ? 'text-green-600' : 'text-red-600' }}">₱{{ number_format($tellers->sum('total_sales'), 2) }}</p>
+                    </div>
+                    <div class="bg-white p-3 rounded-md shadow-sm">
+                        <h3 class="text-sm font-medium text-gray-500">Total Hits</h3>
+                        <p class="text-2xl font-bold {{ $tellers->sum('total_hits') >= 0 ? 'text-green-600' : 'text-red-600' }}">₱{{ number_format($tellers->sum('total_hits'), 2) }}</p>
+                    </div>
+                    <div class="bg-white p-3 rounded-md shadow-sm">
+                        <h3 class="text-sm font-medium text-gray-500">Total Commission</h3>
+                        <p class="text-2xl font-bold {{ $tellers->sum('total_commission') >= 0 ? 'text-green-600' : 'text-red-600' }}">₱{{ number_format($tellers->sum('total_commission'), 2) }}</p>
+                    </div>
+                    <div class="bg-white p-3 rounded-md shadow-sm">
+                        <h3 class="text-sm font-medium text-gray-500">Total Gross</h3>
+                        <p class="text-2xl font-bold {{ ($tellers->sum('total_sales') - $tellers->sum('total_hits') - $tellers->sum('total_commission')) >= 0 ? 'text-green-600' : 'text-red-600' }}">₱{{ number_format($tellers->sum('total_sales') - $tellers->sum('total_hits') - $tellers->sum('total_commission'), 2) }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Tellers Table -->
-        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="mb-8 bg-white rounded-lg shadow overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
@@ -82,7 +106,7 @@
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hits</th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Commission</th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gross</th>
-                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider print:hidden">Actions</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider print:hidden">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
@@ -98,22 +122,23 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                     {{ $teller->coordinator->name ?? 'N/A' }}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm {{ ($teller->total_sales ?? 0) >= 0 ? 'text-green-600' : 'text-red-600' }} font-medium">
                                     ₱{{ number_format($teller->total_sales ?? 0, 2, '.', ',') }}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm {{ ($teller->total_hits ?? 0) >= 0 ? 'text-green-600' : 'text-red-600' }} font-medium">
                                     ₱{{ number_format($teller->total_hits ?? 0, 2, '.', ',') }}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm {{ ($teller->total_commission ?? 0) >= 0 ? 'text-green-600' : 'text-red-600' }} font-medium">
                                     ₱{{ number_format($teller->total_commission ?? 0, 2, '.', ',') }}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm {{ (($teller->total_sales ?? 0) - ($teller->total_hits ?? 0) - ($teller->total_commission ?? 0)) >= 0 ? 'text-green-600' : 'text-red-600' }} font-medium">
                                     ₱{{ number_format(($teller->total_sales ?? 0) - ($teller->total_hits ?? 0) - ($teller->total_commission ?? 0), 2, '.', ',') }}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium print:hidden">
-                                    <button wire:click="viewTellerDetails({{ $teller->id }})" class="text-indigo-600 hover:text-indigo-900">
-                                        View Details
-                                    </button>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm print:hidden">
+                                    <div class="flex space-x-2">
+                                        {{ ($this->viewTellerDetailsAction)(['teller_id' => $teller->id]) }}
+                                        {{ ($this->viewTellerBetsAction)(['teller_id' => $teller->id]) }}
+                                    </div>
                                 </td>
                             </tr>
                         @empty
@@ -133,5 +158,6 @@
             {{ $tellers->links() }}
         </div>
     </div>
+    <x-filament-actions::modals />
 </x-admin>
 </div>

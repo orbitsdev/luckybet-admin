@@ -29,6 +29,9 @@ class CoordinatorSalesSummary extends Component implements HasForms, HasActions
     public $totalHits = 0;
     public $totalGross = 0;
     public $debugInfo = [];
+    public $hasPendingDraws = false;
+public $missingResults = [];
+public array $validDrawIds = [];
 
     public function mount()
     {
@@ -57,11 +60,46 @@ class CoordinatorSalesSummary extends Component implements HasForms, HasActions
         $formattedDate = is_string($this->date) ? $this->date : Carbon::parse($this->date)->format('Y-m-d');
         $this->debugInfo['formatted_date'] = $formattedDate;
 
-        $draws = Draw::whereDate('draw_date', $formattedDate)
-            ->orderBy('draw_time')
-            ->get();
+  $draws = Draw::with('result')
+    ->whereDate('draw_date', $formattedDate)
+    ->orderBy('draw_time')
+    ->get();
 
-        $drawIds = $draws->pluck('id')->toArray();
+// Check completeness
+$this->missingResults = [];
+$this->hasPendingDraws = false;
+
+$validDraws = [];
+
+foreach ($draws as $draw) {
+    $missing = [];
+
+    if (!$draw->result) {
+        $missing = ['S2', 'S3', 'D4'];
+    } else {
+        if (!$draw->result->s2_winning_number) $missing[] = 'S2';
+        if (!$draw->result->s3_winning_number) $missing[] = 'S3';
+        if (!$draw->result->d4_winning_number) $missing[] = 'D4';
+    }
+
+    if (!empty($missing)) {
+        $this->hasPendingDraws = true;
+        $this->missingResults[] = [
+            'time' => Carbon::parse($draw->draw_time)->format('g:i A'),
+            'missing' => $missing,
+        ];
+    } else {
+        $validDraws[] = $draw;
+    }
+}
+
+// Only use valid draws for calculations
+$drawIds = collect($validDraws)->pluck('id')->toArray();
+$this->validDrawIds = $drawIds;
+
+
+$this->hasPendingDraws = count($this->missingResults) > 0;
+
         $this->debugInfo['draws_count'] = count($drawIds);
 
         if (empty($drawIds)) {
@@ -346,7 +384,7 @@ class CoordinatorSalesSummary extends Component implements HasForms, HasActions
 
                 // Get active teller count (tellers with sales on this date)
                 $formattedDate = is_string($this->date) ? $this->date : Carbon::parse($this->date)->format('Y-m-d');
-                $draws = Draw::whereDate('draw_date', $formattedDate)->pluck('id')->toArray();
+           $draws = $this->validDrawIds;
 
                 $tellers = User::where('coordinator_id', $coordinatorId)
                     ->where('role', 'teller')

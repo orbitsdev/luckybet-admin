@@ -1,6 +1,17 @@
 <div>
     <x-admin>
         <div class="p-4 bg-white rounded-lg shadow-md">
+
+@if ($hasPendingDraws && count($missingResults))
+    <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4 rounded shadow-sm" role="alert">
+        <p class="font-medium">Notice:</p>
+        @foreach ($missingResults as $entry)
+            <p>{{ $entry['time'] }} draw is missing: <strong>{{ implode(', ', $entry['missing']) }}</strong></p>
+        @endforeach
+        <p class="mt-2 text-sm">Hit and gross values may be incomplete.</p>
+    </div>
+@endif
+
             {{-- <div class="flex justify-between items-center mb-6">
                 <div class="flex items-center space-x-3">
                     <a href="{{ route('reports.summary') }}" class="inline-flex items-center px-2 py-1 text-sm text-gray-700 hover:text-indigo-600">
@@ -16,7 +27,7 @@
                     <input type="date" wire:model.live="date" id="date" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                 </div>
             </div> --}}
-            
+
             @if($coordinatorData)
                 <div class="mb-4 bg-indigo-50 p-4 rounded-lg">
                     <div class="flex items-center">
@@ -31,30 +42,30 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="mb-4">
                     <div class="bg-blue-50 p-4 rounded-lg">
                         <div class="grid grid-cols-3 gap-4">
                             <div class="bg-white p-3 rounded-md shadow-sm">
                                 <h3 class="text-sm font-medium text-gray-500">Total Sales</h3>
-                                <p class="text-2xl font-bold text-blue-600">{{ number_format($totalSales, 2) }}</p>
+                                <p class="text-2xl font-bold {{ $totalSales >= 0 ? 'text-green-600' : 'text-red-600' }}">{{ number_format($totalSales, 2) }}</p>
                             </div>
                             <div class="bg-white p-3 rounded-md shadow-sm">
                                 <h3 class="text-sm font-medium text-gray-500">Total Hits</h3>
-                                <p class="text-2xl font-bold text-red-600">{{ number_format($totalHits, 2) }}</p>
+                                <p class="text-2xl font-bold {{ $totalHits >= 0 ? 'text-green-600' : 'text-red-600' }}">{{ number_format($totalHits, 2) }}</p>
                             </div>
                             <div class="bg-white p-3 rounded-md shadow-sm">
                                 <h3 class="text-sm font-medium text-gray-500">Total Gross</h3>
-                                <p class="text-2xl font-bold text-green-600">{{ number_format($totalGross, 2) }}</p>
+                                <p class="text-2xl font-bold {{ $totalGross >= 0 ? 'text-green-600' : 'text-red-600' }}">{{ number_format($totalGross, 2) }}</p>
                             </div>
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="mb-2 text-sm text-gray-600">
                     <span class="font-medium">Date:</span> {{ \Carbon\Carbon::parse($date)->format('F j, Y') }}
                 </div>
-                
+
                 @if(count($salesData) > 0)
                     <div class="mb-8 bg-white rounded-lg shadow overflow-hidden">
                         <div class="overflow-x-auto">
@@ -72,9 +83,9 @@
                                     @foreach($salesData as $teller)
                                         <tr>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $teller['name'] }}</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-600 font-medium">{{ number_format($teller['total_sales'], 2) }}</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-medium">{{ number_format($teller['total_hits'], 2) }}</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-medium">{{ number_format($teller['total_gross'], 2) }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm {{ $teller['total_sales'] >= 0 ? 'text-green-600' : 'text-red-600' }} font-medium">{{ number_format($teller['total_sales'], 2) }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm {{ $teller['total_hits'] >= 0 ? 'text-green-600' : 'text-red-600' }} font-medium">{{ number_format($teller['total_hits'], 2) }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm {{ $teller['total_gross'] >= 0 ? 'text-green-600' : 'text-red-600' }} font-medium">{{ number_format($teller['total_gross'], 2) }}</td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                 <div class="flex space-x-2">
                                                     {{ ($this->viewTellerDetailsAction)(['teller_id' => $teller['id']]) }}
@@ -98,7 +109,7 @@
                 </div>
             @endif
         </div>
-        
+
         <x-filament-actions::modals />
     </x-admin>
 </div>

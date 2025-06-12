@@ -116,7 +116,7 @@ class BettingController extends Controller
                 }
             }
 
-           
+
             $lowWin = LowWinNumber::where(function ($query) use ($data) {
                 $query->where('draw_id', $data['draw_id'])
                       ->orWhereNull('draw_id'); // Support global fallback
@@ -155,12 +155,12 @@ class BettingController extends Controller
                     DB::rollBack();
                     return ApiResponse::error('Invalid game type for winning amount calculation.', 422);
             }
-            
+
             // ✅ Apply low win override
             if ($lowWin) {
                 $winningAmount = $lowWin->winning_amount;
             }
-            
+
 
 
             // $winningAmount = $lowWin

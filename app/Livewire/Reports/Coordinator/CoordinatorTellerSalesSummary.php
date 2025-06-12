@@ -15,6 +15,7 @@ use Filament\Actions\Action;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
+use App\Services\AdminStatisticsService;
 
 class CoordinatorTellerSalesSummary extends Component implements HasForms, HasActions
 {
@@ -29,6 +30,8 @@ class CoordinatorTellerSalesSummary extends Component implements HasForms, HasAc
     public $totalSales = 0;
     public $totalHits = 0;
     public $totalGross = 0;
+    public $hasPendingDraws = false;
+    public $missingResults = [];
 
     public function mount($coordinator_id = null)
     {
@@ -86,150 +89,106 @@ class CoordinatorTellerSalesSummary extends Component implements HasForms, HasAc
         // Store the coordinator ID for use in other methods
         $this->coordinatorId = $coordinatorId;
     }
+public function loadSalesData()
+{
+    // Reset stats in case of early return
+    $this->resetStats();
 
-    public function loadSalesData()
-    {
-        if (!$this->coordinatorId || !$this->coordinatorData) {
-            $this->salesData = [];
-            $this->totalSales = 0;
-            $this->totalHits = 0;
-            $this->totalGross = 0;
-            return;
-        }
-
-        // Get all draws for the selected date
-        $draws = Draw::where('draw_date', $this->date)
-            ->orderBy('draw_time')
-            ->get();
-
-        $drawIds = $draws->pluck('id')->toArray();
-
-        if (empty($drawIds)) {
-            $this->salesData = [];
-            $this->totalSales = 0;
-            $this->totalHits = 0;
-            $this->totalGross = 0;
-            return;
-        }
-
-        // Get all tellers for this coordinator
-        $tellers = User::where('coordinator_id', $this->coordinatorId)
-            ->where('role', 'teller')
-            ->get();
-
-        if ($tellers->isEmpty()) {
-            $this->salesData = [];
-            $this->totalSales = 0;
-            $this->totalHits = 0;
-            $this->totalGross = 0;
-            return;
-        }
-
-        $tellerIds = $tellers->pluck('id')->toArray();
-
-        // Get all bets for all tellers under this coordinator on this date
-        // Only include bets with receipts in 'placed' status
-        $bets = Bet::placed()->whereIn('teller_id', $tellerIds)
-            ->whereIn('draw_id', $drawIds)
-            ->where('is_rejected', false)
-            ->with(['draw', 'gameType', 'teller'])
-            ->get();
-
-        // Group data by teller
-        $salesByTeller = [];
-        $this->totalSales = 0;
-        $this->totalHits = 0;
-        $this->totalGross = 0;
-
-        // Initialize data for all tellers
-        foreach ($tellers as $teller) {
-            $salesByTeller[$teller->id] = [
-                'id' => $teller->id,
-                'name' => $teller->name,
-                'total_sales' => 0,
-                'total_hits' => 0,
-                'total_gross' => 0,
-                'game_types' => []
-            ];
-        }
-
-        // Process all bets and update teller data
-        foreach ($bets as $bet) {
-            $tellerId = $bet->teller_id;
-
-            // Skip if teller not found (shouldn't happen, but just in case)
-            if (!isset($salesByTeller[$tellerId])) {
-                continue;
-            }
-
-            $gameTypeId = $bet->game_type_id;
-            $gameTypeName = $bet->gameType->name;
-            $gameTypeCode = $bet->gameType->code;
-
-            // Handle D4 sub-selection
-            $displayGameType = $gameTypeCode;
-            if ($gameTypeCode === 'D4' && $bet->d4_sub_selection) {
-                $displayGameType = "D4-{$bet->d4_sub_selection}";
-            }
-
-            // Initialize game type data if not exists for this teller
-            if (!isset($salesByTeller[$tellerId]['game_types'][$displayGameType])) {
-                $salesByTeller[$tellerId]['game_types'][$displayGameType] = [
-                    'name' => $gameTypeName . ($bet->d4_sub_selection ? " ({$bet->d4_sub_selection})" : ""),
-                    'code' => $displayGameType,
-                    'total_sales' => 0,
-                    'total_hits' => 0,
-                    'total_gross' => 0,
-                ];
-            }
-
-            // Update sales data for this teller
-            $salesByTeller[$tellerId]['total_sales'] += $bet->amount;
-            $salesByTeller[$tellerId]['game_types'][$displayGameType]['total_sales'] += $bet->amount;
-
-            // Update hits if this is a winning bet
-            if ($bet->winning_amount > 0) {
-                $salesByTeller[$tellerId]['total_hits'] += $bet->winning_amount;
-                $salesByTeller[$tellerId]['game_types'][$displayGameType]['total_hits'] += $bet->winning_amount;
-            }
-        }
-
-        // Calculate gross for each teller and game type
-        foreach ($salesByTeller as $tellerId => $teller) {
-            // Calculate gross for each game type
-            foreach ($teller['game_types'] as $gameType => $gameData) {
-                $salesByTeller[$tellerId]['game_types'][$gameType]['total_gross'] =
-                    $gameData['total_sales'] - $gameData['total_hits'];
-            }
-
-            // Calculate total gross for teller
-            $salesByTeller[$tellerId]['total_gross'] = $teller['total_sales'] - $teller['total_hits'];
-        }
-
-        // Calculate totals across all tellers
-        $this->totalSales = 0;
-        $this->totalHits = 0;
-        $this->totalGross = 0;
-
-        foreach ($salesByTeller as $teller) {
-            $this->totalSales += $teller['total_sales'];
-            $this->totalHits += $teller['total_hits'];
-            $this->totalGross += ($teller['total_sales'] - $teller['total_hits']); // Correct gross calculation
-        }
-
-        // Remove tellers with no sales
-        foreach ($salesByTeller as $tellerId => $teller) {
-            if ($teller['total_sales'] == 0) {
-                unset($salesByTeller[$tellerId]);
-            }
-        }
-
-        // Convert to indexed array for the view
-        $this->salesData = array_values($salesByTeller);
+    if (!$this->coordinatorId || !$this->coordinatorData) {
+        return;
     }
+
+    // Get all draws for the date and filter incomplete ones
+    $draws = Draw::with('result')
+        ->whereDate('draw_date', $this->date)
+        ->get();
+
+    // Check completeness and build valid draw IDs list
+    $validDraws = [];
+    $this->missingResults = [];
+    
+    foreach ($draws as $draw) {
+        $missing = [];
+
+        if (!$draw->result) {
+            $missing = ['S2', 'S3', 'D4'];
+        } else {
+            if (!$draw->result->s2_winning_number) $missing[] = 'S2';
+            if (!$draw->result->s3_winning_number) $missing[] = 'S3';
+            if (!$draw->result->d4_winning_number) $missing[] = 'D4';
+        }
+
+        if (!empty($missing)) {
+            $this->missingResults[] = [
+                'time' => Carbon::parse($draw->draw_time)->format('g:i A'),
+                'missing' => $missing,
+            ];
+        } else {
+            $validDraws[] = $draw;
+        }
+    }
+
+    $drawIds = collect($validDraws)->pluck('id')->toArray();
+    if (empty($drawIds)) {
+        return;
+    }
+
+    $tellerIds = User::where('coordinator_id', $this->coordinatorId)
+        ->where('role', 'teller')
+        ->pluck('id')
+        ->toArray();
+    if (empty($tellerIds)) {
+        return;
+    }
+
+    // ✅ Check if any draw is missing full result
+    $this->missingResults = [];
+
+$draws = Draw::with('result')
+    ->whereIn('id', $drawIds)
+    ->get();
+
+foreach ($draws as $draw) {
+    $missing = [];
+
+    if (!$draw->result) {
+        $missing = ['S2', 'S3', 'D4'];
+    } else {
+        if (!$draw->result->s2_winning_number) $missing[] = 'S2';
+        if (!$draw->result->s3_winning_number) $missing[] = 'S3';
+        if (!$draw->result->d4_winning_number) $missing[] = 'D4';
+    }
+
+    if (!empty($missing)) {
+        $this->missingResults[] = [
+            'time' => Carbon::parse($draw->draw_time)->format('g:i A'),
+            'missing' => $missing,
+        ];
+    }
+}
+
+$this->hasPendingDraws = count($this->missingResults) > 0;
+    $reportService = new AdminStatisticsService();
+    $summary = $reportService->summarizeByTellers($tellerIds, $drawIds);
+
+    $this->salesData = $summary;
+    $this->totalSales = array_sum(array_column($summary, 'total_sales'));
+    $this->totalHits = array_sum(array_column($summary, 'total_hits'));
+    $this->totalGross = array_sum(array_column($summary, 'total_gross'));
+}
+private function resetStats()
+{
+    $this->salesData = [];
+    $this->totalSales = 0;
+    $this->totalHits = 0;
+    $this->totalGross = 0;
+    $this->hasPendingDraws = false;
+}
+
 
     public function updatedDate()
     {
+         $this->date = Carbon::parse($this->date)->format('Y-m-d');
         $this->loadSalesData();
     }
 
