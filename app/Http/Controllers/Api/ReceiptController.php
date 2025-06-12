@@ -258,9 +258,9 @@ class ReceiptController extends Controller
                     break;
                 case 'D4':
                     if ($data['d4_sub_selection'] === 'S2') {
-                        $winningAmount = $data['amount'] * 70;
+                        $winningAmount = $data['amount'] * 4000;
                     } elseif ($data['d4_sub_selection'] === 'S3') {
-                        $winningAmount = $data['amount'] * 450;
+                        $winningAmount = $data['amount'] * 4000;
                     } else {
                         $winningAmount = $data['amount'] * 4000;
                     }
@@ -456,9 +456,9 @@ class ReceiptController extends Controller
                     break;
                 case 'D4':
                     if ($bet->d4_sub_selection === 'S2') {
-                        $winningAmount = $data['amount'] * 70;
+                        $winningAmount = $data['amount'] * 4000;
                     } elseif ($bet->d4_sub_selection === 'S3') {
-                        $winningAmount = $data['amount'] * 450;
+                        $winningAmount = $data['amount'] * 4000;
                     } else {
                         $winningAmount = $data['amount'] * 4000;
                     }
