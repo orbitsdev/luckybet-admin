@@ -398,8 +398,8 @@ class TellerReportController extends Controller
             // Calculate total commission for today using fixed rate
             $totalCommission = $sales * $commissionRate;
 
-            // Get cancellation count for today - only include bets with receipts in 'placed' status
-            $cancellations = Bet::placed()->where('teller_id', $user->id)
+            // Get cancellation count for today - include bets from both placed and cancelled receipts
+            $cancellations = Bet::finalized()->where('teller_id', $user->id)
                 ->whereDate('bet_date', $today)
                 ->where('is_rejected', true)
                 ->count();

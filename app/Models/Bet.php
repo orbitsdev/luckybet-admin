@@ -252,6 +252,17 @@ class Bet extends Model
     {
         return $query->whereHas('receipt', function($q) {
             $q->where('status', 'placed');
-        })->orWhereNull('receipt_id'); // Include legacy bets without receipt_id
+        });
+    }
+
+    /**
+     * Scope a query to include bets with receipts that are finalized (placed or cancelled)
+     * This excludes draft receipts since they are not yet finalized
+     */
+    public function scopeFinalized($query)
+    {
+        return $query->whereHas('receipt', function($q) {
+            $q->whereIn('status', ['placed', 'cancelled']);
+        });
     }
 }
