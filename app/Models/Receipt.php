@@ -46,7 +46,9 @@ class Receipt extends Model
      */
     public function calculateTotalAmount()
     {
-        return $this->bets()->sum('amount');
+        return $this->bets()
+            ->where('status', '!=', 'cancelled')
+            ->sum('amount');
     }
 
     /**
