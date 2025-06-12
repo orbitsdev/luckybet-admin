@@ -28,6 +28,8 @@ class ReceiptResource extends JsonResource
             'created_at' => $this->created_at,
             'created_at_formatted' => $this->created_at?->format('M d, Y h:i A'),
             'updated_at' => $this->updated_at,
+           'placed_at' => $this->status === 'placed' ? $this->updated_at : null,
+           'placed_at_formatted' => $this->status === 'placed' ? $this->updated_at?->format('M d, Y h:i A') : null,
         ];
     }
 }
