@@ -49,6 +49,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/receipts/{receipt}/bets/{bet}', [ReceiptController::class, 'updateBet']);
     Route::post('/receipts/{receipt}/place', [ReceiptController::class, 'placeReceipt']);
     Route::post('/receipts/{receipt}/cancel', [ReceiptController::class, 'cancelReceipt']);
+    Route::post('/receipts/{receipt}/cancel-draft', [ReceiptController::class, 'cancelDraft']);
 
 
     // Reports

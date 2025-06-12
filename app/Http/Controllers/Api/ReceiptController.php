@@ -610,7 +610,7 @@ class ReceiptController extends Controller
             // Update receipt and all its bets to cancelled status
             $receipt->status = 'cancelled';
             $receipt->save();
-            
+
             // Mark all bets as rejected
             $receipt->bets()->update(['is_rejected' => true]);
 
@@ -621,6 +621,42 @@ class ReceiptController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             return ApiResponse::error('Failed to cancel receipt: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Delete a draft receipt and all its bets
+     */
+    public function cancelDraft(Receipt $receipt, Request $request)
+    {
+        $user = $request->user();
+
+        // Check if receipt belongs to this teller
+        if ($receipt->teller_id !== $user->id) {
+            return ApiResponse::error('Unauthorized', 403);
+        }
+
+        // Check if receipt is still in draft status
+        if ($receipt->status !== 'draft') {
+            return ApiResponse::error('This receipt has already been finalized or cancelled', 422);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // Delete all bets first
+            $receipt->bets()->delete();
+            
+            // Then delete the receipt
+            $receipt->delete();
+
+            DB::commit();
+
+            return ApiResponse::success(null, 'Draft receipt deleted successfully');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return ApiResponse::error('Failed to delete draft receipt: ' . $e->getMessage(), 500);
         }
     }
 }
