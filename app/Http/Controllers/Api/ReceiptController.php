@@ -257,13 +257,8 @@ class ReceiptController extends Controller
                     $winningAmount = $data['amount'] * 450;
                     break;
                 case 'D4':
-                    if ($data['d4_sub_selection'] === 'S2') {
-                        $winningAmount = $data['amount'] * 4000;
-                    } elseif ($data['d4_sub_selection'] === 'S3') {
-                        $winningAmount = $data['amount'] * 4000;
-                    } else {
-                        $winningAmount = $data['amount'] * 4000;
-                    }
+                    // For D4, if no subtype is specified or it's null, treat as regular D4
+                    $winningAmount = $data['amount'] * 4000;
                     break;
                 default:
                     DB::rollBack();
@@ -455,13 +450,8 @@ class ReceiptController extends Controller
                     $winningAmount = $data['amount'] * 450;
                     break;
                 case 'D4':
-                    if ($bet->d4_sub_selection === 'S2') {
-                        $winningAmount = $data['amount'] * 4000;
-                    } elseif ($bet->d4_sub_selection === 'S3') {
-                        $winningAmount = $data['amount'] * 4000;
-                    } else {
-                        $winningAmount = $data['amount'] * 4000;
-                    }
+                    // For D4, if no subtype is specified or it's null, treat as regular D4
+                    $winningAmount = $data['amount'] * 4000;
                     break;
                 default:
                     DB::rollBack();
