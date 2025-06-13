@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('draw_id')->constrained('draws')->onDelete('cascade');
             $table->foreignId('game_type_id')->constrained('game_types');
             $table->string('bet_number');
+            $table->string('sub_selection')->nullable();
             $table->decimal('max_amount', 10, 2);
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('location_id')->nullable()->constrained('locations')->nullOnDelete();

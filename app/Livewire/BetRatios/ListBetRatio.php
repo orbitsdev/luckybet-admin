@@ -10,6 +10,7 @@ use App\Models\GameType;
 use App\Models\Location;
 use Filament\Tables\Table;
 use Illuminate\Support\Carbon;
+use Filament\Tables\Grouping\Group;
 use Illuminate\Contracts\View\View;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Tables\Contracts\HasTable;
@@ -100,15 +101,65 @@ public function handleFilterChange(): void
                         $q->whereDate('draw_date', $this->filterDate);
                     })
             )
+            // Group by location
+            ->groups([
+                Group::make('location.name')
+                    ->label('Location')
+                    ->titlePrefixedWithLabel(false)
+                    ->getTitleFromRecordUsing(fn (BetRatio $record): string => $record->location?->name ?? 'No Location'),
+            ])
+            ->defaultGroup('location.name')
             ->columns([
-                Tables\Columns\TextColumn::make('draw.draw_date')->label('Draw Date')->date()->sortable(),
-                Tables\Columns\TextColumn::make('draw.draw_time')->label('Draw Time')->time('h:i A')->sortable(),
-                Tables\Columns\TextColumn::make('gameType.name')->label('Game Type')->sortable(),
-                Tables\Columns\TextColumn::make('bet_number')->searchable(),
-                Tables\Columns\TextColumn::make('sub_selection')->sortable(),
-                Tables\Columns\TextColumn::make('max_amount')->money('PHP')->sortable(),
-                Tables\Columns\TextColumn::make('user.name')->label('User')->sortable(),
-                Tables\Columns\TextColumn::make('location.name')->label('Location')->sortable(),
+                Tables\Columns\TextColumn::make('draw.draw_date')
+                ->label('Draw Date')
+                ->date()
+                ->sortable()
+                ->color('primary')
+                ->weight('bold'),
+        
+            Tables\Columns\TextColumn::make('draw.draw_time')
+                ->label('Draw Time')
+                ->time('h:i A')
+                ->sortable()
+                ->badge()
+                ->color('gray'),
+        
+            Tables\Columns\TextColumn::make('gameType.name')
+                ->label('Game Type')
+                ->sortable()
+                ->badge(),
+               
+        
+            Tables\Columns\TextColumn::make('sub_selection')
+                ->label('Sub')
+                ->visible(fn ($record) => $record && $record->gameType?->code === 'D4')
+                ->color(fn (?string $state): string => match ($state) {
+                    'S2' => 'success',
+                    'S3' => 'warning',
+                    default => 'gray',
+                }),
+        
+            Tables\Columns\TextColumn::make('bet_number')
+                ->label('Bet #')
+                ->searchable()
+                ->copyable()
+                ->weight('medium'),
+        
+            Tables\Columns\TextColumn::make('max_amount')
+                ->label('Max Cap')
+                ->money('PHP')
+                ->sortable()
+                ->color('success'),
+        
+            Tables\Columns\TextColumn::make('user.name')
+                ->label('Added By')
+                ->sortable()
+                ->color('info'),
+        
+            Tables\Columns\TextColumn::make('location.name')
+                ->label('Location')
+                ->sortable()
+                ->color('secondary'),
             ])
            ->filters([
     Tables\Filters\Filter::make('draw_date')
