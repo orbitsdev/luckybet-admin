@@ -9,16 +9,17 @@ use App\Livewire\Users\ListUsers;
 use App\Livewire\Draws\CreateDraw;
 use App\Livewire\Users\CreateUser;
 use App\Livewire\Draws\ManageDraws;
+use App\Livewire\Receipt\ViewReceipt;
 use Illuminate\Support\Facades\Route;
+use App\Livewire\Receipt\ListReceipts;
 use App\Livewire\Reports\SalesSummary;
 use App\Livewire\Draws\ViewDrawDetails;
-use App\Livewire\Receipt\ListReceipts;
-use App\Livewire\Receipt\ViewReceipt;
 
+use App\Livewire\BetRatios\ListBetRatio;
 use App\Livewire\Coordinator\EditTeller;
-use App\Livewire\Reports\ReportByTeller;
-use App\Livewire\BetRatios\ListBetRatios;
 
+
+use App\Livewire\Reports\ReportByTeller;
 use App\Livewire\Locations\ListLocations;
 use App\Livewire\Coordinator\CreateTeller;
 use App\Livewire\Coordinator\ManageTellers;
@@ -82,7 +83,7 @@ Route::middleware([
 
         //
         Route::get('bets', ListBets::class)->name('bets');
-        // Route::get('bet-ratios', ListBetRatios::class)->name('bet-ratios');
+        Route::get('bet-ratios', ListBetRatio::class)->name('bet-ratios');
         Route::get('commissions', ListCommission::class)->name('commissions');
         Route::get('low-win-numbers', ListLowWinNumbers::class)->name('low-win-numbers');
         Route::get('sold-out-numbers', ListSoldOutNumbers::class)->name('sold-out-numbers');

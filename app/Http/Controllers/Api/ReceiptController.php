@@ -659,4 +659,76 @@ class ReceiptController extends Controller
             return ApiResponse::error('Failed to delete draft receipt: ' . $e->getMessage(), 500);
         }
     }
+    
+    /**
+     * Cancel a single bet from a placed receipt
+     */
+    public function cancelReceiptBet(Receipt $receipt, Bet $bet, Request $request)
+    {
+        $user = $request->user();
+
+        // Check if receipt belongs to this teller
+        if ($receipt->teller_id !== $user->id) {
+            return ApiResponse::error('Unauthorized', 403);
+        }
+        
+        // Check if receipt is in placed status
+        if ($receipt->status !== 'placed') {
+            return ApiResponse::error('Can only cancel bets from placed receipts', 422);
+        }
+
+        // Check if bet belongs to this receipt
+        if ($bet->receipt_id !== $receipt->id) {
+            return ApiResponse::error('This bet does not belong to the specified receipt', 422);
+        }
+        
+        // Check if bet is already rejected or claimed
+        if ($bet->is_rejected) {
+            return ApiResponse::error('This bet is already cancelled', 422);
+        }
+        
+        if ($bet->is_claimed) {
+            return ApiResponse::error('Cannot cancel a claimed bet', 422);
+        }
+        
+        // Check if the draw is still open
+        $draw = Draw::find($bet->draw_id);
+        if ($draw && !$draw->is_open) {
+            return ApiResponse::error('Cannot cancel bet as the draw is closed', 422);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // Mark the bet as rejected
+            $bet->is_rejected = true;
+            $bet->save();
+            
+            // Update receipt total amount
+            $receipt->total_amount = $receipt->calculateTotalAmount();
+            $receipt->save();
+            
+            // Check if all bets in the receipt are now cancelled
+            $activeBetsCount = $receipt->bets()->where('is_rejected', false)->count();
+            if ($activeBetsCount === 0) {
+                // If all bets are cancelled, mark the receipt as cancelled too
+                $receipt->status = 'cancelled';
+                $receipt->save();
+            }
+
+            DB::commit();
+            
+            // Load relationships for response
+            $receipt->load(['bets.gameType', 'bets.draw', 'teller', 'location']);
+
+            return ApiResponse::success(
+                new ReceiptResource($receipt),
+                'Bet cancelled successfully'
+            );
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return ApiResponse::error('Failed to cancel bet: ' . $e->getMessage(), 500);
+        }
+    }
 }

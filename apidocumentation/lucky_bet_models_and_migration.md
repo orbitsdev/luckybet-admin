@@ -22,7 +22,7 @@ This document provides a comprehensive overview of the LuckyBet Admin system's d
 - [Key Business Scenarios](#key-business-scenarios)
 - [Migrations](#migrations)
 
-## Database Schema Overview
+## Database Schema Overviewrec
 
 The LuckyBet Admin system is built around several key entities:
 
