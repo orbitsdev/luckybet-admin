@@ -13,11 +13,21 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
+/**
+ * WinningReport Component
+ * 
+ * This component manages the winning report functionality, including:
+ * - Filtering winning bets by various criteria
+ * - Displaying statistics about winning bets
+ * - Exporting winning bet data to CSV
+ */
 class WinningReport extends Component
 {
     use WithPagination;
 
-    // Filter properties
+    /**
+     * Filter Properties
+     */
     public $selectedDate;
     public $search = '';
     public $selectedTeller = '';
@@ -28,19 +38,26 @@ class WinningReport extends Component
     public $selectedClaimedStatus = '';
     public $perPage = 20;
 
-    // Statistics
+    /**
+     * Statistics Properties
+     */
     public $totalWinAmount = 0;
     public $totalWinners = 0;
     public $winnersByGameType = [];
     public $winnersByLocation = [];
 
-    // For dropdowns
+    /**
+     * Dropdown Options
+     */
     public $gameTypes = [];
     public $locations = [];
     public $coordinators = [];
     public $tellers = [];
     public $d4SubSelections = ['S2', 'S3'];
 
+    /**
+     * Initialize the component
+     */
     public function mount()
     {
         // Set default date to today
@@ -56,6 +73,13 @@ class WinningReport extends Component
         $this->loadData();
     }
 
+    /**
+     * Data Loading & Statistics Methods
+     */
+    
+    /**
+     * Load data and calculate statistics
+     */
     public function loadData()
     {
         // Reset pagination when filters change
@@ -65,6 +89,9 @@ class WinningReport extends Component
         $this->calculateStatistics();
     }
 
+    /**
+     * Calculate statistics for winning bets
+     */
     public function calculateStatistics()
     {
         // Using placed scope to only include bets with receipts in 'placed' status
@@ -102,6 +129,15 @@ class WinningReport extends Component
             ->toArray();
     }
 
+    /**
+     * Query Building Methods
+     */
+    
+    /**
+     * Build the query for fetching winning bets with all applied filters
+     * 
+     * @return Builder
+     */
     protected function getWinningBetsQuery()
     {
         return Bet::placed()->with([
@@ -110,78 +146,144 @@ class WinningReport extends Component
         ->whereHas('draw.result')
         ->whereDate('bet_date', $this->selectedDate)
         ->where('is_rejected', false)
-        // Filter by teller
-        ->when($this->selectedTeller, function($q) {
-            $q->where('teller_id', $this->selectedTeller);
-        })
-        // Filter by location
-        ->when($this->selectedLocation, function($q) {
-            $q->where('location_id', $this->selectedLocation);
-        })
-        // Filter by coordinator (filter tellers by coordinator)
-        ->when($this->selectedCoordinator, function($q) {
-            $q->whereHas('teller', function($sub) {
-                $sub->where('coordinator_id', $this->selectedCoordinator);
-            });
-        })
-        // Filter by game type
-        ->when($this->selectedGameType, function($q) {
-            $q->where('game_type_id', $this->selectedGameType);
-        })
-        // Filter by D4 sub-selection
-        ->when($this->selectedD4SubSelection, function($q) {
-            $q->where('d4_sub_selection', $this->selectedD4SubSelection);
-        })
-        // Filter by claimed status
-        ->when($this->selectedClaimedStatus !== '', function($q) {
-            $q->where('is_claimed', $this->selectedClaimedStatus === '1');
-        })
-        // Search
-        ->when($this->search, function($q) {
-            $q->where(function($sub) {
-                $sub->where('ticket_id', 'like', "%{$this->search}%")
-                    ->orWhere('bet_number', 'like', "%{$this->search}%");
-            });
-        })
-        // Only include winning bets - we'll use the Bet model's isHit method which correctly handles D4 sub-selections
+        // Apply all filters
+        ->when($this->selectedTeller, $this->applyTellerFilter())
+        ->when($this->selectedLocation, $this->applyLocationFilter())
+        ->when($this->selectedCoordinator, $this->applyCoordinatorFilter())
+        ->when($this->selectedGameType, $this->applyGameTypeFilter())
+        ->when($this->selectedD4SubSelection, $this->applyD4SubSelectionFilter())
+        ->when($this->selectedClaimedStatus !== '', $this->applyClaimedStatusFilter())
+        ->when($this->search, $this->applySearchFilter())
+        // Filter to only include winning bets
         ->whereHas('draw.result', function (Builder $query) {
-            // We need the result to exist
-            $query->whereNotNull('id');
+            $query->whereRaw('1=1'); // Just to ensure the relation exists
         })
         ->where(function (Builder $query) {
-            // For S2 game type
-            $query->where(function ($q) {
-                $q->where('game_type_id', 1)
-                  ->whereRaw('EXISTS (SELECT 1 FROM results WHERE results.draw_id = bets.draw_id AND bets.bet_number = results.s2_winning_number)');
-            })
-            // For S3 game type
-            ->orWhere(function ($q) {
-                $q->where('game_type_id', 2)
-                  ->whereRaw('EXISTS (SELECT 1 FROM results WHERE results.draw_id = bets.draw_id AND bets.bet_number = results.s3_winning_number)');
-            })
-            // For D4 game type - exact match
-            ->orWhere(function ($q) {
-                $q->where('game_type_id', 3)
-                  ->whereRaw('EXISTS (SELECT 1 FROM results WHERE results.draw_id = bets.draw_id AND bets.bet_number = results.d4_winning_number)');
-            })
-            // For D4-S2 sub-selection - we need to compare the last 2 digits of D4 winning number
-            ->orWhere(function ($q) {
-                $q->where('game_type_id', 3)
-                  ->where('d4_sub_selection', 'S2')
-                  ->whereRaw('EXISTS (SELECT 1 FROM results WHERE results.draw_id = bets.draw_id AND 
-                                RIGHT(results.d4_winning_number, 2) = LPAD(bets.bet_number, 2, "0"))');
-            })
-            // For D4-S3 sub-selection - we need to compare the last 3 digits of D4 winning number
-            ->orWhere(function ($q) {
-                $q->where('game_type_id', 3)
-                  ->where('d4_sub_selection', 'S3')
-                  ->whereRaw('EXISTS (SELECT 1 FROM results WHERE results.draw_id = bets.draw_id AND 
-                                RIGHT(results.d4_winning_number, 3) = LPAD(bets.bet_number, 3, "0"))');
-            });
+            $this->applyWinningConditions($query);
         })
         ->latest();
     }
+    
+    /**
+     * Apply teller filter to query
+     */
+    private function applyTellerFilter()
+    {
+        return function($query) {
+            $query->where('teller_id', $this->selectedTeller);
+        };
+    }
+    
+    /**
+     * Apply location filter to query
+     */
+    private function applyLocationFilter()
+    {
+        return function($query) {
+            $query->where('location_id', $this->selectedLocation);
+        };
+    }
+    
+    /**
+     * Apply coordinator filter to query
+     */
+    private function applyCoordinatorFilter()
+    {
+        return function($query) {
+            $query->whereHas('teller', function($sub) {
+                $sub->where('coordinator_id', $this->selectedCoordinator);
+            });
+        };
+    }
+    
+    /**
+     * Apply game type filter to query
+     */
+    private function applyGameTypeFilter()
+    {
+        return function($query) {
+            $query->where('game_type_id', $this->selectedGameType);
+        };
+    }
+    
+    /**
+     * Apply D4 sub-selection filter to query
+     */
+    private function applyD4SubSelectionFilter()
+    {
+        return function($query) {
+            $query->where('d4_sub_selection', $this->selectedD4SubSelection);
+        };
+    }
+    
+    /**
+     * Apply claimed status filter to query
+     */
+    private function applyClaimedStatusFilter()
+    {
+        return function($query) {
+            $query->where('is_claimed', $this->selectedClaimedStatus == '1');
+        };
+    }
+    
+    /**
+     * Apply search filter to query
+     */
+    private function applySearchFilter()
+    {
+        return function($query) {
+            $query->where(function($sub) {
+                $sub->where('ticket_id', 'like', '%' . $this->search . '%')
+                    ->orWhere('bet_number', 'like', '%' . $this->search . '%');
+            });
+        };
+    }
+    
+    /**
+     * Apply winning conditions to query
+     * 
+     * @param Builder $query
+     */
+    private function applyWinningConditions(Builder $query)
+    {
+        // For S2 game type - exact match
+        $query->where(function ($q) {
+            $q->where('game_type_id', 1)
+              ->whereRaw('EXISTS (SELECT 1 FROM results WHERE results.draw_id = bets.draw_id AND bets.bet_number = results.s2_winning_number)');
+        })
+        // For S3 game type - exact match
+        ->orWhere(function ($q) {
+            $q->where('game_type_id', 2)
+              ->whereRaw('EXISTS (SELECT 1 FROM results WHERE results.draw_id = bets.draw_id AND bets.bet_number = results.s3_winning_number)');
+        })
+        // For D4 game type - exact match
+        ->orWhere(function ($q) {
+            $q->where('game_type_id', 3)
+              ->whereRaw('EXISTS (SELECT 1 FROM results WHERE results.draw_id = bets.draw_id AND bets.bet_number = results.d4_winning_number)');
+        })
+        // For D4-S2 sub-selection - we need to compare the last 2 digits of D4 winning number
+        ->orWhere(function ($q) {
+            $q->where('game_type_id', 3)
+              ->where('d4_sub_selection', 'S2')
+              ->whereRaw('EXISTS (SELECT 1 FROM results WHERE results.draw_id = bets.draw_id AND 
+                            RIGHT(results.d4_winning_number, 2) = LPAD(bets.bet_number, 2, "0"))');
+        })
+        // For D4-S3 sub-selection - we need to compare the last 3 digits of D4 winning number
+        ->orWhere(function ($q) {
+            $q->where('game_type_id', 3)
+              ->where('d4_sub_selection', 'S3')
+              ->whereRaw('EXISTS (SELECT 1 FROM results WHERE results.draw_id = bets.draw_id AND 
+                            RIGHT(results.d4_winning_number, 3) = LPAD(bets.bet_number, 3, "0"))');
+        });
+    }
 
+    /**
+     * Filter Management Methods
+     */
+    
+    /**
+     * Handle coordinator filter change and update teller options
+     */
     public function updatedSelectedCoordinator()
     {
         // Reset teller selection when coordinator changes
@@ -199,11 +301,19 @@ class WinningReport extends Component
         $this->loadData();
     }
 
+    /**
+     * Handle per page change
+     */
     public function updatedPerPage()
     {
         $this->resetPage();
     }
 
+    /**
+     * Handle filter property changes
+     * 
+     * @param string $property
+     */
     public function updated($property)
     {
         if (in_array($property, [
@@ -215,6 +325,9 @@ class WinningReport extends Component
         }
     }
     
+    /**
+     * Reset all filters to default values
+     */
     public function resetFilters()
     {
         $this->selectedDate = now()->toDateString();
@@ -229,6 +342,13 @@ class WinningReport extends Component
         $this->loadData();
     }
 
+    /**
+     * Export & Rendering Methods
+     */
+    
+    /**
+     * Export winning bets data to CSV file
+     */
     public function exportToCsv()
     {
         $winningBets = $this->getWinningBetsQuery()->get();
@@ -237,26 +357,50 @@ class WinningReport extends Component
         $filePath = 'exports/' . $filename;
 
         // Create CSV content
-        $csvContent = "Ticket ID,Bet Number,Game Type,D4 Sub-Selection,Bet Date,Location,Teller,Bet Amount,Winning Amount,Claimed\n";
-
+        $csvContent = $this->generateCsvHeader();
+        
         foreach ($winningBets as $bet) {
-            $claimed = $bet->is_claimed ? 'Yes' : 'No';
-            $betDate = Carbon::parse($bet->bet_date)->format('Y-m-d');
-            $d4SubSelection = ($bet->gameType->name === 'D4' && $bet->d4_sub_selection) ? $bet->d4_sub_selection : '-';
-
-            $csvContent .= "\"{$bet->ticket_id}\",\"{$bet->bet_number}\",\"{$bet->gameType->name}\",\"{$d4SubSelection}\",\"{$betDate}\",\"{$bet->location->name}\",\"{$bet->teller->name}\",{$bet->bet_amount},{$bet->winning_amount},{$claimed}\n";
+            $csvContent .= $this->formatBetForCsv($bet);
         }
 
         // Store the file
         Storage::disk('public')->put($filePath, $csvContent);
 
-        // Generate download URL
+        // Generate download URL and trigger browser download
         $downloadUrl = Storage::disk('public')->url($filePath);
-
-        // Trigger browser download
         $this->dispatch('downloadFile', ['url' => $downloadUrl]);
     }
+    
+    /**
+     * Generate CSV header row
+     * 
+     * @return string
+     */
+    private function generateCsvHeader()
+    {
+        return "Ticket ID,Bet Number,Game Type,D4 Sub-Selection,Bet Date,Location,Teller,Bet Amount,Winning Amount,Claimed\n";
+    }
+    
+    /**
+     * Format a bet record for CSV export
+     * 
+     * @param Bet $bet
+     * @return string
+     */
+    private function formatBetForCsv($bet)
+    {
+        $claimed = $bet->is_claimed ? 'Yes' : 'No';
+        $betDate = Carbon::parse($bet->bet_date)->format('Y-m-d');
+        $d4SubSelection = ($bet->gameType->name === 'D4' && $bet->d4_sub_selection) ? $bet->d4_sub_selection : '-';
 
+        return "\"{$bet->ticket_id}\",\"{$bet->bet_number}\",\"{$bet->gameType->name}\",\"{$d4SubSelection}\",\"{$betDate}\",\"{$bet->location->name}\",\"{$bet->teller->name}\",{$bet->bet_amount},{$bet->winning_amount},{$claimed}\n";
+    }
+
+    /**
+     * Render the component
+     * 
+     * @return \Illuminate\View\View
+     */
     public function render()
     {
         $winners = $this->getWinningBetsQuery()->paginate($this->perPage);

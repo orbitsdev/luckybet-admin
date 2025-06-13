@@ -272,12 +272,10 @@ class BettingController extends Controller
         try {
             DB::beginTransaction();
 
-
             $bet = Bet::where('id', $id)
                 ->where('teller_id', $request->user()->id)
                 ->where('is_claimed', false)
                 ->where('is_rejected', false)
-                ->lockForUpdate()
                 ->first();
 
             if (!$bet) {
@@ -290,12 +288,21 @@ class BettingController extends Controller
                 return ApiResponse::error('Cannot cancel bet as the draw is closed', 422);
             }
 
-
+            // Mark the bet as rejected
             $bet->is_rejected = true;
             $bet->save();
+            
+            // If the bet belongs to a receipt, update the receipt's total amount
+            if ($bet->receipt_id) {
+                $receipt = $bet->receipt;
+                // Only update if it's not a draft receipt (drafts are handled differently)
+                if ($receipt && $receipt->status !== 'draft') {
+                    $receipt->total_amount = $receipt->calculateTotalAmount();
+                    $receipt->save();
+                }
+            }
 
             DB::commit();
-
 
             return ApiResponse::success(null, 'Bet cancelled successfully');
 
