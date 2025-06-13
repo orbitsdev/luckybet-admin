@@ -125,7 +125,7 @@ public function handleFilterChange(): void
                 ->color('gray'),
         
             Tables\Columns\TextColumn::make('gameType.name')
-                ->label('Game Type')
+                ->label('Bet Type')
                 ->sortable()
                 ->badge(),
                
