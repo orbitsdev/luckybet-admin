@@ -80,7 +80,6 @@ Route::middleware([
 
         Route::get('winning-amounts', ListWinningAmount::class)->name('winning-amounts');
 
-
         //
         Route::get('bets', ListBets::class)->name('bets');
         Route::get('bet-ratios', ListBetRatio::class)->name('bet-ratios');
@@ -91,7 +90,10 @@ Route::middleware([
         // Receipts Management
         Route::get('receipts', ListReceipts::class)->name('receipts');
         Route::get('receipts/{receipt}/view', ViewReceipt::class)->name('receipts.view');
-
+        
+        // Admin Dashboard
+        Route::get('admin-dashboard', \App\Livewire\Admin\AdminDashboard::class)->name('admin-dashboard');
+        Route::get('system-reports', \App\Livewire\Admin\SystemReports::class)->name('system-reports');
     });
 
     Route::prefix('/reports')->name('reports.')->middleware('can:admin')->group(function(){
@@ -102,6 +104,10 @@ Route::middleware([
         Route::get('tellers', TellerSalesReport::class)->name('tellers');
         Route::get('tellers/summary', TellerSalesSummary::class)->name('tellers-summary');
         Route::get('winning-report', WinningReport::class)->name('winning-report');
+        
+        // Admin-specific reports
+        Route::get('admin/dashboard', \App\Livewire\Reports\Admin\AdminReportsDashboard::class)->name('admin.dashboard');
+        Route::get('admin/receipts', \App\Livewire\Reports\Admin\AdminReceiptsReport::class)->name('admin.receipts');
     });
 
     // Coordinator Routes
@@ -123,10 +129,10 @@ Route::middleware([
         Route::get('/low-win-numbers', \App\Livewire\Coordinator\ListLowWinNumbers::class)->name('coordinator.low-win-numbers');
         Route::get('/bets', \App\Livewire\Coordinator\ManageBets::class)->name('coordinator.bets');
 
-        // Reports
-        Route::prefix('/reports')->name('reports.')->group(function() {
-        
-        });
+        Route::get('receipts', \App\Livewire\Coordinator\Receipts::class)->name('receipts');
+        Route::get('reports', \App\Livewire\Coordinator\Reports::class)->name('reports');
+
+      
     });
 
 
