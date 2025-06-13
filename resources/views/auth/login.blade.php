@@ -30,8 +30,8 @@
     </style>
 </head>
 <body class="h-full">
-    <div class="flex min-h-full">
-        <div class="flex flex-1 flex-col justify-center px-4 py-12 sm:px-6 lg:flex-none lg:px-20 xl:px-24">
+    <div class="flex min-h-full justify-center items-center">
+        <div class="flex flex-col justify-center px-4 py-12 sm:px-6 lg:px-8">
             <div class="mx-auto w-full max-w-sm lg:w-96">
                 <div class="flex flex-col items-center text-center mb-6">
                     <img class="h-32 w-auto" src="{{ asset('assets/logo.png') }}" alt="LuckyBet">
@@ -97,10 +97,6 @@
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="relative hidden w-0 flex-1 lg:block">
-            <img class="absolute inset-0 h-full w-full object-cover" src="{{ asset('assets/logo_bg.jpg') }}" alt="LuckyBet Background" onerror="this.onerror=null; this.src='{{ asset('assets/logo.png') }}'; this.classList.add('p-16', 'object-contain');">
-            <div class="absolute inset-0 bg-gradient-to-br from-primary-600/40 to-primary-900/70 mix-blend-multiply"></div>
         </div>
     </div>
 
